@@ -1,0 +1,65 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "0eecd051862e359f988e255c0f4bc800",
+    "content-hash": "e8e89efe54587fce89eedc2a61865cfe",
+    "packages": [
+        {
+            "name": "wienkit/beslist-order-api-php-client",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wienkit/beslist-order-api-php-client.git",
+                "reference": "f5cb872970a876126857aad230718fc7ca2e29e7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/wienkit/beslist-order-api-php-client/zipball/f5cb872970a876126857aad230718fc7ca2e29e7",
+                "reference": "f5cb872970a876126857aad230718fc7ca2e29e7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Wienkit\\BeslistOrdersClient\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Wienk",
+                    "email": "mark@wienkit.nl"
+                }
+            ],
+            "description": "Beslist.nl Order API client PHP",
+            "homepage": "https://github.com/wienkit/beslist-order-api-php-client",
+            "keywords": [
+                "api",
+                "beslist",
+                "beslist.nl",
+                "php"
+            ],
+            "time": "2016-06-05 15:14:06"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "dev",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

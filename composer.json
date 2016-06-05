@@ -1,0 +1,23 @@
+{
+  "name": "wienkit/beslistcart",
+  "description": "PrestaShop module for Beslist.nl Shopping cart integration",
+  "license": "GPL",
+  "authors": [
+      {
+          "name": "Mark Wienk",
+          "email": "mark@wienkit.nl"
+      }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "wienkit/beslist-order-api-php-client": "1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Wienkit\\BeslistOrdersClient\\": "vendor/wienkit/beslist-order-api-php-client/src/"
+    }
+  },
+  "config": {
+    "vendor-dir": "libraries"
+  }
+}
