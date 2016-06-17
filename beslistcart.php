@@ -214,6 +214,13 @@ class BeslistCart extends Module
             $shopid = (int) Tools::getValue('beslist_cart_shopid');
             $clientid = (int) Tools::getValue('beslist_cart_clientid');
             $carrier = (int) Tools::getValue('beslist_cart_carrier');
+            $category = (int) Tools::getValue('beslist_cart_category');
+            $deliveryperiod = (string) Tools::getValue('beslist_cart_deliveryperiod');
+            $deliveryperiod_nostock = (string) Tools::getValue('beslist_cart_deliveryperiod_nostock');
+            $shippingcost = (string) Tools::getValue('beslist_cart_shipping_cost');
+            $shippingcost = floatval(empty($shippingcost) ? 0 : str_replace(',', '.', $shippingcost));
+            $attribute_size = (int) Tools::getValue('beslist_cart_attribute_size');
+            $attribute_color = (int) Tools::getValue('beslist_cart_attribute_color');
 
             // $deliveryCode = (string) Tools::getValue('beslist_cart_delivery_code');
             // $freeShipping = (bool) Tools::getValue('beslist_cart_free_shipping');
@@ -223,6 +230,10 @@ class BeslistCart extends Module
                 || $clientid == 0
                 || empty($personalkey)
                 || empty($carrier)
+                || empty($category)
+                || empty($deliveryperiod)
+                || empty($deliveryperiod_nostock)
+                || empty($shippingcost)
                 // || empty($deliveryCode)
                 )
                 {
@@ -232,8 +243,14 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_TESTMODE', $testmode);
                 Configuration::updateValue('BESLIST_CART_PERSONALKEY', $personalkey);
                 Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
-                Configuration::updateValue('BESLIST_CART_CARRIER', $carrier);
                 Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
+                Configuration::updateValue('BESLIST_CART_CARRIER', $carrier);
+                Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD', $deliveryperiod);
+                Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD_NOSTOCK', $deliveryperiod_nostock);
+                Configuration::updateValue('BESLIST_CART_SHIPPING_COST', $shippingcost);
+                Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
+                Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
+                Configuration::updateValue('BESLIST_CART_CATEGORY', $category);
                 // Configuration::updateValue('BESLIST_CART_DELIVERY_CODE', $deliveryCode);
                 // Configuration::updateValue('BESLIST_CART_FREE_SHIPPING', $freeShipping);
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
@@ -256,7 +273,12 @@ class BeslistCart extends Module
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $carriers = Carrier::getCarriers(Context::getContext()->language->id);
-        // $delivery_codes = BolPlazaProduct::getDeliveryCodes();
+        $categories = BeslistProduct::getBeslistCategories();
+        $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
+        array_unshift($attributes, array(
+          'id_attribute_group' => 0,
+          'name' => $this->l("--- None ---")
+        ));
 
         // Init Fields form array
         $fields_form = array();
@@ -334,17 +356,63 @@ class BeslistCart extends Module
                         'name' => 'name'
                     )
                 ),
-                // array(
-                //     'type' => 'select',
-                //     'label' => $this->l('Delivery code'),
-                //     'desc' => $this->l('Choose a delivery code for your Bol.com products'),
-                //     'name' => 'beslist_cart_delivery_code',
-                //     'options' => array(
-                //         'query' => $delivery_codes,
-                //         'id' => 'deliverycode',
-                //         'name' => 'description'
-                //     )
-                // ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Delivery period'),
+                    'desc' => $this->l('Use one of the following:') . '<br />'
+                               . $this->l('x werkdag(en)')  . '<br />'
+                               . $this->l('x tot x werkdagen')  . '<br />'
+                               . $this->l('x tot x weken')  . '<br />'
+                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
+                               . $this->l('Direct te downloaden')  . '<br />'
+                               . $this->l('Niet op voorraad')  . '<br />'
+                               . $this->l('Pre-order'),
+                    'name' => 'beslist_cart_deliveryperiod',
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Delivery period when not it stock'),
+                    'desc' => $this->l('Use one of the following:') . '<br />'
+                               . $this->l('x werkdag(en)')  . '<br />'
+                               . $this->l('x tot x werkdagen')  . '<br />'
+                               . $this->l('x tot x weken')  . '<br />'
+                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
+                               . $this->l('Direct te downloaden')  . '<br />'
+                               . $this->l('Niet op voorraad')  . '<br />'
+                               . $this->l('Pre-order'),
+                    'name' => 'beslist_cart_deliveryperiod_nostock',
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Shipping cost'),
+                    'desc' => $this->l('For example: 0.00, don\'t use a currency symbol.'),
+                    'name' => 'beslist_cart_shipping_cost',
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'select',
+                    'label' => $this->l('Default size attribute (optional)'),
+                    'desc' => $this->l('Select your size attribute'),
+                    'name' => 'beslist_cart_attribute_size',
+                    'options' => array(
+                        'query' => $attributes,
+                        'id' => 'id_attribute_group',
+                        'name' => 'name'
+                    )
+                ),
+                array(
+                    'type' => 'select',
+                    'label' => $this->l('Default color attribute (optional)'),
+                    'desc' => $this->l('Select your color attribute'),
+                    'name' => 'beslist_cart_attribute_color',
+                    'options' => array(
+                        'query' => $attributes,
+                        'id' => 'id_attribute_group',
+                        'name' => 'name'
+                    )
+                ),
                 // array(
                 //     'type' => 'switch',
                 //     'label' => $this->l('Use free shipping'),
@@ -395,6 +463,17 @@ class BeslistCart extends Module
                     ),
                     'hint' => $this->l('Updates the Beslist.nl categories list.')
                 ),
+                array(
+                    'type' => 'select',
+                    'label' => $this->l('Default category'),
+                    'desc' => $this->l('Select a default category for your Beslist.nl products'),
+                    'name' => 'beslist_cart_category',
+                    'options' => array(
+                        'query' => $categories,
+                        'id' => 'id_beslist_category',
+                        'name' => 'name'
+                    )
+                ),
             ),
             'submit' => array(
                 'title' => $this->l('Update'),
@@ -439,6 +518,12 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
         $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
         $helper->fields_value['beslist_cart_carrier'] = Configuration::get('BESLIST_CART_CARRIER');
+        $helper->fields_value['beslist_cart_deliveryperiod'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD');
+        $helper->fields_value['beslist_cart_deliveryperiod_nostock'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK');
+        $helper->fields_value['beslist_cart_shipping_cost'] = Configuration::get('BESLIST_CART_SHIPPING_COST');
+        $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
+        $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
+        $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
         $helper->fields_value['beslist_cart_update_categories'] = 0;
         // $helper->fields_value['beslist_cart_delivery_code'] = Configuration::get('BESLIST_CART_DELIVERY_CODE');
         // $helper->fields_value['beslist_cart_free_shipping'] = Configuration::get('BESLIST_CART_FREE_SHIPPING');
@@ -483,7 +568,7 @@ class BeslistCart extends Module
         }
 
         $beslistProducts = BeslistProduct::getByProductId($id_product);
-        $currentCategory = 0;
+        $currentCategory = Configuration::get('BESLIST_CART_CATEGORY');
         $indexedBeslistProducts = array();
         foreach ($beslistProducts as $beslistProduct) {
             $currentCategory = $beslistProduct['id_beslist_category'];

@@ -100,9 +100,13 @@ class BeslistProduct extends ObjectModel
     {
         // $id_lang = $context->language->id;
 
+        //
+
         $sql = 'SELECT b.*, c.`name` AS category_name,
-        p.*, product_shop.*, pl.* ,
-        m.`name` AS manufacturer_name, s.`name` AS supplier_name
+        p.*, prattr.`reference` AS attribute_reference, product_shop.*, pl.* ,
+        m.`name` AS manufacturer_name, s.`name` AS supplier_name,
+        SUM(st.`quantity`) as stock,
+        size.`name` AS size, color.`name` AS color, color.`id_attribute` AS variant
 				FROM `'._DB_PREFIX_.'beslist_product` b
         LEFT JOIN `'._DB_PREFIX_.'product` p ON (b.`id_product` = p.`id_product`)
 				'.Shop::addSqlAssociation('product', 'p').'
@@ -111,11 +115,40 @@ class BeslistProduct extends ObjectModel
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
 				LEFT JOIN `'._DB_PREFIX_.'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
         LEFT JOIN `'._DB_PREFIX_.'beslist_categories` c ON (b.`id_beslist_category` = c.`id_beslist_category`)
+        LEFT JOIN `'._DB_PREFIX_.'stock_available` st ON (
+          b.`id_product` = st.`id_product` AND
+          b.`id_product_attribute` = st.`id_product_attribute`
+        )
+        LEFT JOIN `'._DB_PREFIX_.'product_attribute` prattr ON (
+          b.`id_product_attribute` = prattr.`id_product_attribute`
+        )
+        LEFT JOIN `'._DB_PREFIX_.'product_attribute_combination` com ON (
+          b.`id_product_attribute` = com.`id_product_attribute`
+        )
+        LEFT JOIN `'._DB_PREFIX_.'attribute` attrsize ON (
+          com.`id_attribute` = attrsize.`id_attribute` AND
+          attrsize.`id_attribute_group` = ' . Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . '
+        )
+        LEFT JOIN `'._DB_PREFIX_.'attribute_lang` size ON (
+          attrsize.`id_attribute` = size.`id_attribute`
+        )
+        LEFT JOIN `'._DB_PREFIX_.'attribute` attrcolor ON (
+          com.`id_attribute` = attrcolor.`id_attribute` AND
+          attrcolor.`id_attribute_group` = ' . Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . '
+        )
+        LEFT JOIN `'._DB_PREFIX_.'attribute_lang` color ON (
+          attrcolor.`id_attribute` = color.`id_attribute`
+        )
 				WHERE pl.`id_lang` = '.(int)$id_lang.'
           AND product_shop.`active` = 1
-				ORDER BY p.id_product ASC LIMIT 5';
+        GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
+				ORDER BY p.id_product';
+        //
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
+
+
+
 
     /**
      * Returns the BeslistProduct data for a product ID

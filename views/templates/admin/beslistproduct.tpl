@@ -45,6 +45,9 @@
               <option value="{$category.id_beslist_category}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name}</option>
             {/foreach}
           </select>
+          <script>
+            $('.selectpicker').selectpicker('render');
+          </script>
         </div>
   		</div>
 	   </div>
