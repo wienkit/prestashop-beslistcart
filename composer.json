@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Wienkit\\BeslistOrdersClient\\": "vendor/wienkit/beslist-order-api-php-client/src/"
+      "Wienkit\\BeslistOrdersClient\\": "libraries/wienkit/beslist-order-api-php-client/src/"
     }
   },
   "config": {

@@ -13,7 +13,7 @@
  *  @license   LICENSE.txt
  */
 
-class BolPlazaTestPayment extends PaymentModule
+class BeslistTestPayment extends PaymentModule
 {
     public $active = 1;
     public $name = 'beslistcarttest';

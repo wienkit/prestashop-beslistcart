@@ -14,6 +14,7 @@
  */
 
 require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
+require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistProduct.php';
 
 class BeslistCart extends Module
 {
@@ -44,7 +45,13 @@ class BeslistCart extends Module
     public function install()
     {
         if (parent::install()) {
-            return $this->installOrdersTab();
+            return $this->installDb()
+                && $this->installOrdersTab()
+                && $this->installProductsTab()
+                && $this->importCategories()
+                && $this->registerHook('actionAdminControllerSetMedia')
+                && $this->registerHook('actionProductUpdate')
+                && $this->registerHook('displayAdminProductsExtra');
         }
         return false;
     }
@@ -54,8 +61,42 @@ class BeslistCart extends Module
      */
     public function uninstall()
     {
-        return $this->uninstallTabs()
-          && parent::uninstall();
+        return $this->uninstallDb()
+            && $this->uninstallTabs()
+            && $this->unregisterHook('actionAdminControllerSetMedia')
+            && $this->unregisterHook('actionProductUpdate')
+            && $this->unregisterHook('displayAdminProductsExtra')
+            && parent::uninstall();
+    }
+
+    /**
+     * Install the database tables
+     * @return bool success
+     */
+    public function installDb()
+    {
+        $sql = array();
+        $return = true;
+        include(dirname(__FILE__).'/sql_install.php');
+        foreach ($sql as $s) {
+            $return &= Db::getInstance()->execute($s);
+        }
+        return $return;
+
+    }
+
+    /**
+     * Remove the database tables
+     * @return bool success
+     */
+    public function uninstallDb()
+    {
+        $sql = array();
+        include(dirname(__FILE__).'/sql_install.php');
+        foreach ($sql as $name => $v) {
+            Db::getInstance()->execute('DROP TABLE IF EXISTS '.pSQL($name));
+        }
+        return true;
     }
 
     /**
@@ -80,6 +121,26 @@ class BeslistCart extends Module
     }
 
     /**
+     * Install the products menu item
+     */
+    public function installProductsTab()
+    {
+        $productsTab = new Tab();
+        $productsTab->active = 1;
+        $productsTab->name = array();
+        $productsTab->class_name = 'AdminBeslistCartProducts';
+
+        foreach (Language::getLanguages(true) as $lang) {
+            $productsTab->name[$lang['id_lang']] = 'Beslist.nl products';
+        }
+
+        $productsTab->id_parent = (int)Tab::getIdFromClassName('AdminCatalog');
+        $productsTab->module = $this->name;
+
+        return $productsTab->add();
+    }
+
+    /**
      * Remove menu items
      * @return bool success
      */
@@ -88,11 +149,53 @@ class BeslistCart extends Module
         $id_tab = (int)Tab::getIdFromClassName('AdminBeslistCartOrders');
         if ($id_tab) {
             $tab = new Tab($id_tab);
-            if(!$tab->delete()) {
+            if (!$tab->delete()) {
+                return false;
+            }
+        }
+        $id_tab = (int)Tab::getIdFromClassName('AdminBeslistCartProducts');
+        if ($id_tab) {
+            $tab = new Tab($id_tab);
+            if (!$tab->delete()) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Import Beslist Categories
+     */
+    public function importCategories()
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'http://www.beslist.nl/atools/category_overview.php');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Wienk IT Beslist.nl PHP Client');
+        $result = curl_exec($ch);
+        $result = simplexml_load_string($result);
+
+        $items = array();
+
+        foreach ($result->categories->maincat as $maincat) {
+            $this->parseCategory('', $maincat, $items);
+        }
+        Db::getInstance()->delete('beslist_categories');
+        Db::getInstance()->insert('beslist_categories', $items);
+        return true;
+    }
+
+    /**
+     * Parses the categories recursively
+     */
+    protected function parseCategory($parent, $category, &$items) {
+        $items[] = array(
+            'id_beslist_category' => "" . $category[0]['id'],
+            'name' => pSQL($parent . $category[0]['name'])
+        );
+        foreach($category->children() as $name => $child) {
+            $this->parseCategory($parent . $category[0]['name'] . ' > ', $child, $items);
+        }
     }
 
     /**
@@ -104,6 +207,7 @@ class BeslistCart extends Module
         $output = null;
 
         if (Tools::isSubmit('submit'.$this->name)) {
+            $update_categories = (bool) Tools::getValue('beslist_cart_update_categories');
             $enabled = (bool) Tools::getValue('beslist_cart_enabled');
             $testmode = (bool) Tools::getValue('beslist_cart_testmode');
             $personalkey = (string) Tools::getValue('beslist_cart_personalkey');
@@ -133,6 +237,10 @@ class BeslistCart extends Module
                 // Configuration::updateValue('BESLIST_CART_DELIVERY_CODE', $deliveryCode);
                 // Configuration::updateValue('BESLIST_CART_FREE_SHIPPING', $freeShipping);
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
+            }
+
+            if($update_categories) {
+                $this->importCategories();
             }
         }
         return $output.$this->displayForm();
@@ -260,8 +368,39 @@ class BeslistCart extends Module
             'submit' => array(
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right'
-                )
-            );
+            )
+        );
+
+        $fields_form[1]['form'] = array(
+            'legend' => array(
+                'title' => $this->l('Categories'),
+                ),
+            'input' => array(
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Update Beslist.nl categories'),
+                    'name' => 'beslist_cart_update_categories',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'update_categories_enabled_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'update_categories_enabled_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Updates the Beslist.nl categories list.')
+                ),
+            ),
+            'submit' => array(
+                'title' => $this->l('Update'),
+                'class' => 'btn btn-default pull-right'
+            )
+        );
 
         $helper = new HelperForm();
 
@@ -300,11 +439,161 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
         $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
         $helper->fields_value['beslist_cart_carrier'] = Configuration::get('BESLIST_CART_CARRIER');
+        $helper->fields_value['beslist_cart_update_categories'] = 0;
         // $helper->fields_value['beslist_cart_delivery_code'] = Configuration::get('BESLIST_CART_DELIVERY_CODE');
         // $helper->fields_value['beslist_cart_free_shipping'] = Configuration::get('BESLIST_CART_FREE_SHIPPING');
 
         return $helper->generateForm($fields_form);
     }
+
+    /**
+     * Add a new tab to the product page
+     * Executes hook: displayAdminProductsExtra
+     * @param array $param
+     */
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        if (!Configuration::get('BESLIST_CART_ENABLED')) {
+            return $this->display(__FILE__, 'views/templates/admin/disabled.tpl');
+        }
+        if ($id_product = (int)Tools::getValue('id_product')) {
+            $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
+        }
+        if (!Validate:: isLoadedObject($product)) {
+            return;
+        }
+
+        $attributes = $product->getAttributesResume($this->context->language->id);
+
+        if (empty($attributes)) {
+            $attributes[] = array(
+                'id_product' => $product->id,
+                'id_product_attribute' => 0,
+                'attribute_designation' => ''
+            );
+        }
+
+        $product_designation = array();
+
+        foreach ($attributes as $attribute) {
+            $product_designation[$attribute['id_product_attribute']] = rtrim(
+                $product->name .' - ' . $attribute['attribute_designation'],
+                ' - '
+            );
+        }
+
+        $beslistProducts = BeslistProduct::getByProductId($id_product);
+        $currentCategory = 0;
+        $indexedBeslistProducts = array();
+        foreach ($beslistProducts as $beslistProduct) {
+            $currentCategory = $beslistProduct['id_beslist_category'];
+            $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
+        }
+
+        $beslistCategories = BeslistProduct::getBeslistCategories();
+
+        $this->context->controller->addJS("blaat.js");
+
+        $this->context->smarty->assign(array(
+            'attributes' => $attributes,
+            'product_designation' => $product_designation,
+            'product' => $product,
+            'beslist_category' => $currentCategory,
+            'beslist_products' => $indexedBeslistProducts,
+            'beslist_categories' => $beslistCategories
+        ));
+
+        return $this->display(__FILE__, 'views/templates/admin/beslistproduct.tpl');
+    }
+
+    /**
+     * Process BeslistProduct entities added on the product page
+     * Executes hook: actionProductUpdate
+     * @param array $param
+     */
+    public function hookActionProductUpdate($params)
+    {
+        if ((int)Tools::getValue('beslistcart_loaded') === 1
+             && Validate::isLoadedObject($product = new Product((int)$params['id_product']))) {
+            $this->processBeslistProductEntities($product);
+        }
+    }
+
+    /**
+     * Process the Beslist.nl products for a product
+     * @param Product $product
+     */
+    private function processBeslistProductEntities($product)
+    {
+        // Get all id_product_attribute
+        $attributes = $product->getAttributesResume($this->context->language->id);
+        if (empty($attributes)) {
+            $attributes[] = array(
+                'id_product_attribute' => 0,
+                'attribute_designation' => ''
+            );
+        }
+
+        $category_id = Tools::getValue('beslistcart_category');
+
+        $beslistProducts = BeslistProduct::getByProductId($product->id);
+
+        $indexedBeslistProducts = array();
+        foreach ($beslistProducts as $beslistProduct) {
+            $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
+        }
+
+        // get form inforamtion
+        foreach ($attributes as $attribute) {
+            $key = $product->id.'_'.$attribute['id_product_attribute'];
+
+            // get elements to manage
+            $published = Tools::getValue('beslistcart_published_'.$key);
+            $price = Tools::getValue('beslistcart_price_'.$key, 0);
+
+            if (array_key_exists($attribute['id_product_attribute'], $indexedBeslistProducts)) {
+                $beslistProduct = new BeslistProduct(
+                    $indexedBeslistProducts[$attribute['id_product_attribute']]['id_beslist_product']
+                );
+                if ($beslistProduct->price == $price
+                    && $beslistProduct->published == $published
+                    && $beslistProduct->id_beslist_category == $category_id)
+                {
+                    continue;
+                }
+                $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
+            } elseif (!$published && $price == 0) {
+                continue;
+            } else {
+                $beslistProduct = new BeslistProduct();
+            }
+
+            $beslistProduct->id_product = $product->id;
+            $beslistProduct->id_product_attribute = $attribute['id_product_attribute'];
+            $beslistProduct->id_beslist_category = $category_id;
+            $beslistProduct->price = $price;
+            $beslistProduct->published = $published;
+
+            if (!$beslistProduct->published && $price == 0) {
+                $beslistProduct->delete();
+            } else {
+                $beslistProduct->save();
+            }
+        }
+    }
+
+    public function hookActionAdminControllerSetMedia($params)
+    {
+        if ($this->context->controller->controller_name == 'AdminProducts') {
+            $this->context->controller->addCSS(
+                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css'
+            );
+            $this->context->controller->addJS(
+                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js'
+            );
+        }
+    }
+
 
     /**
      * Retrieve the BeslistOrdersClient

@@ -14,6 +14,7 @@
  */
 
 require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
+require_once _PS_MODULE_DIR_.'beslistcart/beslistcart.php';
 require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistPayment.php';
 require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistTestPayment.php';
 
@@ -63,41 +64,41 @@ class AdminBeslistCartOrdersController extends AdminController
                 $payment_module = new BeslistTestPayment();
             }
 
-            foreach ($Beslist->shopOrders as $order) {
-                ddd($order);
-                // if (!self::getTransactionExists($order->OrderId)) {
-                //
-                //     $cart = $this->parse($order);
-                //
-                //     if (!$cart) {
-                //         $this->errors[] = $this->l('Couldn\'t create a cart for order ') .$order->OrderId;
-                //         continue;
-                //     }
-                //
-                //     Context::getContext()->cart = $cart;
-                //     Context::getContext()->currency = new Currency((int)$cart->id_currency);
-                //     Context::getContext()->customer = new Customer((int)$cart->id_customer);
-                //
-                //     $id_order_state = Configuration::get('BOL_PLAZA_ORDERS_INITIALSTATE'); // TODO CONFIG
-                //     $amount_paid = self::getBolPaymentTotal($order);
-                //     $verified = $payment_module->validateOrder(
-                //         (int)$cart->id,
-                //         (int)$id_order_state,
-                //         $amount_paid,
-                //         $payment_module->displayName,
-                //         null,
-                //         array(
-                //             'transaction_id' => $order->OrderId
-                //         ),
-                //         null,
-                //         false,
-                //         $cart->secure_key
-                //     );
-                //     if ($verified) {
-                //         $this->persistBolItems($payment_module->currentOrder, $order);
-                //     }
-                //
-                // }
+            $beslistShoppingCart = $Beslist->getShoppingCartData('2016-01-01', '2016-01-02');
+            foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
+                if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
+
+                    $cart = $this->parse($shopOrder);
+
+                    if (!$cart) {
+                        $this->errors[] = $this->l('Couldn\'t create a cart for order ') .$shopOrder->orderNumber;
+                        continue;
+                    }
+
+                    Context::getContext()->cart = $cart;
+                    Context::getContext()->currency = new Currency((int)$cart->id_currency);
+                    Context::getContext()->customer = new Customer((int)$cart->id_customer);
+
+                    $id_order_state = Configuration::get('BOL_PLAZA_ORDERS_INITIALSTATE'); // TODO CONFIG
+                    $amount_paid = $shopOrder->price; //self::getBolPaymentTotal($shopOrder);
+                    $verified = $payment_module->validateOrder(
+                        (int)$cart->id,
+                        (int)$id_order_state,
+                        $amount_paid,
+                        $payment_module->displayName,
+                        null,
+                        array(
+                            'transaction_id' => $shopOrder->shopOrderNumber
+                        ),
+                        null,
+                        false,
+                        $cart->secure_key
+                    );
+                    // if ($verified) {
+                    //     $this->persistBolItems($payment_module->currentOrder, $order);
+                    // }
+
+                }
             }
             $this->confirmations[] = $this->l('Beslist.nl Shopping cart sync completed.');
         } elseif ((bool)Tools::getValue('delete_testdata')) {
@@ -118,8 +119,8 @@ class AdminBeslistCartOrdersController extends AdminController
                 $order->deleteAssociations();
                 // Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'bolplaza_item`
                 //                               WHERE `id_order` = '.(int)pSQL($order->id));
-                // Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'order_history`
-                //                               WHERE `id_order` = '.(int)pSQL($order->id));
+                Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'order_history`
+                                              WHERE `id_order` = '.(int)pSQL($order->id));
                 $order->delete();
                 $customer->delete();
             }
@@ -205,155 +206,161 @@ class AdminBeslistCartOrdersController extends AdminController
 
 
 
-    // /**
-    //  * Get OrderID for a Transaction ID
-    //  * @param string $transaction id
-    //  * @return array
-    //  */
-    // public static function getTransactionExists($transaction_id)
-    // {
-    //     $sql = new DbQuery();
-    //     $sql->select('order_reference');
-    //     $sql->from('order_payment', 'op');
-    //     $sql->where('op.transaction_id = '. pSQL($transaction_id));
-    //     return (bool)Db::getInstance()->executeS($sql);
-    // }
-    //
-    // /**
-    //  * Parse a Bol.com order to a fully prepared Cart object
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
-    //  * @return Cart
-    //  */
-    // public function parse(Picqer\BolPlazaClient\Entities\BolPlazaOrder $order)
-    // {
-    //     $customer = $this->parseCustomer($order);
-    //     Context::getContext()->customer = $customer;
-    //     $shipping = $this->parseAddress($order->CustomerDetails->ShipmentDetails, $customer, 'Shipping');
-    //     $billing  = $this->parseAddress($order->CustomerDetails->BillingDetails, $customer, 'Billing');
-    //     $cart     = $this->parseCart($order, $customer, $billing, $shipping);
-    //     return $cart;
-    // }
-    //
-    // /**
-    //  * Parse a customer for the order
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
-    //  * @return Customer
-    //  */
-    // public function parseCustomer(Picqer\BolPlazaClient\Entities\BolPlazaOrder $order)
-    // {
-    //     $customer = new Customer();
-    //     $customer->lastname = $order->CustomerDetails->BillingDetails->Surname;
-    //     $customer->firstname = $order->CustomerDetails->BillingDetails->Firstname;
-    //     $customer->email = $order->CustomerDetails->BillingDetails->Email;
-    //     $customer->passwd = Tools::passwdGen(8, 'RANDOM');
-    //     $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
-    //     $customer->add();
-    //     return $customer;
-    // }
-    //
-    // /**
-    //  * Parse an address for the order
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaShipmentDetails $details
-    //  * @param Customer $customer
-    //  * @param string $alias a name for the address
-    //  * @return Address
-    //  */
-    // public function parseAddress(
-    //     Picqer\BolPlazaClient\Entities\BolPlazaShipmentDetails $details,
-    //     Customer $customer,
-    //     $alias
-    // ) {
-    //     $address = new Address();
-    //     $address->id_customer = $customer->id;
-    //     $address->firstname = $details->Firstname;
-    //     $address->lastname = $details->Surname;
-    //     $address->address1 = $details->Streetname;
-    //     $address->address1.= ' ' . $details->Housenumber;
-    //     if (!empty($details->HousenumberExtended)) {
-    //         $address->address1.= ' ' . $details->HousenumberExtended;
-    //     }
-    //     $address->address2.= $details->AddressSupplement;
-    //     if (!empty($details->ExtraAddressInformation)) {
-    //         $address->address2.= ' (' . $details->ExtraAddressInformation . ')';
-    //     }
-    //     $address->postcode = $details->ZipCode;
-    //     $address->city = $details->City;
-    //     $address->id_country = Country::getByIso($details->CountryCode);
-    //     $address->alias = $alias;
-    //     $address->add();
-    //     return $address;
-    // }
-    //
-    // /**
-    //  * Parse the cart for the order
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
-    //  * @param Customer $customer
-    //  * @param Address $billing
-    //  * @param Address $shipping
-    //  * @return Cart
-    //  */
-    // public function parseCart(
-    //     Picqer\BolPlazaClient\Entities\BolPlazaOrder $order,
-    //     Customer $customer,
-    //     Address $billing,
-    //     Address $shipping
-    // ) {
-    //     $cart = new Cart();
-    //     $cart->id_customer = $customer->id;
-    //     $cart->id_address_delivery = $shipping->id;
-    //     $cart->id_address_invoice = $billing->id;
-    //     $cart->id_shop = (int)Context::getContext()->shop->id;
-    //     $cart->id_shop_group = (int)Context::getContext()->shop->id_shop_group;
-    //     $cart->id_lang = $this->context->language->id;
-    //     $cart->id_currency = Context::getContext()->currency->id;
-    //     $cart->id_carrier = Configuration::get('BOL_PLAZA_ORDERS_CARRIER');
-    //     $cart->recyclable = 0;
-    //     $cart->gift = 0;
-    //     $cart->secure_key = md5(uniqid(rand(), true));
-    //     $cart->add();
-    //     $items = $order->OrderItems;
-    //     $hasProducts = false;
-    //     if (!empty($items)) {
-    //         foreach ($items as $item) {
-    //             $productIds = self::getProductIdByEan($item->EAN);
-    //             if (empty($productIds) || !array_key_exists('id_product', $productIds)) {
-    //                 $this->errors[] = $this->l('Couldn\'t find product for EAN: ') . $item->EAN;
-    //                 continue;
-    //             }
-    //             $product = new Product($productIds['id_product']);
-    //             if (!Validate::isLoadedObject($product)) {
-    //                 $this->errors[] = $this->l('Couldn\'t load product for EAN: ') . $item->EAN;
-    //                 continue;
-    //             }
-    //             $hasProducts = true;
-    //             $this->addSpecificPrice(
-    //                 $cart,
-    //                 $customer,
-    //                 $product,
-    //                 $productIds['id_product_attribute'],
-    //                 round(self::getTaxExclusive($product, $item->OfferPrice), 6)
-    //             );
-    //             $cartResult = $cart->updateQty($item->Quantity, $product->id, $productIds['id_product_attribute']);
-    //             if (!$cartResult) {
-    //                 $this->errors[] = Tools::displayError(
-    //                     'Couldn\'t add product to cart. The product cannot
-    //                      be sold because it\'s unavailable or out of stock'
-    //                 );
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    //
-    //     if (Configuration::get('BOL_PLAZA_ORDERS_FREE_SHIPPING')) {
-    //         $this->addFreeShippingCartRule($cart);
-    //     }
-    //
-    //     $cart->update();
-    //     if (!$hasProducts) {
-    //         return false;
-    //     }
-    //     return $cart;
-    // }
+    /**
+     * Get OrderID for a Transaction ID
+     * @param string $transaction id
+     * @return array
+     */
+    public static function getTransactionExists($transaction_id)
+    {
+        $sql = new DbQuery();
+        $sql->select('order_reference');
+        $sql->from('order_payment', 'op');
+        $sql->where('op.transaction_id = '. pSQL($transaction_id));
+        return (bool)Db::getInstance()->executeS($sql);
+    }
+
+    /**
+     * Parse a Bol.com order to a fully prepared Cart object
+     * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
+     * @return Cart
+     */
+    public function parse(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+    {
+        $customer = $this->parseCustomer($shopOrder);
+        Context::getContext()->customer = $customer;
+        $shipping = $this->parseAddress($shopOrder->addresses->shipping, $customer, 'Shipping');
+        $billing  = $this->parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
+        $cart     = $this->parseCart($shopOrder, $customer, $billing, $shipping);
+        return $cart;
+    }
+
+    /**
+     * Parse a customer for the order
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
+     * @return Customer
+     */
+    public function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+    {
+        $customer = new Customer();
+        $customer->firstname = str_replace(range(0,9),'', $shopOrder->addresses->invoice->firstName);
+        $customer->lastname = str_replace(range(0,9),'', trim(
+            $shopOrder->addresses->invoice->lastNameInsertion .
+            ' ' .
+            $shopOrder->addresses->invoice->lastName
+        ));
+        $customer->email = $shopOrder->customer->email;
+        $customer->passwd = Tools::passwdGen(8, 'RANDOM');
+        $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
+        $customer->newsletter = false;
+        $customer->add();
+        return $customer;
+    }
+
+    /**
+     * Parse an address for the order
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistAddressShipping $details
+     * @param Customer $customer
+     * @param string $alias a name for the address
+     * @return Address
+     */
+    public function parseAddress(
+        Wienkit\BeslistOrdersClient\Entities\BeslistAddressShipping $details,
+        Customer $customer,
+        $alias
+    ) {
+        $address = new Address();
+        $address->id_customer = $customer->id;
+        $address->firstname = str_replace(range(0,9),'', $details->firstName);
+        $address->lastname = str_replace(range(0,9),'', trim($details->lastNameInsertion . ' ' . $details->lastName));
+        $address->address1 = $details->address;
+        $address->address1.= ' ' . $details->addressNumber;
+        if (!empty($details->addressNumberAdditional)) {
+            $address->address1.= ' ' . $details->addressNumberAdditional;
+        }
+        // $address->address2.= $details->AddressSupplement;
+        // if (!empty($details->ExtraAddressInformation)) {
+        //     $address->address2.= ' (' . $details->ExtraAddressInformation . ')';
+        // }
+        $address->postcode = $details->zip;
+        $address->city = $details->city;
+        $address->id_country = Country::getByIso($details->country);
+        $address->alias = $alias;
+        $address->add();
+        return $address;
+    }
+
+    /**
+     * Parse the cart for the order
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
+     * @param Customer $customer
+     * @param Address $billing
+     * @param Address $shipping
+     * @return Cart
+     */
+    public function parseCart(
+        Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order,
+        Customer $customer,
+        Address $billing,
+        Address $shipping
+    ) {
+        $cart = new Cart();
+        $cart->id_customer = $customer->id;
+        $cart->id_address_delivery = $shipping->id;
+        $cart->id_address_invoice = $billing->id;
+        $cart->id_shop = (int)Context::getContext()->shop->id;
+        $cart->id_shop_group = (int)Context::getContext()->shop->id_shop_group;
+        $cart->id_lang = $this->context->language->id;
+        $cart->id_currency = Context::getContext()->currency->id;
+        $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER');
+        $cart->recyclable = 0;
+        $cart->gift = 0;
+        $cart->secure_key = md5(uniqid(rand(), true));
+        $cart->add();
+        $items = $order->products;
+        $hasProducts = false;
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $productIds = self::getProductIdByBvbCode($item->bvbCode);
+                if (empty($productIds) || !array_key_exists('id_product', $productIds)) {
+                    $this->errors[] = $this->l('Couldn\'t find product for Bvb code: ') . $item->bvbCode;
+                    continue;
+                }
+                $product = new Product($productIds['id_product']);
+                if (!Validate::isLoadedObject($product)) {
+                    $this->errors[] = $this->l('Couldn\'t load product for EAN: ') . $item->bvbCode;
+                    continue;
+                }
+                $hasProducts = true;
+                $this->addSpecificPrice(
+                    $cart,
+                    $customer,
+                    $product,
+                    $productIds['id_product_attribute'],
+                    round(self::getTaxExclusive($product, $item->price), 6)
+                );
+                $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
+                if (!$cartResult) {
+                    $this->errors[] = Tools::displayError(
+                        'Couldn\'t add product to cart. The product cannot
+                         be sold because it\'s unavailable or out of stock'
+                    );
+                    return false;
+                }
+            }
+        }
+
+        if (Configuration::get('BESLIST_CART_FREE_SHIPPING', false)) {
+            $this->addFreeShippingCartRule($cart);
+        }
+
+        $cart->update();
+        if (!$hasProducts) {
+            return false;
+        }
+        return $cart;
+    }
+
     //
     // /**
     //  * Persist the BolItems to the database
@@ -378,36 +385,36 @@ class AdminBeslistCartOrdersController extends AdminController
     //         }
     //     }
     // }
-    //
-    // /**
-    //  * Adds a specific price for a product
-    //  * @param Cart $cart
-    //  * @param Customer $customer
-    //  * @param Product $product
-    //  * @param string $id_product_attribute
-    //  * @param decimal $price
-    //  */
-    // private function addSpecificPrice(Cart $cart, Customer $customer, Product $product, $id_product_attribute, $price)
-    // {
-    //     $specific_price = new SpecificPrice();
-    //     $specific_price->id_cart = (int)$cart->id;
-    //     $specific_price->id_shop = $cart->id_shop;
-    //     $specific_price->id_shop_group = $cart->id_shop_group;
-    //     $specific_price->id_currency = $cart->id_currency;
-    //     $specific_price->id_country = Context::getContext()->country->id;
-    //     $specific_price->id_group = (int)$customer->id_default_group;
-    //     $specific_price->id_customer = (int)$customer->id;
-    //     $specific_price->id_product = $product->id;
-    //     $specific_price->id_product_attribute = $id_product_attribute;
-    //     $specific_price->price = $price;
-    //     $specific_price->from_quantity = 1;
-    //     $specific_price->reduction = 0;
-    //     $specific_price->reduction_type = 'amount';
-    //     $specific_price->from = '0000-00-00 00:00:00';
-    //     $specific_price->to = '0000-00-00 00:00:00';
-    //     $specific_price->add();
-    // }
-    //
+
+    /**
+     * Adds a specific price for a product
+     * @param Cart $cart
+     * @param Customer $customer
+     * @param Product $product
+     * @param string $id_product_attribute
+     * @param decimal $price
+     */
+    private function addSpecificPrice(Cart $cart, Customer $customer, Product $product, $id_product_attribute, $price)
+    {
+        $specific_price = new SpecificPrice();
+        $specific_price->id_cart = (int)$cart->id;
+        $specific_price->id_shop = $cart->id_shop;
+        $specific_price->id_shop_group = $cart->id_shop_group;
+        $specific_price->id_currency = $cart->id_currency;
+        $specific_price->id_country = Context::getContext()->country->id;
+        $specific_price->id_group = (int)$customer->id_default_group;
+        $specific_price->id_customer = (int)$customer->id;
+        $specific_price->id_product = $product->id;
+        $specific_price->id_product_attribute = $id_product_attribute;
+        $specific_price->price = $price;
+        $specific_price->from_quantity = 1;
+        $specific_price->reduction = 0;
+        $specific_price->reduction_type = 'amount';
+        $specific_price->from = '0000-00-00 00:00:00';
+        $specific_price->to = '0000-00-00 00:00:00';
+        $specific_price->add();
+    }
+
     // /**
     //  * Adds a cart rule for free shipping
     //  * @param Cart $cart
@@ -431,38 +438,39 @@ class AdminBeslistCartOrdersController extends AdminController
     //     $cart_rule->add();
     //     $cart->addCartRule((int)$cart_rule->id);
     // }
-    //
-    // /**
-    //  * Return the tax exclusive price
-    //  * @param Product $product
-    //  * @param decimal $price
-    //  */
-    // public static function getTaxExclusive(Product $product, $price)
-    // {
-    //     $address = Address::initialize();
-    //     $tax_manager = TaxManagerFactory::getManager($address, $product->id_tax_rules_group);
-    //     $tax_calculator = $tax_manager->getTaxCalculator();
-    //     return $tax_calculator->removeTaxes($price);
-    // }
-    //
-    // /**
-    //  * Return the product ID for an EAN number
-    //  * @param string $ean
-    //  * @return array the product (and attribute)
-    //  */
-    // public static function getProductIdByEan($ean)
-    // {
-    //     $id = Product::getIdByEan13($ean);
-    //     if ($id) {
-    //         return array('id_product' => $id, 'id_product_attribute' => 0);
-    //     } else {
-    //         $attributes = self::getAttributeByEan($ean);
-    //         if (count($attributes) == 1) {
-    //             return $attributes[0];
-    //         }
-    //         return $attributes;
-    //     }
-    // }
+
+    /**
+     * Return the tax exclusive price
+     * @param Product $product
+     * @param decimal $price
+     */
+    public static function getTaxExclusive(Product $product, $price)
+    {
+        $address = Address::initialize();
+        $tax_manager = TaxManagerFactory::getManager($address, $product->id_tax_rules_group);
+        $tax_calculator = $tax_manager->getTaxCalculator();
+        return $tax_calculator->removeTaxes($price);
+    }
+
+    /**
+     * Return the product ID for a bvbCode
+     * @param string $bvbCode
+     * @return array the product (and attribute)
+     */
+    public static function getProductIdByBvbCode($bvbCode)
+    {
+        // return 36319;
+        $id = $bvbCode; //36319; //Product::getIdByEan13($bvbCode);
+        if ($id) {
+            return array('id_product' => $id, 'id_product_attribute' => 0);
+        } else {
+            $attributes = self::getAttributeByEan($bvbCode);
+            if (count($attributes) == 1) {
+                return $attributes[0];
+            }
+            return $attributes;
+        }
+    }
     //
     // /**
     //  * Return the attribute for an ean
