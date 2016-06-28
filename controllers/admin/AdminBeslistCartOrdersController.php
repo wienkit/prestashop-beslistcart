@@ -71,11 +71,12 @@ class AdminBeslistCartOrdersController extends AdminController
             if (Configuration::get('BESLIST_CART_TESTMODE')) {
                 $data = array(array(
                   'number_ordered' => 1,
-                  'bvb_code' => '36319'
+                  'bvb_code' => (string) Configuration::get('BESLIST_CART_TEST_REFERENCE')
                 ));
             }
 
             $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
+            $success = true;
             foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
                 if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
 
@@ -107,13 +108,16 @@ class AdminBeslistCartOrdersController extends AdminController
                         false,
                         $cart->secure_key
                     );
-                    // if ($verified) {
-                    //     $this->persistBolItems($payment_module->currentOrder, $order);
-                    // }
-
+                    if(!$verified) {
+                        $success = false;
+                        $this->errors[] = $this->l('Beslist.nl Shopping cart sync failed.');
+                    }
                 }
             }
-            $this->confirmations[] = $this->l('Beslist.nl Shopping cart sync completed.');
+            if($success) {
+                Configuration::updateValue('BESLIST_CART_STARTDATE', $endDate);
+                $this->confirmations[] = $this->l('Beslist.nl Shopping cart sync completed.');
+            }
         } elseif ((bool)Tools::getValue('delete_testdata')) {
             $orders = new PrestaShopCollection('Order');
             $orders->where('module', '=', 'beslistcarttest');
@@ -130,14 +134,150 @@ class AdminBeslistCartOrdersController extends AdminController
                     $payment->delete();
                 }
                 $order->deleteAssociations();
-                // Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'bolplaza_item`
-                //                               WHERE `id_order` = '.(int)pSQL($order->id));
                 Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'order_history`
                                               WHERE `id_order` = '.(int)pSQL($order->id));
                 $order->delete();
                 $customer->delete();
             }
         }
+    }
+
+    public function __construct()
+    {
+        if ($id_order = Tools::getValue('id_order')) {
+            Tools::redirectAdmin(
+                Context::getContext()->link->getAdminLink('AdminOrders').'&vieworder&id_order='.(int)$id_order
+            );
+        }
+        $this->bootstrap = true;
+        $this->table = 'order';
+        $this->className = 'Order';
+        $this->lang = false;
+        $this->addRowAction('view');
+        $this->explicitSelect = true;
+        $this->allow_export = true;
+        $this->deleted = false;
+        $this->context = Context::getContext();
+
+        $this->_select = '
+		a.id_currency,
+		a.id_order AS id_pdf,
+		CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) AS `customer`,
+		osl.`name` AS `osname`,
+		os.`color`,
+		IF((SELECT so.id_order FROM `'._DB_PREFIX_.'orders` so WHERE so.id_customer = a.id_customer AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
+		country_lang.name as cname,
+		IF(a.valid, 1, 0) badge_success';
+
+        $this->_join = '
+		LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = a.`id_customer`)
+		LEFT JOIN `'._DB_PREFIX_.'address` address ON address.id_address = a.id_address_delivery
+		LEFT JOIN `'._DB_PREFIX_.'country` country ON address.id_country = country.id_country
+		LEFT JOIN `'._DB_PREFIX_.'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country` AND country_lang.`id_lang` = '.(int)$this->context->language->id.')
+		LEFT JOIN `'._DB_PREFIX_.'order_state` os ON (os.`id_order_state` = a.`current_state`)
+		LEFT JOIN `'._DB_PREFIX_.'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` AND osl.`id_lang` = '.(int)$this->context->language->id.')';
+        $this->_orderBy = 'id_order';
+        $this->_orderWay = 'DESC';
+        $this->_where = 'AND a.module IN (\'beslistcart\', \'beslistcarttest\')';
+        $this->_use_found_rows = true;
+
+        $statuses = OrderState::getOrderStates((int)$this->context->language->id);
+        foreach ($statuses as $status) {
+            $this->statuses_array[$status['id_order_state']] = $status['name'];
+        }
+
+        $this->fields_list = array(
+            'id_order' => array(
+                'title' => $this->l('ID'),
+                'align' => 'text-center',
+                'class' => 'fixed-width-xs'
+            ),
+            'reference' => array(
+                'title' => $this->l('Reference')
+            ),
+            'new' => array(
+                'title' => $this->l('New client'),
+                'align' => 'text-center',
+                'type' => 'bool',
+                'tmpTableFilter' => true,
+                'orderby' => false,
+                'callback' => 'printNewCustomer'
+            ),
+            'customer' => array(
+                'title' => $this->l('Customer'),
+                'havingFilter' => true,
+            ),
+        );
+
+        $this->fields_list = array_merge($this->fields_list, array(
+            'total_paid_tax_incl' => array(
+                'title' => $this->l('Total'),
+                'align' => 'text-right',
+                'type' => 'price',
+                'currency' => true,
+                'callback' => 'setOrderCurrency',
+                'badge_success' => true
+            ),
+            'osname' => array(
+                'title' => $this->l('Status'),
+                'type' => 'select',
+                'color' => 'color',
+                'list' => $this->statuses_array,
+                'filter_key' => 'os!id_order_state',
+                'filter_type' => 'int',
+                'order_key' => 'osname'
+            ),
+            'date_add' => array(
+                'title' => $this->l('Date'),
+                'align' => 'text-right',
+                'type' => 'datetime',
+                'filter_key' => 'a!date_add'
+            )
+        ));
+
+        if (Country::isCurrentlyUsed('country', true)) {
+            $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
+			SELECT DISTINCT c.id_country, cl.`name`
+			FROM `'._DB_PREFIX_.'orders` o
+			'.Shop::addSqlAssociation('orders', 'o').'
+			INNER JOIN `'._DB_PREFIX_.'address` a ON a.id_address = o.id_address_delivery
+			INNER JOIN `'._DB_PREFIX_.'country` c ON a.id_country = c.id_country
+			INNER JOIN `'._DB_PREFIX_.'country_lang` cl ON (c.`id_country` = cl.`id_country` AND cl.`id_lang` = '.(int)$this->context->language->id.')
+			ORDER BY cl.name ASC');
+
+            $country_array = array();
+            foreach ($result as $row) {
+                $country_array[$row['id_country']] = $row['name'];
+            }
+
+            $part1 = array_slice($this->fields_list, 0, 3);
+            $part2 = array_slice($this->fields_list, 3);
+            $part1['cname'] = array(
+                'title' => $this->l('Delivery'),
+                'type' => 'select',
+                'list' => $country_array,
+                'filter_key' => 'country!id_country',
+                'filter_type' => 'int',
+                'order_key' => 'cname'
+            );
+            $this->fields_list = array_merge($part1, $part2);
+        }
+
+        $this->shopLinkType = 'shop';
+        $this->shopShareDatas = Shop::SHARE_ORDER;
+
+        parent::__construct();
+    }
+
+    public function printNewCustomer($id_order, $tr)
+    {
+        return ($tr['new'] ? $this->l('Yes') : $this->l('No'));
+    }
+
+    public static function setOrderCurrency($echo, $tr)
+    {
+        $order = new Order($tr['id_order']);
+        return Tools::displayPrice($echo, (int)$order->id_currency);
     }
 
     // public function __construct()
@@ -291,10 +431,6 @@ class AdminBeslistCartOrdersController extends AdminController
         if (!empty($details->addressNumberAdditional)) {
             $address->address1.= ' ' . $details->addressNumberAdditional;
         }
-        // $address->address2.= $details->AddressSupplement;
-        // if (!empty($details->ExtraAddressInformation)) {
-        //     $address->address2.= ' (' . $details->ExtraAddressInformation . ')';
-        // }
         $address->postcode = $details->zip;
         $address->city = $details->city;
         $address->id_country = Country::getByIso($details->country);
@@ -368,41 +504,12 @@ class AdminBeslistCartOrdersController extends AdminController
             }
         }
 
-        if (Configuration::get('BESLIST_CART_FREE_SHIPPING', false)) {
-            $this->addFreeShippingCartRule($cart);
-        }
-
         $cart->update();
         if (!$hasProducts) {
             return false;
         }
         return $cart;
     }
-
-    //
-    // /**
-    //  * Persist the BolItems to the database
-    //  * @param string $orderId
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
-    //  */
-    // public function persistBolItems($orderId, Picqer\BolPlazaClient\Entities\BolPlazaOrder $order)
-    // {
-    //     $items = $order->OrderItems;
-    //     $hasProducts = false;
-    //     if (!empty($items)) {
-    //         foreach ($items as $orderItem) {
-    //             $item = new BolPlazaOrderItem();
-    //             $item->id_shop = (int)Context::getContext()->shop->id;
-    //             $item->id_shop_group = (int)Context::getContext()->shop->id_shop_group;
-    //             $item->id_order = $orderId;
-    //             $item->id_bol_order_item = $orderItem->OrderItemId;
-    //             $item->ean = $orderItem->EAN;
-    //             $item->title = $orderItem->Title;
-    //             $item->quantity = $orderItem->Quantity;
-    //             $item->add();
-    //         }
-    //     }
-    // }
 
     /**
      * Adds a specific price for a product
@@ -431,30 +538,6 @@ class AdminBeslistCartOrdersController extends AdminController
         $specific_price->from = '0000-00-00 00:00:00';
         $specific_price->to = '0000-00-00 00:00:00';
         $specific_price->add();
-    }
-
-    /**
-     * Adds a cart rule for free shipping
-     * @param Cart $cart
-     */
-    private function addFreeShippingCartRule(Cart $cart)
-    {
-        $cart_rule = new CartRule();
-        $cart_rule->code = BeslistCartPayment::CARTRULE_CODE_PREFIX.(int)$cart->id;
-        $cart_rule->name = array(
-            Configuration::get('PS_LANG_DEFAULT') => $this->l('Free Shipping', 'AdminTab', false, false)
-        );
-        $cart_rule->id_customer = (int)$cart->id_customer;
-        $cart_rule->free_shipping = true;
-        $cart_rule->quantity = 1;
-        $cart_rule->quantity_per_user = 1;
-        $cart_rule->minimum_amount_currency = (int)$cart->id_currency;
-        $cart_rule->reduction_currency = (int)$cart->id_currency;
-        $cart_rule->date_from = date('Y-m-d H:i:s', time());
-        $cart_rule->date_to = date('Y-m-d H:i:s', time() + 60);
-        $cart_rule->active = 1;
-        $cart_rule->add();
-        $cart->addCartRule((int)$cart_rule->id);
     }
 
     /**

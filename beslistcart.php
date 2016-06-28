@@ -215,6 +215,7 @@ class BeslistCart extends Module
             $clientid = (int) Tools::getValue('beslist_cart_clientid');
             $attribute_size = (int) Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int) Tools::getValue('beslist_cart_attribute_color');
+            $test_reference = (string) Tools::getValue('beslist_cart_test_reference');
             $startDate = (string) Tools::getValue('beslist_cart_startdate');
 
             $enabled_nl = (bool) Tools::getValue('beslist_cart_enabled_nl');
@@ -227,6 +228,7 @@ class BeslistCart extends Module
             $deliveryperiod_be = (string) Tools::getValue('beslist_cart_deliveryperiod_be');
             $deliveryperiod_nostock_be = (string) Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
 
+
             $update_categories = (bool) Tools::getValue('beslist_cart_update_categories');
             $category = (int) Tools::getValue('beslist_cart_category');
 
@@ -235,6 +237,7 @@ class BeslistCart extends Module
                 || $clientid == 0
                 || empty($personalkey)
                 || empty($startDate)
+                || ($testmode && empty($test_reference))
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
@@ -253,6 +256,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
+                Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
@@ -380,6 +384,12 @@ class BeslistCart extends Module
                         'id' => 'id_attribute_group',
                         'name' => 'name'
                     )
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Test product reference #'),
+                    'desc' => $this->l('This product reference will be used for the testing connection'),
+                    'name' => 'beslist_cart_test_reference'
                 ),
                 array(
                     'type' => 'text',
@@ -560,7 +570,7 @@ class BeslistCart extends Module
                 ),
             ),
             'submit' => array(
-                'title' => $this->l('Update'),
+                'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right'
             )
         );
@@ -603,6 +613,7 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
+        $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
 
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
