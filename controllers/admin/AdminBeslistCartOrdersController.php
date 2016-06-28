@@ -64,9 +64,22 @@ class AdminBeslistCartOrdersController extends AdminController
                 $payment_module = new BeslistTestPayment();
             }
 
-            $beslistShoppingCart = $Beslist->getShoppingCartData('2016-01-01', '2016-01-02');
+            $startDate = (string) Configuration::get('BESLIST_CART_STARTDATE');
+            $endDate = date('Y-m-d');
+
+            $data = array();
+            if (Configuration::get('BESLIST_CART_TESTMODE')) {
+                $data = array(array(
+                  'number_ordered' => 1,
+                  'bvb_code' => '36319'
+                ));
+            }
+
+            $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
             foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
                 if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
+
+                    $this->errors[] = "<pre>" . print_r($shopOrder, true) . "</pre>";
 
                     $cart = $this->parse($shopOrder);
 
@@ -312,7 +325,12 @@ class AdminBeslistCartOrdersController extends AdminController
         $cart->id_shop_group = (int)Context::getContext()->shop->id_shop_group;
         $cart->id_lang = $this->context->language->id;
         $cart->id_currency = Context::getContext()->currency->id;
-        $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER');
+        $country = new Country($shipping->id_country);
+        if($country->iso_code == 'NL') {
+            $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER_NL');
+        } else {
+            $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER_BE');
+        }
         $cart->recyclable = 0;
         $cart->gift = 0;
         $cart->secure_key = md5(uniqid(rand(), true));
@@ -415,29 +433,29 @@ class AdminBeslistCartOrdersController extends AdminController
         $specific_price->add();
     }
 
-    // /**
-    //  * Adds a cart rule for free shipping
-    //  * @param Cart $cart
-    //  */
-    // private function addFreeShippingCartRule(Cart $cart)
-    // {
-    //     $cart_rule = new CartRule();
-    //     $cart_rule->code = BolPlazaPayment::CARTRULE_CODE_PREFIX.(int)$cart->id;
-    //     $cart_rule->name = array(
-    //         Configuration::get('PS_LANG_DEFAULT') => $this->l('Free Shipping', 'AdminTab', false, false)
-    //     );
-    //     $cart_rule->id_customer = (int)$cart->id_customer;
-    //     $cart_rule->free_shipping = true;
-    //     $cart_rule->quantity = 1;
-    //     $cart_rule->quantity_per_user = 1;
-    //     $cart_rule->minimum_amount_currency = (int)$cart->id_currency;
-    //     $cart_rule->reduction_currency = (int)$cart->id_currency;
-    //     $cart_rule->date_from = date('Y-m-d H:i:s', time());
-    //     $cart_rule->date_to = date('Y-m-d H:i:s', time() + 24 * 36000);
-    //     $cart_rule->active = 1;
-    //     $cart_rule->add();
-    //     $cart->addCartRule((int)$cart_rule->id);
-    // }
+    /**
+     * Adds a cart rule for free shipping
+     * @param Cart $cart
+     */
+    private function addFreeShippingCartRule(Cart $cart)
+    {
+        $cart_rule = new CartRule();
+        $cart_rule->code = BeslistCartPayment::CARTRULE_CODE_PREFIX.(int)$cart->id;
+        $cart_rule->name = array(
+            Configuration::get('PS_LANG_DEFAULT') => $this->l('Free Shipping', 'AdminTab', false, false)
+        );
+        $cart_rule->id_customer = (int)$cart->id_customer;
+        $cart_rule->free_shipping = true;
+        $cart_rule->quantity = 1;
+        $cart_rule->quantity_per_user = 1;
+        $cart_rule->minimum_amount_currency = (int)$cart->id_currency;
+        $cart_rule->reduction_currency = (int)$cart->id_currency;
+        $cart_rule->date_from = date('Y-m-d H:i:s', time());
+        $cart_rule->date_to = date('Y-m-d H:i:s', time() + 60);
+        $cart_rule->active = 1;
+        $cart_rule->add();
+        $cart->addCartRule((int)$cart_rule->id);
+    }
 
     /**
      * Return the tax exclusive price
@@ -459,7 +477,6 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        // return 36319;
         $id = $bvbCode; //36319; //Product::getIdByEan13($bvbCode);
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);

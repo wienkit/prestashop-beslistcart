@@ -21,9 +21,17 @@ if (!Module::getInstanceByName('beslistcart')->active)
 
 $affiliate = '?ac=beslist';
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
-$deliveryperiod = Configuration::get('BESLIST_CART_DELIVERYPERIOD');
-$deliveryperiod_nostock = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK');
-$shippingcost = Configuration::get('BESLIST_CART_SHIPPING_COST');
+$deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
+$deliveryperiod_nostock_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
+$deliveryperiod_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_BE');
+$deliveryperiod_nostock_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
+$shippingcost = 12;
+$enabled_nl = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
+$enabled_be = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
+$country_nl = new Country(Country::getByIso('NL'));
+$country_be = new Country(Country::getByIso('BE'));
+$carrier_nl = new Carrier(Configuration::get('BESLIST_CART_CARRIER_NL'));
+$carrier_be = new Carrier(Configuration::get('BESLIST_CART_CARRIER_BE'));
 
 header("Content-Type:text/xml; charset=utf-8");
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
@@ -31,9 +39,10 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 <productfeed type="beslist" date="<?php echo date('Y-m-d H:i:s'); ?>">
 <?php
   foreach ($products AS $product) {
+      $price = (float)Product::getPriceStatic($product['id_product']);
       echo "\t<product>\n";
       echo "\t\t<title><![CDATA[".$product['name']."]]></title>\n";
-      echo "\t\t<price>".number_format((float)Product::getPriceStatic($product['id_product']), 2, ',', '')."</price>\n";
+      echo "\t\t<price>".number_format($price, 2, ',', '')."</price>\n";
 			if(isset($product['attribute_reference'])) {
 					echo "\t\t<code><![CDATA[".$product['attribute_reference']."]]></code>\n";
 					echo "\t\t<sku>" . $product['attribute_reference'] . "</sku>\n";
@@ -58,8 +67,14 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
       }
 
       echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
-      echo "\t\t<deliveryperiod>" . ($product['stock'] > 0 ? $deliveryperiod : $deliveryperiod_nostock) . "</deliveryperiod>\n";
-      echo "\t\t<shippingcost>" . number_format($shippingcost, 2, ',', '') . "</shippingcost>\n";
+			if($enabled_nl) {
+      		echo "\t\t<deliveryperiod_nl>" . ($product['stock'] > 0 ? $deliveryperiod_nl : $deliveryperiod_nostock_nl) . "</deliveryperiod_nl>\n";
+					echo "\t\t<shippingcost_nl>" . $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) . "</shippingcost_nl>\n";
+			}
+      if($enabled_be) {
+          echo "\t\t<deliveryperiod_be>" . ($product['stock'] > 0 ? $deliveryperiod_be : $deliveryperiod_nostock_be) . "</deliveryperiod_be>\n";
+					echo "\t\t<shippingcost_be>" . $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) . "</shippingcost_be>\n";
+      }
       echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
       echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";
       echo "\t\t<display>" . $product['published'] . "</display>\n";
