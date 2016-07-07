@@ -46,6 +46,7 @@ class BeslistCart extends Module
     {
         if (parent::install()) {
             return $this->installDb()
+                && $this->installOrderState()
                 && $this->installOrdersTab()
                 && $this->installProductsTab()
                 && $this->importCategories()
@@ -63,6 +64,7 @@ class BeslistCart extends Module
     {
         return $this->uninstallDb()
             && $this->uninstallTabs()
+            && $this->uninstallOrderState()
             && $this->unregisterHook('actionAdminControllerSetMedia')
             && $this->unregisterHook('actionProductUpdate')
             && $this->unregisterHook('displayAdminProductsExtra')
@@ -164,6 +166,62 @@ class BeslistCart extends Module
     }
 
     /**
+     * Install a new order state for beslist orders
+     * @return bool success
+     */
+    public function installOrderState()
+    {
+        $orderStateName = 'Beslist order imported';
+        foreach (Language::getLanguages(true) as $lang) {
+            $order_states = OrderState::getOrderStates($lang['id_lang']);
+            foreach ($order_states as $state) {
+                if ($state['name'] == $orderStateName) {
+                    $order_state = new OrderState($state['id_order_state']);
+                    $order_state->hidden = false;
+                    $order_state->save();
+                    Configuration::updateValue('BESLIST_CART_ORDERS_INITIALSTATE', $state['id_order_state']);
+                    return true;
+                }
+            }
+        }
+
+        $order_state = new OrderState();
+        $order_state->name = array();
+        foreach (Language::getLanguages(true) as $lang) {
+            $order_state->name[$lang['id_lang']] = $orderStateName;
+        }
+
+        $order_state->send_email = false;
+        $order_state->module_name = $this->name;
+        $order_state->invoice = false;
+        $order_state->logable = true;
+        $order_state->shipped = false;
+        $order_state->unremovable = true;
+        $order_state->delivery = false;
+        $order_state->paid = true;
+        $order_state->pdf_invoice = false;
+        $order_state->pdf_delivery = false;
+        $order_state->color = '#32CD32';
+        $order_state->hidden = false;
+        $order_state->deleted = false;
+        $order_state->add();
+        Configuration::updateValue('BESLIST_CART_ORDERS_INITIALSTATE', $order_state->id);
+        return true;
+    }
+
+    /**
+     * Uninstall the order state for beslist orders
+     * @return bool success
+     */
+    public function uninstallOrderState()
+    {
+        $order_state = new OrderState(Configuration::get('BESLIST_CART_ORDERS_INITIALSTATE'));
+        $order_state->hidden = true;
+        $order_state->save();
+        return true;
+    }
+
+    /**
      * Import Beslist Categories
      */
     public function importCategories()
@@ -187,6 +245,9 @@ class BeslistCart extends Module
 
     /**
      * Parses the categories recursively
+     * @param $parent
+     * @param $category
+     * @param $items
      */
     protected function parseCategory($parent, $category, &$items) {
         $items[] = array(
@@ -200,7 +261,7 @@ class BeslistCart extends Module
 
     /**
      * Render the module configuration page
-     * @return $output the rendered page
+     * @return string the rendered page
      */
     public function getContent()
     {
@@ -282,7 +343,7 @@ class BeslistCart extends Module
 
     /**
      * Render a form on the module configuration page
-     * @return the form
+     * @return string the form
      */
     public function displayForm()
     {
@@ -432,7 +493,7 @@ class BeslistCart extends Module
                     'name' => 'beslist_cart_carrier_nl',
                     'options' => array(
                         'query' => $carriers,
-                        'id' => 'id_carrier',
+                        'id' => 'id_reference',
                         'name' => 'name'
                     )
                 ),
@@ -498,7 +559,7 @@ class BeslistCart extends Module
                     'name' => 'beslist_cart_carrier_be',
                     'options' => array(
                         'query' => $carriers,
-                        'id' => 'id_carrier',
+                        'id' => 'id_reference',
                         'name' => 'name'
                     )
                 ),
@@ -640,7 +701,8 @@ class BeslistCart extends Module
     /**
      * Add a new tab to the product page
      * Executes hook: displayAdminProductsExtra
-     * @param array $param
+     * @param array $params
+     * @return string the form
      */
     public function hookDisplayAdminProductsExtra($params)
     {
@@ -650,7 +712,7 @@ class BeslistCart extends Module
         if ($id_product = (int)Tools::getValue('id_product')) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
-        if (!Validate:: isLoadedObject($product)) {
+        if ($product == null || !Validate::isLoadedObject($product)) {
             return;
         }
 
@@ -700,7 +762,7 @@ class BeslistCart extends Module
     /**
      * Process BeslistProduct entities added on the product page
      * Executes hook: actionProductUpdate
-     * @param array $param
+     * @param array $params
      */
     public function hookActionProductUpdate($params)
     {
@@ -773,6 +835,10 @@ class BeslistCart extends Module
         }
     }
 
+    /**
+     * Add javascript and css to view
+     * @param $params
+     */
     public function hookActionAdminControllerSetMedia($params)
     {
         if ($this->context->controller->controller_name == 'AdminProducts') {

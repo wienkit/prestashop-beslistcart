@@ -30,8 +30,18 @@ $enabled_nl = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
 $enabled_be = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
 $country_nl = new Country(Country::getByIso('NL'));
 $country_be = new Country(Country::getByIso('BE'));
-$carrier_nl = new Carrier(Configuration::get('BESLIST_CART_CARRIER_NL'));
-$carrier_be = new Carrier(Configuration::get('BESLIST_CART_CARRIER_BE'));
+$address_nl = new Address();
+$address_nl->id_country = $country_nl->id;
+$address_nl->id_state = 0;
+$address_nl->postcode = 0;
+$address_be = new Address();
+$address_be->id_country = $country_be->id;
+$address_be->id_state = 0;
+$address_be->postcode = 0;
+$carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+$carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
+$carrier_nl_tax = $carrier_nl->getTaxesRate($address_nl);
+$carrier_be_tax = $carrier_be->getTaxesRate($address_be);
 
 header("Content-Type:text/xml; charset=utf-8");
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
@@ -69,11 +79,11 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
       echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
 			if($enabled_nl) {
       		echo "\t\t<deliveryperiod_nl>" . ($product['stock'] > 0 ? $deliveryperiod_nl : $deliveryperiod_nostock_nl) . "</deliveryperiod_nl>\n";
-					echo "\t\t<shippingcost_nl>" . $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) . "</shippingcost_nl>\n";
+					echo "\t\t<shippingcost_nl>" . Tools::ps_round(($carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) * (1 + ($carrier_nl_tax / 100))), 2) . "</shippingcost_nl>\n";
 			}
       if($enabled_be) {
           echo "\t\t<deliveryperiod_be>" . ($product['stock'] > 0 ? $deliveryperiod_be : $deliveryperiod_nostock_be) . "</deliveryperiod_be>\n";
-					echo "\t\t<shippingcost_be>" . $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) . "</shippingcost_be>\n";
+					echo "\t\t<shippingcost_be>" . Tools::ps_round(($carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone)* (1 + ($carrier_be_tax / 100))), 2) . "</shippingcost_be>\n";
       }
       echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
       echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";

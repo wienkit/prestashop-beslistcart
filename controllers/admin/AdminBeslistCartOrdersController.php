@@ -69,9 +69,29 @@ class AdminBeslistCartOrdersController extends AdminController
 
             $data = array();
             if (Configuration::get('BESLIST_CART_TESTMODE')) {
+                $productId = self::getProductIdByBvbCode(Configuration::get('BESLIST_CART_TEST_REFERENCE'));
+                $product = new Product($productId['id_product']);
+                $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+
+                // Shipping cost
+                $price = (float) Product::getPriceStatic($productId['id_product']);
+                $country_nl = new Country(Country::getByIso('NL'));
+                $address = new Address();
+                $address->id_country = $country_nl->id;
+                $address->id_state = 0;
+                $address->postcode = 0;
+                $tax_rate = $carrier->getTaxesRate($address);
+                $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone);
+                $shippingTaxIncl = $shippingTaxExcl * (1 + ($tax_rate / 100));
+
                 $data = array(array(
-                  'number_ordered' => 1,
-                  'bvb_code' => (string) Configuration::get('BESLIST_CART_TEST_REFERENCE')
+                    'number_ordered' => 2,
+                    'bvb_code' => $product->ean13,
+                    'item_shipping' => $shippingTaxIncl
+                ), array(
+                    'number_ordered' => 2,
+                    'bvb_code' => '8713647132158',
+                    'item_shipping' => $shippingTaxIncl
                 ));
             }
 
@@ -93,8 +113,8 @@ class AdminBeslistCartOrdersController extends AdminController
                     Context::getContext()->currency = new Currency((int)$cart->id_currency);
                     Context::getContext()->customer = new Customer((int)$cart->id_customer);
 
-                    $id_order_state = Configuration::get('BOL_PLAZA_ORDERS_INITIALSTATE'); // TODO CONFIG
-                    $amount_paid = $shopOrder->price; //self::getBolPaymentTotal($shopOrder);
+                    $id_order_state = Configuration::get('BESLIST_CART_ORDERS_INITIALSTATE');
+                    $amount_paid = self::getBeslistPaymentTotal($shopOrder);
                     $verified = $payment_module->validateOrder(
                         (int)$cart->id,
                         (int)$id_order_state,
@@ -280,88 +300,9 @@ class AdminBeslistCartOrdersController extends AdminController
         return Tools::displayPrice($echo, (int)$order->id_currency);
     }
 
-    // public function __construct()
-    // {
-    //
-    //     if ($id_order = Tools::getValue('id_order')) {
-    //         Tools::redirectAdmin(
-    //             Context::getContext()->link->getAdminLink('AdminOrders').'&vieworder&id_order='.(int)$id_order
-    //         );
-    //     }
-    //
-    //     $this->bootstrap = true;
-    //     $this->table = 'order';
-    //     $this->className = 'Order';
-    //
-    //     $this->addRowAction('view');
-    //
-    //     $this->identifier = 'id_order';
-    //
-    //     $this->_select = 'IF(STRCMP(status,\'shipped\'), 1, 0) as badge_danger,
-    //                       IF (STRCMP(status,\'shipped\'), 0, 1) as badge_success';
-    //
-    //     $this->fields_list = array(
-    //         'id_order' => array(
-    //             'title' => $this->l('Order ID'),
-    //             'align' => 'text-center',
-    //             'class' => 'fixed-width-xs'
-    //         ),
-    //         'quantity' => array(
-    //             'title' => $this->l('Quantity'),
-    //             'align' => 'text-left',
-    //             'class' => 'fixed-width-xs'
-    //         ),
-    //         'title' => array(
-    //             'title' => $this->l('Title'),
-    //             'align' => 'text-left',
-    //         ),
-    //         'ean' => array(
-    //             'title' => $this->l('EAN'),
-    //             'align' => 'text-left',
-    //         ),
-    //         'status' => array(
-    //             'title' => $this->l('Status'),
-    //             'align' => 'text-left',
-    //             'badge_danger' => true,
-    //             'badge_success' => true,
-    //             'havingFilter' => true,
-    //             'class' => 'fixed-width-lg'
-    //         ),
-    //     );
-    //
-    //     $this->shopLinkType = 'shop';
-    //
-    //     parent::__construct();
-    // }
-
-    // /**
-    //  * Overrides parent::displayViewLink
-    //  */
-    // public function displayViewLink($token = null, $id = 0, $name = null)
-    // {
-    //     if ($this->tabAccess['view'] == 1) {
-    //         $tpl = $this->createTemplate('helpers/list/list_action_view.tpl');
-    //         if (!array_key_exists('View', self::$cache_lang)) {
-    //             self::$cache_lang['View'] = $this->l('View', 'Helper');
-    //         }
-    //
-    //         $tpl->assign(array(
-    //             'href' => $this->context->link->getAdminLink('AdminOrders').'&vieworder&id_order='.(int)$id,
-    //             'action' => self::$cache_lang['View'],
-    //             'id' => $id
-    //         ));
-    //
-    //         return $tpl->fetch();
-    //     } else {
-    //         return;
-    //     }
-    // }
-
-
-
     /**
      * Get OrderID for a Transaction ID
-     * @param string $transaction id
+     * @param string $transaction_id
      * @return array
      */
     public static function getTransactionExists($transaction_id)
@@ -375,7 +316,7 @@ class AdminBeslistCartOrdersController extends AdminController
 
     /**
      * Parse a Bol.com order to a fully prepared Cart object
-     * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
+     * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $shopOrder
      * @return Cart
      */
     public function parse(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
@@ -390,7 +331,7 @@ class AdminBeslistCartOrdersController extends AdminController
 
     /**
      * Parse a customer for the order
-     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
      * @return Customer
      */
     public function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
@@ -463,9 +404,11 @@ class AdminBeslistCartOrdersController extends AdminController
         $cart->id_currency = Context::getContext()->currency->id;
         $country = new Country($shipping->id_country);
         if($country->iso_code == 'NL') {
-            $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER_NL');
+            $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+            $cart->id_carrier = $carrier_nl->id;
         } else {
-            $cart->id_carrier = Configuration::get('BESLIST_CART_CARRIER_BE');
+            $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
+            $cart->id_carrier = $carrier_be->id;
         }
         $cart->recyclable = 0;
         $cart->gift = 0;
@@ -491,6 +434,7 @@ class AdminBeslistCartOrdersController extends AdminController
                     $customer,
                     $product,
                     $productIds['id_product_attribute'],
+                    $shipping->id_country,
                     round(self::getTaxExclusive($product, $item->price), 6)
                 );
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
@@ -517,16 +461,17 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param Customer $customer
      * @param Product $product
      * @param string $id_product_attribute
-     * @param decimal $price
+     * @param int $id_country
+     * @param float $price
      */
-    private function addSpecificPrice(Cart $cart, Customer $customer, Product $product, $id_product_attribute, $price)
+    private function addSpecificPrice(Cart $cart, Customer $customer, Product $product, $id_product_attribute, $id_country, $price)
     {
         $specific_price = new SpecificPrice();
         $specific_price->id_cart = (int)$cart->id;
         $specific_price->id_shop = $cart->id_shop;
         $specific_price->id_shop_group = $cart->id_shop_group;
         $specific_price->id_currency = $cart->id_currency;
-        $specific_price->id_country = Context::getContext()->country->id;
+        $specific_price->id_country = $id_country;
         $specific_price->id_group = (int)$customer->id_default_group;
         $specific_price->id_customer = (int)$customer->id;
         $specific_price->id_product = $product->id;
@@ -543,7 +488,8 @@ class AdminBeslistCartOrdersController extends AdminController
     /**
      * Return the tax exclusive price
      * @param Product $product
-     * @param decimal $price
+     * @param float $price
+     * @return float the price excluding taxes
      */
     public static function getTaxExclusive(Product $product, $price)
     {
@@ -560,7 +506,7 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        $id = $bvbCode; //36319; //Product::getIdByEan13($bvbCode);
+        $id = Product::getIdByEan13($bvbCode);
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
         } else {
@@ -571,45 +517,36 @@ class AdminBeslistCartOrdersController extends AdminController
             return $attributes;
         }
     }
-    //
-    // /**
-    //  * Return the attribute for an ean
-    //  * @param string $ean
-    //  * @return array the product/attribute combination
-    //  */
-    // private static function getAttributeByEan($ean)
-    // {
-    //     if (empty($ean)) {
-    //         return 0;
-    //     }
-    //
-    //     if (!Validate::isEan13($ean)) {
-    //         return 0;
-    //     }
-    //
-    //     $query = new DbQuery();
-    //     $query->select('pa.id_product, pa.id_product_attribute');
-    //     $query->from('product_attribute', 'pa');
-    //     $query->where('pa.ean13 = \''.pSQL($ean).'\'');
-    //     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
-    // }
-    //
-    // /**
-    //  * Get the Payment total of the Bol.com order
-    //  * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $order
-    //  * @return decimal the total
-    //  */
-    // private static function getBolPaymentTotal(Picqer\BolPlazaClient\Entities\BolPlazaOrder $order)
-    // {
-    //     $items = $order->OrderItems;
-    //     $total = 0;
-    //     if (!empty($items)) {
-    //         foreach ($items as $orderItem) {
-    //             $quantity = $orderItem->Quantity;
-    //             $price = $orderItem->OfferPrice;
-    //             $total += $quantity * $price;
-    //         }
-    //     }
-    //     return $total;
-    // }
+
+     /**
+      * Return the attribute for an ean
+      * @param string $ean
+      * @return array the product/attribute combination
+      */
+     private static function getAttributeByEan($ean)
+     {
+         if (empty($ean)) {
+             return 0;
+         }
+
+         if (!Validate::isEan13($ean)) {
+             return 0;
+         }
+
+         $query = new DbQuery();
+         $query->select('pa.id_product, pa.id_product_attribute');
+         $query->from('product_attribute', 'pa');
+         $query->where('pa.ean13 = \''.pSQL($ean).'\'');
+         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+     }
+
+     /**
+      * Get the Payment total of the Bol.com order
+      * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
+      * @return float the total
+      */
+     private static function getBeslistPaymentTotal(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+     {
+         return $shopOrder->price + $shopOrder->shipping;
+     }
 }
