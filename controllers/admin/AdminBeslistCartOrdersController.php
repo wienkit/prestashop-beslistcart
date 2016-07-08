@@ -88,10 +88,6 @@ class AdminBeslistCartOrdersController extends AdminController
                     'number_ordered' => 2,
                     'bvb_code' => $product->ean13,
                     'item_shipping' => $shippingTaxIncl
-                ), array(
-                    'number_ordered' => 2,
-                    'bvb_code' => '8713647132158',
-                    'item_shipping' => $shippingTaxIncl
                 ));
             }
 
