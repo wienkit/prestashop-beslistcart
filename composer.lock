@@ -4,9 +4,61 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e650da4c351c507bb2e5b4d745a9bf9f",
-    "content-hash": "cc49b43cf5b6cb487eb926c230774a7b",
+    "hash": "f9aab9c5f5b80e47d8d859132395c6a6",
+    "content-hash": "b8c65d0beb7173302bd488e926e002c1",
     "packages": [
+        {
+            "name": "tcdent/php-restclient",
+            "version": "0.1.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tcdent/php-restclient.git",
+                "reference": "5e9a2dd89f11cd9d9262cf889922fd9d13abda7b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tcdent/php-restclient/zipball/5e9a2dd89f11cd9d9262cf889922fd9d13abda7b",
+                "reference": "5e9a2dd89f11cd9d9262cf889922fd9d13abda7b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "php": ">=5.5.7",
+                "phpunit/phpunit": ">=4.5"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "restclient.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Travis Dent",
+                    "email": "tcdent@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A generic REST API client for PHP",
+            "homepage": "http://github.com/tcdent/php-restclient",
+            "keywords": [
+                "api",
+                "client",
+                "curl",
+                "json",
+                "rest",
+                "xml"
+            ],
+            "time": "2016-05-19 16:57:42"
+        },
         {
             "name": "wienkit/beslist-order-api-php-client",
             "version": "1.0.1",
@@ -52,6 +104,53 @@
                 "php"
             ],
             "time": "2016-06-24 08:25:21"
+        },
+        {
+            "name": "wienkit/beslist-shopitem-api-php-client",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/wienkit/beslist-shopitem-api-php-client.git",
+                "reference": "dc278a7cd153a25328049da8702a95883d29cee3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/wienkit/beslist-shopitem-api-php-client/zipball/dc278a7cd153a25328049da8702a95883d29cee3",
+                "reference": "dc278a7cd153a25328049da8702a95883d29cee3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9",
+                "tcdent/php-restclient": "^0.1.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Wienkit\\BeslistShopitemClient\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Wienk",
+                    "email": "mark@wienkit.nl"
+                }
+            ],
+            "description": "Beslist.nl Shopitem API client PHP",
+            "homepage": "https://github.com/wienkit/beslist-shopitem-api-php-client",
+            "keywords": [
+                "api",
+                "beslist",
+                "beslist.nl",
+                "php"
+            ],
+            "time": "2016-07-09 15:16:15"
         }
     ],
     "packages-dev": [],
