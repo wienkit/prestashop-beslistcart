@@ -142,13 +142,32 @@ class BeslistProduct extends ObjectModel
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 
-
-
+    /**
+     * Retrieve the product reference for the Beslist product
+     * @return false|null|string the reference
+     */
+    public function getReference()
+    {
+        if(isset($this->id_product_attribute) && !empty($this->id_product_attribute) && $this->id_product_attribute != 0) {
+            $query = new DbQuery();
+            $query->select('pa.reference');
+            $query->from('product_attribute', 'pa');
+            $query->where('pa.id_product_attribute = \''.(int)$this->id_product_attribute.'\'');
+            $query->where('pa.id_product = '.(int)$this->id_product);
+            return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+        } else {
+            $query = new DbQuery();
+            $query->select('p.reference');
+            $query->from('product', 'p');
+            $query->where('p.id_product = \''.(int)$this->id_product.'\'');
+            return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+        }
+    }
 
     /**
      * Returns the BeslistProduct data for a product ID
      * @param string $id_product
-     * @return array the BolPlazaProduct data
+     * @return array the BeslistProduct data
      */
     public static function getByProductId($id_product)
     {

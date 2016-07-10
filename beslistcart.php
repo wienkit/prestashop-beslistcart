@@ -15,9 +15,13 @@
 
 require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
 require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistProduct.php';
+require_once _PS_MODULE_DIR_.'beslistcart/controllers/admin/AdminBeslistCartProductsController.php';
 
 class BeslistCart extends Module
 {
+    const BESLIST_MATCH_REFERENCE = 1;
+    const BESLIST_MATCH_EAN13     = 2;
+
     public function __construct()
     {
         $this->name = 'beslistcart';
@@ -52,6 +56,10 @@ class BeslistCart extends Module
                 && $this->importCategories()
                 && $this->registerHook('actionAdminControllerSetMedia')
                 && $this->registerHook('actionProductUpdate')
+                && $this->registerHook('actionUpdateQuantity')
+                && $this->registerHook('actionObjectBeslistProductAddAfter')
+                && $this->registerHook('actionObjectBeslistProductDeleteAfter')
+                && $this->registerHook('actionObjectBeslistProductUpdateAfter')
                 && $this->registerHook('displayAdminProductsExtra');
         }
         return false;
@@ -67,6 +75,10 @@ class BeslistCart extends Module
             && $this->uninstallOrderState()
             && $this->unregisterHook('actionAdminControllerSetMedia')
             && $this->unregisterHook('actionProductUpdate')
+            && $this->unregisterHook('actionUpdateQuantity')
+            && $this->unregisterHook('actionObjectBeslistProductAddAfter')
+            && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
+            && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
             && $this->unregisterHook('displayAdminProductsExtra')
             && parent::uninstall();
     }
@@ -274,8 +286,11 @@ class BeslistCart extends Module
             $personalkey = (string) Tools::getValue('beslist_cart_personalkey');
             $shopid = (int) Tools::getValue('beslist_cart_shopid');
             $clientid = (int) Tools::getValue('beslist_cart_clientid');
+            $shopitemKey = (string) Tools::getValue('beslist_cart_shopitem_apikey');
+
             $attribute_size = (int) Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int) Tools::getValue('beslist_cart_attribute_color');
+            $matcher = (int) Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string) Tools::getValue('beslist_cart_test_reference');
             $startDate = (string) Tools::getValue('beslist_cart_startdate');
 
@@ -296,8 +311,10 @@ class BeslistCart extends Module
             if (!$personalkey
                 || $shopid == 0
                 || $clientid == 0
+                || $matcher == 0
                 || empty($personalkey)
                 || empty($startDate)
+                || empty($shopitemKey)
                 || ($testmode && empty($test_reference))
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
@@ -315,6 +332,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_PERSONALKEY', $personalkey);
                 Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
                 Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
+                Configuration::updateValue('BESLIST_CART_SHOPITEM_APIKEY', $shopitemKey);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
@@ -425,6 +443,13 @@ class BeslistCart extends Module
                     'size' => 20
                 ),
                 array(
+                    'type' => 'textarea',
+                    'label' => $this->l('Shopitem API key'),
+                    'desc' => $this->l('Beslist.nl ShopItem API key'),
+                    'name' => 'beslist_cart_shopitem_apikey',
+                    'size' => 20
+                ),
+                array(
                     'type' => 'select',
                     'label' => $this->l('Default size attribute (optional)'),
                     'desc' => $this->l('Select your size attribute'),
@@ -443,6 +468,26 @@ class BeslistCart extends Module
                     'options' => array(
                         'query' => $attributes,
                         'id' => 'id_attribute_group',
+                        'name' => 'name'
+                    )
+                ),
+                array(
+                    'type' => 'select',
+                    'label' => $this->l('Beslist product matcher field'),
+                    'desc' => $this->l('Select the unique field you want to use to match your products.'),
+                    'name' => 'beslist_cart_matcher',
+                    'options' => array(
+                        'query' => array(
+                            array(
+                                'id_matcher' => self::BESLIST_MATCH_REFERENCE,
+                                'name' => $this->l('Product reference')
+                            ),
+                            array(
+                                'id_matcher' => self::BESLIST_MATCH_EAN13,
+                                'name' => $this->l('EAN-13')
+                            )
+                        ),
+                        'id' => 'id_matcher',
                         'name' => 'name'
                     )
                 ),
@@ -672,9 +717,11 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_shopid'] = Configuration::get('BESLIST_CART_SHOPID');
         $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
         $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
+        $helper->fields_value['beslist_cart_shopitem_apikey'] = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
+        $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
 
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
@@ -709,6 +756,7 @@ class BeslistCart extends Module
         if (!Configuration::get('BESLIST_CART_ENABLED')) {
             return $this->display(__FILE__, 'views/templates/admin/disabled.tpl');
         }
+        $product = null;
         if ($id_product = (int)Tools::getValue('id_product')) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
@@ -796,7 +844,7 @@ class BeslistCart extends Module
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
         }
 
-        // get form inforamtion
+        // get form information
         foreach ($attributes as $attribute) {
             $key = $product->id.'_'.$attribute['id_product_attribute'];
 
@@ -836,6 +884,64 @@ class BeslistCart extends Module
     }
 
     /**
+     * Send stock updates to Beslist
+     * Executes hook: actionUpdateQuantity
+     * @param array $param
+     */
+    public function hookActionUpdateQuantity($param)
+    {
+        $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
+            $param['id_product'],
+            $param['id_product_attribute']
+        );
+        if (!empty($beslistProductId)) {
+            $beslistProduct = new BeslistProduct($beslistProductId);
+            AdminBeslistCartProductsController::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_STOCK_UPDATE);
+            AdminBeslistCartProductsController::processBeslistQuantityUpdate($beslistProduct, $param['quantity'], $this->context);
+        }
+    }
+
+    /**
+     * Send a creation request to Beslist
+     * Executes hook: actionObjectBeslistProductAddAfter
+     * @param array $param
+     */
+    public function hookActionObjectBeslistProductAddAfter($param)
+    {
+        if (!empty($param['object'])) {
+            AdminBeslistCartProductsController::processBeslistProductUpdate($param['object'], $this->context);
+        }
+    }
+
+    /**
+     * Send an update request to Beslist
+     * Executes hook: actionObjectBeslistProductUpdateAfter
+     * @param array $param
+     */
+    public function hookActionObjectBeslistProductUpdateAfter($param)
+    {
+        if (!empty($param['object'])) {
+            AdminBeslistCartProductsController::setProductStatus(
+                $param['object'],
+                (int)BeslistProduct::STATUS_INFO_UPDATE
+            );
+            AdminBeslistCartProductsController::processBeslistProductUpdate($param['object'], $this->context);
+        }
+    }
+
+    /**
+     * Send a product deletion request to Beslist
+     * Executes hook: actionObjectBeslistProductDeleteAfter
+     * @param array $param
+     */
+    public function hookActionObjectBeslistProductDeleteAfter($param)
+    {
+        if (!empty($param['object'])) {
+            AdminBeslistCartProductsController::processBeslistProductDelete($param['object'], $this->context);
+        }
+    }
+
+    /**
      * Add javascript and css to view
      * @param $params
      */
@@ -866,6 +972,22 @@ class BeslistCart extends Module
         if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
             $client->setTestMode(true);
         }
+        return $client;
+    }
+
+    /**
+     * Retrieve the BeslistShopItemClient
+     * @return Wienkit\BeslistShopitemClient\BeslistShopitemClient
+     */
+    public static function getShopitemClient()
+    {
+        $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
+
+        $client = new Wienkit\BeslistShopitemClient\BeslistShopitemClient($apiKey);
+        if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
+            $client->setTestMode(true);
+        }
+
         return $client;
     }
 }

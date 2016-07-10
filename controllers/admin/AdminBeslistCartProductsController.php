@@ -203,50 +203,50 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistProductDelete($beslistProduct, $context)
     {
-        // $Plaza = BolPlaza::getClient();
-        // try {
-        //     $Plaza->deleteOffer($beslistProduct->id);
-        // } catch (Exception $e) {
-        //     $context->controller->errors[] = Tools::displayError(
-        //         'Couldn\'t send update to Bol.com, error: ' . $e->getMessage() . 'You have to correct this manually.'
-        //     );
-        // }
+        self::processBeslistQuantityUpdate($beslistProduct, 0, $context);
     }
 
     /**
-     * Update the stock on Bol.com
+     * Update the stock on Beslist
      * @param BeslistProduct $beslistProduct
      * @param Context $context
      */
     public static function processBeslistStockUpdate($beslistProduct, $context)
     {
-        // $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
-        // $quantity = StockAvailable::getQuantityAvailableByProduct(
-        //     $product->id_product,
-        //     $beslistProduct->id_product_attribute
-        // );
-        // self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
+         $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
+         $quantity = StockAvailable::getQuantityAvailableByProduct(
+             $product->id,
+             $beslistProduct->id_product_attribute
+         );
+         self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
     }
 
     /**
-     * Update the stock on Bol.com
+     * Update the stock on Beslist
      * @param BeslistProduct $beslistProduct
      * @param int $quantity
      * @param Context $context
      */
     public static function processBeslistQuantityUpdate($beslistProduct, $quantity, $context)
     {
-        // $Plaza = BolPlaza::getClient();
-        // $stockUpdate = new Picqer\BolPlazaClient\Entities\BolPlazaStockUpdate();
-        // $stockUpdate->QuantityInStock = $quantity;
-        // try {
-        //     $Plaza->updateOfferStock($beslistProduct->id, $stockUpdate);
-        //     self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        // } catch (Exception $e) {
-        //     $context->controller->errors[] = Tools::displayError(
-        //         '[bolplaza] Couldn\'t send update to Bol.com, error: ' . $e->getMessage()
-        //     );
-        // }
+        $client = BeslistCart::getShopitemClient();
+        $shopId = Configuration::get('BESLIST_CART_SHOPID');
+        $productRef = $beslistProduct->getReference();
+        $delivery_time_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_NL');
+        $delivery_time_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_BE');
+        $options = array(
+            'stock' => $quantity,
+            'delivery_time_nl' => $delivery_time_nl,
+            'delivery_time_be' => $delivery_time_be,
+        );
+        try {
+            $client->updateShopItem($shopId, $productRef, $options);
+            self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
+        } catch (Exception $e) {
+            $context->controller->errors[] = Tools::displayError(
+                '[beslistcart] Couldn\'t send update to Beslist, error: ' . $e->getMessage()
+            );
+        }
     }
 
     /**
@@ -256,99 +256,29 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistProductUpdate($beslistProduct, $context)
     {
-        // $price_calculator    = Adapter_ServiceLocator::get('Adapter_ProductPriceCalculator');
-        //
-        // $offerUpdate = new Picqer\BolPlazaClient\Entities\BolPlazaOfferUpdate();
-        // $offerUpdate->DeliveryCode = Configuration::get('BOL_PLAZA_ORDERS_DELIVERY_CODE');
-        // $offerUpdate->Publish = $beslistProduct->published == 1 ? 'true' : 'false';
-        //
-        // $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
-        // if ($beslistProduct->id_product_attribute) {
-        //     $combination = new Combination($beslistProduct->id_product_attribute);
-        //     $offerUpdate->ReferenceCode = $combination->reference;
-        // } else {
-        //     $offerUpdate->ReferenceCode = $product->reference;
-        // }
-        // $offerUpdate->Description = !empty($product->description) ? $product->description : $product->name;
-        // $price = $beslistProduct->price;
-        // if ($price == 0) {
-        //     $price = $price_calculator->getProductPrice(
-        //         (int)$beslistProduct->id_product,
-        //         true,
-        //         (int)$beslistProduct->id_product_attribute
-        //     );
-        // }
-        // $offerUpdate->Price = $price;
-        //
-        // $Plaza = BolPlaza::getClient();
-        // try {
-        //     $Plaza->updateOffer($beslistProduct->id, $offerUpdate);
-        //     self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        // } catch (Exception $e) {
-        //     $context->controller->errors[] = Tools::displayError(
-        //         '[bolplaza] Couldn\'t send update to Bol.com, error: ' . $e->getMessage()
-        //     );
-        // }
-    }
+        $price_calculator = Adapter_ServiceLocator::get('Adapter_ProductPriceCalculator');
+        $price = $beslistProduct->price;
+        if ($price == 0) {
+            $price = $price_calculator->getProductPrice(
+                (int)$beslistProduct->id_product,
+                true,
+                (int)$beslistProduct->id_product_attribute
+            );
+        }
 
-    /**
-     * Add a product from Bol.com
-     * @param BeslistProduct $beslistProduct
-     * @param Context $context
-     */
-    public static function processBeslistProductCreate($beslistProduct, $context)
-    {
-        // $price_calculator    = Adapter_ServiceLocator::get('Adapter_ProductPriceCalculator');
-        //
-        // $offerCreate = new Picqer\BolPlazaClient\Entities\BolPlazaOfferCreate();
-        // $offerCreate->DeliveryCode = Configuration::get('BOL_PLAZA_ORDERS_DELIVERY_CODE');
-        // $offerCreate->Publish = $beslistProduct->published == 1 ? 'true' : 'false';
-        //
-        // $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
-        // if ($beslistProduct->id_product_attribute) {
-        //     $combination = new Combination($beslistProduct->id_product_attribute);
-        //     $offerCreate->EAN = $combination->ean13;
-        //     $offerCreate->QuantityInStock = StockAvailable::getQuantityAvailableByProduct(
-        //         $product->id_product,
-        //         $beslistProduct->id_product_attribute
-        //     );
-        //     $offerCreate->ReferenceCode = $combination->reference;
-        // } else {
-        //     $offerCreate->EAN = $product->ean13;
-        //     $offerCreate->QuantityInStock = StockAvailable::getQuantityAvailableByProduct($beslistProduct->id_product);
-        //     $offerCreate->ReferenceCode = $product->reference;
-        // }
-        // switch($product->condition) {
-        //     case 'refurbished':
-        //         $offerCreate->Condition = 'AS_NEW';
-        //         break;
-        //     case 'used':
-        //         $offerCreate->Condition = 'GOOD';
-        //         break;
-        //     default:
-        //         $offerCreate->Condition = 'NEW';
-        //         break;
-        // }
-        //
-        // $offerCreate->Description = !empty($product->description) ? $product->description : $product->name;
-        // $price = $beslistProduct->price;
-        // if ($price == 0) {
-        //     $price = $price_calculator->getProductPrice(
-        //         (int)$beslistProduct->id_product,
-        //         true,
-        //         (int)$beslistProduct->id_product_attribute
-        //     );
-        // }
-        // $offerCreate->Price = $price;
-        //
-        // $Plaza = BolPlaza::getClient();
-        // try {
-        //     $Plaza->createOffer($beslistProduct->id, $offerCreate);
-        //     self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        // } catch (Exception $e) {
-        //     $context->controller->errors[] = Tools::displayError(
-        //         '[bolplaza] Couldn\'t send update to Bol.com, error: ' . $e->getMessage()
-        //     );
-        // }
+        $client = BeslistCart::getShopitemClient();
+        $shopId = Configuration::get('BESLIST_CART_SHOPID');
+        $productRef = $beslistProduct->getReference();
+        $options = array(
+            'price' => $price
+        );
+        try {
+            $client->updateShopItem($shopId, $productRef, $options);
+            self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
+        } catch (Exception $e) {
+            $context->controller->errors[] = Tools::displayError(
+                '[beslistcart] Couldn\'t send update to Beslist, error: ' . $e->getMessage()
+            );
+        }
     }
 }

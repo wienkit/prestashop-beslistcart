@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "f9aab9c5f5b80e47d8d859132395c6a6",
-    "content-hash": "b8c65d0beb7173302bd488e926e002c1",
+    "hash": "532409c38cff0d4a21b8c0dad971ba5f",
+    "content-hash": "4124502f6274a8afa8a1af5f74e1d264",
     "packages": [
         {
             "name": "tcdent/php-restclient",
@@ -61,16 +61,16 @@
         },
         {
             "name": "wienkit/beslist-order-api-php-client",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wienkit/beslist-order-api-php-client.git",
-                "reference": "a0029d72ca32f5f16bfc5a90d808e9be9da05764"
+                "reference": "f49b78dfe91ede97fe68e71aadf615743ddde75c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wienkit/beslist-order-api-php-client/zipball/a0029d72ca32f5f16bfc5a90d808e9be9da05764",
-                "reference": "a0029d72ca32f5f16bfc5a90d808e9be9da05764",
+                "url": "https://api.github.com/repos/wienkit/beslist-order-api-php-client/zipball/f49b78dfe91ede97fe68e71aadf615743ddde75c",
+                "reference": "f49b78dfe91ede97fe68e71aadf615743ddde75c",
                 "shasum": ""
             },
             "require": {
@@ -103,20 +103,20 @@
                 "beslist.nl",
                 "php"
             ],
-            "time": "2016-06-24 08:25:21"
+            "time": "2016-07-10 15:29:42"
         },
         {
             "name": "wienkit/beslist-shopitem-api-php-client",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wienkit/beslist-shopitem-api-php-client.git",
-                "reference": "dc278a7cd153a25328049da8702a95883d29cee3"
+                "reference": "62e801f9f23e95786d4f241238b24d2d590f7d88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wienkit/beslist-shopitem-api-php-client/zipball/dc278a7cd153a25328049da8702a95883d29cee3",
-                "reference": "dc278a7cd153a25328049da8702a95883d29cee3",
+                "url": "https://api.github.com/repos/wienkit/beslist-shopitem-api-php-client/zipball/62e801f9f23e95786d4f241238b24d2d590f7d88",
+                "reference": "62e801f9f23e95786d4f241238b24d2d590f7d88",
                 "shasum": ""
             },
             "require": {
@@ -150,7 +150,7 @@
                 "beslist.nl",
                 "php"
             ],
-            "time": "2016-07-09 15:16:15"
+            "time": "2016-07-10 13:58:30"
         }
     ],
     "packages-dev": [],

@@ -55,7 +55,7 @@ class AdminBeslistCartOrdersController extends AdminController
 
         if ((bool)Tools::getValue('sync_orders')) {
             if (!Configuration::get('BESLIST_CART_ENABLED')) {
-                $this->errors[] = Tools::displayError('Bol Plaza API isn\'t enabled for the current store.');
+                $this->errors[] = Tools::displayError('Beslist Shopping cart isn\'t enabled for the current store.');
                 return;
             }
             $Beslist = BeslistCart::getClient();
@@ -95,9 +95,6 @@ class AdminBeslistCartOrdersController extends AdminController
             $success = true;
             foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
                 if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
-
-                    $this->errors[] = "<pre>" . print_r($shopOrder, true) . "</pre>";
-
                     $cart = $this->parse($shopOrder);
 
                     if (!$cart) {
@@ -311,8 +308,8 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
-     * Parse a Bol.com order to a fully prepared Cart object
-     * @param Picqer\BolPlazaClient\Entities\BolPlazaOrder $shopOrder
+     * Parse a Beslist order to a fully prepared Cart object
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
      * @return Cart
      */
     public function parse(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
@@ -421,7 +418,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 }
                 $product = new Product($productIds['id_product']);
                 if (!Validate::isLoadedObject($product)) {
-                    $this->errors[] = $this->l('Couldn\'t load product for EAN: ') . $item->bvbCode;
+                    $this->errors[] = $this->l('Couldn\'t load product for Bvb code: ') . $item->bvbCode;
                     continue;
                 }
                 $hasProducts = true;
@@ -502,11 +499,19 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        $id = Product::getIdByEan13($bvbCode);
+        if(Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
+            $id = Product::getIdByEan13($bvbCode);
+        } else {
+            $id = self::getProductByReference($bvbCode);
+        }
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
         } else {
-            $attributes = self::getAttributeByEan($bvbCode);
+            if(Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
+                $attributes = self::getAttributeByEan($bvbCode);
+            } else {
+                $attributes = self::getAttributeByReference($bvbCode);
+            }
             if (count($attributes) == 1) {
                 return $attributes[0];
             }
@@ -514,35 +519,79 @@ class AdminBeslistCartOrdersController extends AdminController
         }
     }
 
-     /**
-      * Return the attribute for an ean
-      * @param string $ean
-      * @return array the product/attribute combination
-      */
-     private static function getAttributeByEan($ean)
-     {
-         if (empty($ean)) {
-             return 0;
-         }
+    /**
+     * Return the product for a reference
+     * @param string $reference
+     * @return array the product/attribute combination
+     */
+    private static function getProductByReference($reference)
+    {
+        if (empty($reference)) {
+            return 0;
+        }
 
-         if (!Validate::isEan13($ean)) {
-             return 0;
-         }
+        if (!Validate::isReference($reference)) {
+            return 0;
+        }
 
-         $query = new DbQuery();
-         $query->select('pa.id_product, pa.id_product_attribute');
-         $query->from('product_attribute', 'pa');
-         $query->where('pa.ean13 = \''.pSQL($ean).'\'');
-         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
-     }
+        $query = new DbQuery();
+        $query->select('p.id_product');
+        $query->from('product', 'p');
+        $query->where('p.reference = \''.pSQL($reference).'\'');
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+    }
 
-     /**
-      * Get the Payment total of the Bol.com order
-      * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
-      * @return float the total
-      */
-     private static function getBeslistPaymentTotal(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
-     {
-         return $shopOrder->price + $shopOrder->shipping;
-     }
+    /**
+     * Return the attribute for an ean
+     * @param string $ean
+     * @return array the product/attribute combination
+     */
+    private static function getAttributeByEan($ean)
+    {
+        if (empty($ean)) {
+            return 0;
+        }
+
+        if (!Validate::isEan13($ean)) {
+            return 0;
+        }
+
+        $query = new DbQuery();
+        $query->select('pa.id_product, pa.id_product_attribute');
+        $query->from('product_attribute', 'pa');
+        $query->where('pa.ean13 = \''.pSQL($ean).'\'');
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+    }
+
+    /**
+     * Return the attribute for a reference
+     * @param string $reference
+     * @return array the product/attribute combination
+     */
+    private static function getAttributeByReference($reference)
+    {
+        if (empty($reference)) {
+            return 0;
+        }
+
+        if (!Validate::isReference($reference)) {
+            return 0;
+        }
+
+        $query = new DbQuery();
+        $query->select('pa.id_product, pa.id_product_attribute');
+        $query->from('product_attribute', 'pa');
+        $query->where('pa.reference = \''.pSQL($reference).'\'');
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+    }
+
+    /**
+     * Get the Payment total of the Bol.com order
+     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
+     * @return float the total
+     */
+    private static function getBeslistPaymentTotal(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+    {
+        return $shopOrder->price + $shopOrder->shipping;
+    }
 }

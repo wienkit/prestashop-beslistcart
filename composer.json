@@ -10,8 +10,8 @@
   ],
   "minimum-stability": "dev",
   "require": {
-    "wienkit/beslist-order-api-php-client": "1.0.1",
-    "wienkit/beslist-shopitem-api-php-client": "1.0.0"
+    "wienkit/beslist-order-api-php-client": "1.0.3",
+    "wienkit/beslist-shopitem-api-php-client": "1.0.1"
   },
   "autoload": {
     "psr-4": {
