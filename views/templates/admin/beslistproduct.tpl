@@ -41,8 +41,8 @@
   		<div class="col-lg-6">
         <div class="form-group">
           <select class="selectpicker form-control" data-live-search="true" name="beslistcart_category" id="beslistcart_category">
-            {foreach $beslist_categories AS $category}
-              <option value="{$category.id_beslist_category}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name}</option>
+            {foreach $beslist_categories as $category}
+              <option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name|escape:'html':'UTF-8'}</option>
             {/foreach}
           </select>
           <script>

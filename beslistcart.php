@@ -8,19 +8,19 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  @author    Mark Wienk
- *  @copyright 2013-2016 Wienk IT
- *  @license   LICENSE.txt
+ * @author    Mark Wienk
+ * @copyright 2013-2016 Wienk IT
+ * @license   LICENSE.txt
  */
 
-require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
-require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistProduct.php';
-require_once _PS_MODULE_DIR_.'beslistcart/controllers/admin/AdminBeslistCartProductsController.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/libraries/autoload.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistProduct.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/controllers/admin/AdminBeslistCartProductsController.php';
 
 class BeslistCart extends Module
 {
     const BESLIST_MATCH_REFERENCE = 1;
-    const BESLIST_MATCH_EAN13     = 2;
+    const BESLIST_MATCH_EAN13 = 2;
 
     public function __construct()
     {
@@ -31,7 +31,7 @@ class BeslistCart extends Module
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
         $this->bootstrap = true;
-
+        $this->module_key = 'eff58cb5fb5aafdbb330323b300d3331';
         $this->display = 'view';
 
         parent::__construct();
@@ -50,17 +50,17 @@ class BeslistCart extends Module
     {
         if (parent::install()) {
             return $this->installDb()
-                && $this->installOrderState()
-                && $this->installOrdersTab()
-                && $this->installProductsTab()
-                && $this->importCategories()
-                && $this->registerHook('actionAdminControllerSetMedia')
-                && $this->registerHook('actionProductUpdate')
-                && $this->registerHook('actionUpdateQuantity')
-                && $this->registerHook('actionObjectBeslistProductAddAfter')
-                && $this->registerHook('actionObjectBeslistProductDeleteAfter')
-                && $this->registerHook('actionObjectBeslistProductUpdateAfter')
-                && $this->registerHook('displayAdminProductsExtra');
+            && $this->installOrderState()
+            && $this->installOrdersTab()
+            && $this->installProductsTab()
+            && $this->importCategories()
+            && $this->registerHook('actionAdminControllerSetMedia')
+            && $this->registerHook('actionProductUpdate')
+            && $this->registerHook('actionUpdateQuantity')
+            && $this->registerHook('actionObjectBeslistProductAddAfter')
+            && $this->registerHook('actionObjectBeslistProductDeleteAfter')
+            && $this->registerHook('actionObjectBeslistProductUpdateAfter')
+            && $this->registerHook('displayAdminProductsExtra');
         }
         return false;
     }
@@ -71,16 +71,16 @@ class BeslistCart extends Module
     public function uninstall()
     {
         return $this->uninstallDb()
-            && $this->uninstallTabs()
-            && $this->uninstallOrderState()
-            && $this->unregisterHook('actionAdminControllerSetMedia')
-            && $this->unregisterHook('actionProductUpdate')
-            && $this->unregisterHook('actionUpdateQuantity')
-            && $this->unregisterHook('actionObjectBeslistProductAddAfter')
-            && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
-            && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
-            && $this->unregisterHook('displayAdminProductsExtra')
-            && parent::uninstall();
+        && $this->uninstallTabs()
+        && $this->uninstallOrderState()
+        && $this->unregisterHook('actionAdminControllerSetMedia')
+        && $this->unregisterHook('actionProductUpdate')
+        && $this->unregisterHook('actionUpdateQuantity')
+        && $this->unregisterHook('actionObjectBeslistProductAddAfter')
+        && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
+        && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
+        && $this->unregisterHook('displayAdminProductsExtra')
+        && parent::uninstall();
     }
 
     /**
@@ -91,7 +91,7 @@ class BeslistCart extends Module
     {
         $sql = array();
         $return = true;
-        include(dirname(__FILE__).'/sql_install.php');
+        include(dirname(__FILE__) . '/sql_install.php');
         foreach ($sql as $s) {
             $return &= Db::getInstance()->execute($s);
         }
@@ -106,9 +106,9 @@ class BeslistCart extends Module
     public function uninstallDb()
     {
         $sql = array();
-        include(dirname(__FILE__).'/sql_install.php');
+        include(dirname(__FILE__) . '/sql_install.php');
         foreach ($sql as $name => $v) {
-            Db::getInstance()->execute('DROP TABLE IF EXISTS '.pSQL($name));
+            Db::getInstance()->execute('DROP TABLE IF EXISTS ' . pSQL($name));
         }
         return true;
     }
@@ -261,12 +261,13 @@ class BeslistCart extends Module
      * @param $category
      * @param $items
      */
-    protected function parseCategory($parent, $category, &$items) {
+    protected function parseCategory($parent, $category, &$items)
+    {
         $items[] = array(
             'id_beslist_category' => "" . $category[0]['id'],
             'name' => pSQL($parent . $category[0]['name'])
         );
-        foreach($category->children() as $name => $child) {
+        foreach ($category->children() as $child) {
             $this->parseCategory($parent . $category[0]['name'] . ' > ', $child, $items);
         }
     }
@@ -279,34 +280,34 @@ class BeslistCart extends Module
     {
         $output = null;
 
-        if (Tools::isSubmit('submit'.$this->name)) {
+        if (Tools::isSubmit('submit' . $this->name)) {
 
-            $enabled = (bool) Tools::getValue('beslist_cart_enabled');
-            $testmode = (bool) Tools::getValue('beslist_cart_testmode');
-            $personalkey = (string) Tools::getValue('beslist_cart_personalkey');
-            $shopid = (int) Tools::getValue('beslist_cart_shopid');
-            $clientid = (int) Tools::getValue('beslist_cart_clientid');
-            $shopitemKey = (string) Tools::getValue('beslist_cart_shopitem_apikey');
+            $enabled = (bool)Tools::getValue('beslist_cart_enabled');
+            $testmode = (bool)Tools::getValue('beslist_cart_testmode');
+            $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
+            $shopid = (int)Tools::getValue('beslist_cart_shopid');
+            $clientid = (int)Tools::getValue('beslist_cart_clientid');
+            $shopitemKey = (string)Tools::getValue('beslist_cart_shopitem_apikey');
 
-            $attribute_size = (int) Tools::getValue('beslist_cart_attribute_size');
-            $attribute_color = (int) Tools::getValue('beslist_cart_attribute_color');
-            $matcher = (int) Tools::getvalue('beslist_cart_matcher');
-            $test_reference = (string) Tools::getValue('beslist_cart_test_reference');
-            $startDate = (string) Tools::getValue('beslist_cart_startdate');
+            $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
+            $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
+            $matcher = (int)Tools::getvalue('beslist_cart_matcher');
+            $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
+            $startDate = (string)Tools::getValue('beslist_cart_startdate');
 
-            $enabled_nl = (bool) Tools::getValue('beslist_cart_enabled_nl');
-            $carrier_nl = (int) Tools::getValue('beslist_cart_carrier_nl');
-            $deliveryperiod_nl = (string) Tools::getValue('beslist_cart_deliveryperiod_nl');
-            $deliveryperiod_nostock_nl = (string) Tools::getValue('beslist_cart_deliveryperiod_nostock_nl');
+            $enabled_nl = (bool)Tools::getValue('beslist_cart_enabled_nl');
+            $carrier_nl = (int)Tools::getValue('beslist_cart_carrier_nl');
+            $deliveryperiod_nl = (string)Tools::getValue('beslist_cart_deliveryperiod_nl');
+            $deliveryperiod_nostock_nl = (string)Tools::getValue('beslist_cart_deliveryperiod_nostock_nl');
 
-            $enabled_be = (bool) Tools::getValue('beslist_cart_enabled_be');
-            $carrier_be = (int) Tools::getValue('beslist_cart_carrier_be');
-            $deliveryperiod_be = (string) Tools::getValue('beslist_cart_deliveryperiod_be');
-            $deliveryperiod_nostock_be = (string) Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
+            $enabled_be = (bool)Tools::getValue('beslist_cart_enabled_be');
+            $carrier_be = (int)Tools::getValue('beslist_cart_carrier_be');
+            $deliveryperiod_be = (string)Tools::getValue('beslist_cart_deliveryperiod_be');
+            $deliveryperiod_nostock_be = (string)Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
 
 
-            $update_categories = (bool) Tools::getValue('beslist_cart_update_categories');
-            $category = (int) Tools::getValue('beslist_cart_category');
+            $update_categories = (bool)Tools::getValue('beslist_cart_update_categories');
+            $category = (int)Tools::getValue('beslist_cart_category');
 
             if (!$personalkey
                 || $shopid == 0
@@ -323,8 +324,7 @@ class BeslistCart extends Module
                 || ($enabled_be && empty($deliveryperiod_be))
                 || ($enabled_be && empty($deliveryperiod_nostock_be))
                 || empty($category)
-                )
-                {
+            ) {
                 $output .= $this->displayError($this->l('Invalid Configuration value'));
             } else {
                 Configuration::updateValue('BESLIST_CART_ENABLED', $enabled);
@@ -352,11 +352,11 @@ class BeslistCart extends Module
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
             }
 
-            if($update_categories) {
+            if ($update_categories) {
                 $this->importCategories();
             }
         }
-        return $output.$this->displayForm();
+        return $output . $this->displayForm();
     }
 
     /**
@@ -369,12 +369,11 @@ class BeslistCart extends Module
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $carriers = Carrier::getCarriers(Context::getContext()->language->id);
-        $zones = Zone::getZones(true);
         $categories = BeslistProduct::getBeslistCategories();
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
         array_unshift($attributes, array(
-          'id_attribute_group' => 0,
-          'name' => $this->l("--- None ---")
+            'id_attribute_group' => 0,
+            'name' => $this->l("--- None ---")
         ));
 
         // Init Fields form array
@@ -382,7 +381,7 @@ class BeslistCart extends Module
         $fields_form[0]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Beslist Shopping Cart Settings'),
-                ),
+            ),
             'input' => array(
                 array(
                     'type' => 'switch',
@@ -546,13 +545,13 @@ class BeslistCart extends Module
                     'type' => 'text',
                     'label' => $this->l('Delivery period'),
                     'desc' => $this->l('Use one of the following:') . '<br />'
-                               . $this->l('x werkdag(en)')  . '<br />'
-                               . $this->l('x tot x werkdagen')  . '<br />'
-                               . $this->l('x tot x weken')  . '<br />'
-                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
-                               . $this->l('Direct te downloaden')  . '<br />'
-                               . $this->l('Niet op voorraad')  . '<br />'
-                               . $this->l('Pre-order'),
+                        . $this->l('x werkdag(en)') . '<br />'
+                        . $this->l('x tot x werkdagen') . '<br />'
+                        . $this->l('x tot x weken') . '<br />'
+                        . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!') . '<br />'
+                        . $this->l('Direct te downloaden') . '<br />'
+                        . $this->l('Niet op voorraad') . '<br />'
+                        . $this->l('Pre-order'),
                     'name' => 'beslist_cart_deliveryperiod_nl',
                     'size' => 20
                 ),
@@ -560,13 +559,13 @@ class BeslistCart extends Module
                     'type' => 'text',
                     'label' => $this->l('Delivery period when not it stock'),
                     'desc' => $this->l('Use one of the following:') . '<br />'
-                               . $this->l('x werkdag(en)')  . '<br />'
-                               . $this->l('x tot x werkdagen')  . '<br />'
-                               . $this->l('x tot x weken')  . '<br />'
-                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
-                               . $this->l('Direct te downloaden')  . '<br />'
-                               . $this->l('Niet op voorraad')  . '<br />'
-                               . $this->l('Pre-order'),
+                        . $this->l('x werkdag(en)') . '<br />'
+                        . $this->l('x tot x werkdagen') . '<br />'
+                        . $this->l('x tot x weken') . '<br />'
+                        . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!') . '<br />'
+                        . $this->l('Direct te downloaden') . '<br />'
+                        . $this->l('Niet op voorraad') . '<br />'
+                        . $this->l('Pre-order'),
                     'name' => 'beslist_cart_deliveryperiod_nostock_nl',
                     'size' => 20
                 )
@@ -612,13 +611,13 @@ class BeslistCart extends Module
                     'type' => 'text',
                     'label' => $this->l('Delivery period'),
                     'desc' => $this->l('Use one of the following:') . '<br />'
-                               . $this->l('x werkdag(en)')  . '<br />'
-                               . $this->l('x tot x werkdagen')  . '<br />'
-                               . $this->l('x tot x weken')  . '<br />'
-                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
-                               . $this->l('Direct te downloaden')  . '<br />'
-                               . $this->l('Niet op voorraad')  . '<br />'
-                               . $this->l('Pre-order'),
+                        . $this->l('x werkdag(en)') . '<br />'
+                        . $this->l('x tot x werkdagen') . '<br />'
+                        . $this->l('x tot x weken') . '<br />'
+                        . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!') . '<br />'
+                        . $this->l('Direct te downloaden') . '<br />'
+                        . $this->l('Niet op voorraad') . '<br />'
+                        . $this->l('Pre-order'),
                     'name' => 'beslist_cart_deliveryperiod_be',
                     'size' => 20
                 ),
@@ -626,13 +625,13 @@ class BeslistCart extends Module
                     'type' => 'text',
                     'label' => $this->l('Delivery period when not it stock'),
                     'desc' => $this->l('Use one of the following:') . '<br />'
-                               . $this->l('x werkdag(en)')  . '<br />'
-                               . $this->l('x tot x werkdagen')  . '<br />'
-                               . $this->l('x tot x weken')  . '<br />'
-                               . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!')  . '<br />'
-                               . $this->l('Direct te downloaden')  . '<br />'
-                               . $this->l('Niet op voorraad')  . '<br />'
-                               . $this->l('Pre-order'),
+                        . $this->l('x werkdag(en)') . '<br />'
+                        . $this->l('x tot x werkdagen') . '<br />'
+                        . $this->l('x tot x weken') . '<br />'
+                        . $this->l('Op werkdagen voor xx:xx uur besteld, volgende dag in huis!') . '<br />'
+                        . $this->l('Direct te downloaden') . '<br />'
+                        . $this->l('Niet op voorraad') . '<br />'
+                        . $this->l('Pre-order'),
                     'name' => 'beslist_cart_deliveryperiod_nostock_be',
                     'size' => 20
                 )
@@ -642,7 +641,7 @@ class BeslistCart extends Module
         $fields_form[3]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Categories'),
-                ),
+            ),
             'input' => array(
                 array(
                     'type' => 'switch',
@@ -687,7 +686,7 @@ class BeslistCart extends Module
         $helper->module = $this;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
 
         // Language
         $helper->default_form_language = $default_lang;
@@ -697,19 +696,19 @@ class BeslistCart extends Module
         $helper->title = $this->displayName;
         $helper->show_toolbar = true;
         $helper->toolbar_scroll = true;
-        $helper->submit_action = 'submit'.$this->name;
+        $helper->submit_action = 'submit' . $this->name;
         $helper->toolbar_btn = array(
             'save' =>
-            array(
-                'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.
-                '&token='.Tools::getAdminTokenLite('AdminModules'),
+                array(
+                    'desc' => $this->l('Save'),
+                    'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
+                        '&token=' . Tools::getAdminTokenLite('AdminModules'),
                 ),
             'back' => array(
-                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
+                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
                 'desc' => $this->l('Back to list')
-                )
-            );
+            )
+        );
 
         // Load current value
         $helper->fields_value['beslist_cart_enabled'] = Configuration::get('BESLIST_CART_ENABLED');
@@ -727,17 +726,19 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
         $helper->fields_value['beslist_cart_carrier_nl'] = Configuration::get('BESLIST_CART_CARRIER_NL');
         $helper->fields_value['beslist_cart_deliveryperiod_nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
-        $helper->fields_value['beslist_cart_deliveryperiod_nostock_nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
+        $helper->fields_value['beslist_cart_deliveryperiod_nostock_nl'] =
+            Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
 
         $helper->fields_value['beslist_cart_enabled_be'] = Configuration::get('BESLIST_CART_ENABLED_BE');
         $helper->fields_value['beslist_cart_carrier_be'] = Configuration::get('BESLIST_CART_CARRIER_BE');
         $helper->fields_value['beslist_cart_deliveryperiod_be'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_BE');
-        $helper->fields_value['beslist_cart_deliveryperiod_nostock_be'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
+        $helper->fields_value['beslist_cart_deliveryperiod_nostock_be'] =
+            Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 
 
         $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
 
-        if(empty($helper->fields_value['beslist_cart_startdate'])) {
+        if (empty($helper->fields_value['beslist_cart_startdate'])) {
             $helper->fields_value['beslist_cart_startdate'] = date('Y-m-d');
         }
         $helper->fields_value['beslist_cart_update_categories'] = 0;
@@ -778,7 +779,7 @@ class BeslistCart extends Module
 
         foreach ($attributes as $attribute) {
             $product_designation[$attribute['id_product_attribute']] = rtrim(
-                $product->name .' - ' . $attribute['attribute_designation'],
+                $product->name . ' - ' . $attribute['attribute_designation'],
                 ' - '
             );
         }
@@ -815,7 +816,8 @@ class BeslistCart extends Module
     public function hookActionProductUpdate($params)
     {
         if ((int)Tools::getValue('beslistcart_loaded') === 1
-             && Validate::isLoadedObject($product = new Product((int)$params['id_product']))) {
+            && Validate::isLoadedObject($product = new Product((int)$params['id_product']))
+        ) {
             $this->processBeslistProductEntities($product);
         }
     }
@@ -846,11 +848,11 @@ class BeslistCart extends Module
 
         // get form information
         foreach ($attributes as $attribute) {
-            $key = $product->id.'_'.$attribute['id_product_attribute'];
+            $key = $product->id . '_' . $attribute['id_product_attribute'];
 
             // get elements to manage
-            $published = Tools::getValue('beslistcart_published_'.$key);
-            $price = Tools::getValue('beslistcart_price_'.$key, 0);
+            $published = Tools::getValue('beslistcart_published_' . $key);
+            $price = Tools::getValue('beslistcart_price_' . $key, 0);
 
             if (array_key_exists($attribute['id_product_attribute'], $indexedBeslistProducts)) {
                 $beslistProduct = new BeslistProduct(
@@ -858,8 +860,8 @@ class BeslistCart extends Module
                 );
                 if ($beslistProduct->price == $price
                     && $beslistProduct->published == $published
-                    && $beslistProduct->id_beslist_category == $category_id)
-                {
+                    && $beslistProduct->id_beslist_category == $category_id
+                ) {
                     continue;
                 }
                 $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
@@ -896,8 +898,15 @@ class BeslistCart extends Module
         );
         if (!empty($beslistProductId)) {
             $beslistProduct = new BeslistProduct($beslistProductId);
-            AdminBeslistCartProductsController::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_STOCK_UPDATE);
-            AdminBeslistCartProductsController::processBeslistQuantityUpdate($beslistProduct, $param['quantity'], $this->context);
+            AdminBeslistCartProductsController::setProductStatus(
+                $beslistProduct,
+                (int)BeslistProduct::STATUS_STOCK_UPDATE
+            );
+            AdminBeslistCartProductsController::processBeslistQuantityUpdate(
+                $beslistProduct,
+                $param['quantity'],
+                $this->context
+            );
         }
     }
 

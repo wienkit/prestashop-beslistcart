@@ -8,9 +8,9 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  @author    Mark Wienk
- *  @copyright 2013-2016 Wienk IT
- *  @license   LICENSE.txt
+ * @author    Mark Wienk
+ * @copyright 2013-2016 Wienk IT
+ * @license   LICENSE.txt
  */
 
 class BeslistProduct extends ObjectModel
@@ -88,7 +88,7 @@ class BeslistProduct extends ObjectModel
      */
     public static function getBeslistCategories()
     {
-        $sql = 'SELECT id_beslist_category, name FROM `'._DB_PREFIX_.'beslist_categories` ORDER BY name ASC';
+        $sql = 'SELECT id_beslist_category, name FROM `' . _DB_PREFIX_ . 'beslist_categories` ORDER BY name ASC';
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 
@@ -103,39 +103,39 @@ class BeslistProduct extends ObjectModel
             m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             SUM(st.`quantity`) as stock,
             size.`name` AS size, color.`name` AS color, color.`id_attribute` AS variant
-    				FROM `'._DB_PREFIX_.'beslist_product` b
-            LEFT JOIN `'._DB_PREFIX_.'product` p ON (b.`id_product` = p.`id_product`)
-    				'.Shop::addSqlAssociation('product', 'p').'
-    				LEFT JOIN `'._DB_PREFIX_.'product_lang` pl ON (p.`id_product` = pl.`id_product`
-            '.Shop::addSqlRestrictionOnLang('pl').')
-    				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
-    				LEFT JOIN `'._DB_PREFIX_.'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
-            LEFT JOIN `'._DB_PREFIX_.'beslist_categories` c ON (b.`id_beslist_category` = c.`id_beslist_category`)
-            LEFT JOIN `'._DB_PREFIX_.'stock_available` st ON (
+    				FROM `' . _DB_PREFIX_ . 'beslist_product` b
+            LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
+    				' . Shop::addSqlAssociation('product', 'p') . '
+    				LEFT JOIN `' . _DB_PREFIX_ . 'product_lang` pl ON (p.`id_product` = pl.`id_product`
+            ' . Shop::addSqlRestrictionOnLang('pl') . ')
+    				LEFT JOIN `' . _DB_PREFIX_ . 'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
+    				LEFT JOIN `' . _DB_PREFIX_ . 'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
+            LEFT JOIN `' . _DB_PREFIX_ . 'beslist_categories` c ON (b.`id_beslist_category` = c.`id_beslist_category`)
+            LEFT JOIN `' . _DB_PREFIX_ . 'stock_available` st ON (
               b.`id_product` = st.`id_product` AND
               b.`id_product_attribute` = st.`id_product_attribute`
             )
-            LEFT JOIN `'._DB_PREFIX_.'product_attribute` prattr ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute` prattr ON (
               b.`id_product_attribute` = prattr.`id_product_attribute`
             )
-            LEFT JOIN `'._DB_PREFIX_.'product_attribute_combination` com ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_combination` com ON (
               b.`id_product_attribute` = com.`id_product_attribute`
             )
-            LEFT JOIN `'._DB_PREFIX_.'attribute` attrsize ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrsize ON (
               com.`id_attribute` = attrsize.`id_attribute` AND
               attrsize.`id_attribute_group` = ' . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . '
             )
-            LEFT JOIN `'._DB_PREFIX_.'attribute_lang` size ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` size ON (
               attrsize.`id_attribute` = size.`id_attribute`
             )
-            LEFT JOIN `'._DB_PREFIX_.'attribute` attrcolor ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrcolor ON (
               com.`id_attribute` = attrcolor.`id_attribute` AND
               attrcolor.`id_attribute_group` = ' . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . '
             )
-            LEFT JOIN `'._DB_PREFIX_.'attribute_lang` color ON (
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` color ON (
               attrcolor.`id_attribute` = color.`id_attribute`
             )
-    				WHERE pl.`id_lang` = '.(int)$id_lang.'
+    				WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
     				ORDER BY p.id_product';
@@ -148,18 +148,20 @@ class BeslistProduct extends ObjectModel
      */
     public function getReference()
     {
-        if(isset($this->id_product_attribute) && !empty($this->id_product_attribute) && $this->id_product_attribute != 0) {
+        if (isset($this->id_product_attribute) &&
+            !empty($this->id_product_attribute) &&
+            $this->id_product_attribute != 0) {
             $query = new DbQuery();
             $query->select('pa.reference');
             $query->from('product_attribute', 'pa');
-            $query->where('pa.id_product_attribute = \''.(int)$this->id_product_attribute.'\'');
-            $query->where('pa.id_product = '.(int)$this->id_product);
+            $query->where('pa.id_product_attribute = \'' . (int)$this->id_product_attribute . '\'');
+            $query->where('pa.id_product = ' . (int)$this->id_product);
             return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
         } else {
             $query = new DbQuery();
             $query->select('p.reference');
             $query->from('product', 'p');
-            $query->where('p.id_product = \''.(int)$this->id_product.'\'');
+            $query->where('p.id_product = \'' . (int)$this->id_product . '\'');
             return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
         }
     }
@@ -173,8 +175,8 @@ class BeslistProduct extends ObjectModel
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
       			SELECT *
-      			FROM `'._DB_PREFIX_.'beslist_product`
-      			WHERE `id_product` = '.(int)$id_product);
+      			FROM `' . _DB_PREFIX_ . 'beslist_product`
+      			WHERE `id_product` = ' . (int)$id_product);
     }
 
     /**
@@ -187,9 +189,9 @@ class BeslistProduct extends ObjectModel
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
       			SELECT `id_beslist_product`
-      			FROM `'._DB_PREFIX_.'beslist_product`
-      			WHERE `id_product` = '.(int)$id_product.'
-            AND `id_product_attribute` = '.(int)$id_product_attribute);
+      			FROM `' . _DB_PREFIX_ . 'beslist_product`
+      			WHERE `id_product` = ' . (int)$id_product . '
+            AND `id_product_attribute` = ' . (int)$id_product_attribute);
     }
 
     /**
@@ -202,7 +204,7 @@ class BeslistProduct extends ObjectModel
             'BeslistProduct',
             Db::getInstance()->executeS('
                 SELECT *
-                FROM `'._DB_PREFIX_.'beslist_product`
+                FROM `' . _DB_PREFIX_ . 'beslist_product`
                 WHERE `status` > 0')
         );
     }

@@ -8,9 +8,9 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  @author    Mark Wienk
- *  @copyright 2013-2016 Wienk IT
- *  @license   LICENSE.txt
+ * @author    Mark Wienk
+ * @copyright 2013-2016 Wienk IT
+ * @license   LICENSE.txt
  */
 
 class BeslistTestPayment extends PaymentModule

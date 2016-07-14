@@ -8,14 +8,14 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  @author    Mark Wienk
- *  @copyright 2013-2016 Wienk IT
- *  @license   LICENSE.txt
+ * @author    Mark Wienk
+ * @copyright 2013-2016 Wienk IT
+ * @license   LICENSE.txt
  */
 
-require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
-require_once _PS_MODULE_DIR_.'beslistcart/beslistcart.php';
-require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistProduct.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/libraries/autoload.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/beslistcart.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistProduct.php';
 
 class AdminBeslistCartProductsController extends AdminController
 {
@@ -26,7 +26,7 @@ class AdminBeslistCartProductsController extends AdminController
             Tools::redirectAdmin(
                 Context::getContext()
                     ->link
-                    ->getAdminLink('AdminProducts').'&updateproduct&id_product='.(int)$id_product
+                    ->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id_product
             );
         }
 
@@ -38,7 +38,7 @@ class AdminBeslistCartProductsController extends AdminController
 
         $this->identifier = 'id_product';
 
-        $this->_join .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
+        $this->_join .= ' INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
                             ON (pl.`id_product` = a.`id_product` AND pl.`id_shop` = a.`id_shop`) ';
         $this->_select .= ' pl.`name` as `product_name`,
                             IF(status = 0, 1, 0) as badge_success,
@@ -93,7 +93,7 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public function getSychronizedState($status)
     {
-        switch($status) {
+        switch ($status) {
             case BeslistProduct::STATUS_OK:
                 return $this->l('OK');
             case BeslistProduct::STATUS_STOCK_UPDATE:
@@ -119,7 +119,7 @@ class AdminBeslistCartProductsController extends AdminController
             }
 
             $tpl->assign(array(
-                'href' => $this->context->link->getAdminLink('AdminProducts').'&updateproduct&id_product='.(int)$id,
+                'href' => $this->context->link->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id,
                 'action' => self::$cache_lang['View'],
                 'id' => $id
             ));
@@ -140,7 +140,7 @@ class AdminBeslistCartProductsController extends AdminController
             return;
         }
         $this->page_header_toolbar_btn['sync_products'] = array(
-            'href' => self::$currentIndex.'&token='.$this->token.'&sync_products=1',
+            'href' => self::$currentIndex . '&token=' . $this->token . '&sync_products=1',
             'desc' => $this->l('Sync products'),
             'icon' => 'process-icon-update'
         );
@@ -170,7 +170,7 @@ class AdminBeslistCartProductsController extends AdminController
     {
         $beslistProducts = BeslistProduct::getUpdatedProducts();
         foreach ($beslistProducts as $beslistProduct) {
-            switch($beslistProduct->status) {
+            switch ($beslistProduct->status) {
                 case BeslistProduct::STATUS_NEW:
                     self::processBeslistProductCreate($beslistProduct, $context);
                     break;
@@ -213,12 +213,12 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistStockUpdate($beslistProduct, $context)
     {
-         $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
-         $quantity = StockAvailable::getQuantityAvailableByProduct(
-             $product->id,
-             $beslistProduct->id_product_attribute
-         );
-         self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
+        $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
+        $quantity = StockAvailable::getQuantityAvailableByProduct(
+            $product->id,
+            $beslistProduct->id_product_attribute
+        );
+        self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
     }
 
     /**
@@ -232,8 +232,12 @@ class AdminBeslistCartProductsController extends AdminController
         $client = BeslistCart::getShopitemClient();
         $shopId = Configuration::get('BESLIST_CART_SHOPID');
         $productRef = $beslistProduct->getReference();
-        $delivery_time_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_NL');
-        $delivery_time_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_BE');
+        $delivery_time_nl = Configuration::get(
+            'BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_NL'
+        );
+        $delivery_time_be = Configuration::get(
+            'BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_BE'
+        );
         $options = array(
             'stock' => $quantity,
             'delivery_time_nl' => $delivery_time_nl,

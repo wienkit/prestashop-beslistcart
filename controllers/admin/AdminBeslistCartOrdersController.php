@@ -8,15 +8,15 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  @author    Mark Wienk
- *  @copyright 2013-2016 Wienk IT
- *  @license   LICENSE.txt
+ * @author    Mark Wienk
+ * @copyright 2013-2016 Wienk IT
+ * @license   LICENSE.txt
  */
 
-require_once _PS_MODULE_DIR_.'beslistcart/libraries/autoload.php';
-require_once _PS_MODULE_DIR_.'beslistcart/beslistcart.php';
-require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistPayment.php';
-require_once _PS_MODULE_DIR_.'beslistcart/classes/BeslistTestPayment.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/libraries/autoload.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/beslistcart.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistPayment.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistTestPayment.php';
 
 class AdminBeslistCartOrdersController extends AdminController
 {
@@ -28,14 +28,14 @@ class AdminBeslistCartOrdersController extends AdminController
         parent::initPageHeaderToolbar();
 
         $this->page_header_toolbar_btn['sync_orders'] = array(
-            'href' => self::$currentIndex.'&token='.$this->token.'&sync_orders=1',
+            'href' => self::$currentIndex . '&token=' . $this->token . '&sync_orders=1',
             'desc' => $this->l('Sync orders'),
             'icon' => 'process-icon-download'
         );
 
         if (Configuration::get('BESLIST_CART_TESTMODE')) {
             $this->page_header_toolbar_btn['delete_testdata'] = array(
-                'href' => self::$currentIndex.'&token='.$this->token.'&delete_testdata=1',
+                'href' => self::$currentIndex . '&token=' . $this->token . '&delete_testdata=1',
                 'desc' => $this->l('Delete test data'),
                 'icon' => 'process-icon-eraser'
             );
@@ -64,7 +64,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 $payment_module = new BeslistTestPayment();
             }
 
-            $startDate = (string) Configuration::get('BESLIST_CART_STARTDATE');
+            $startDate = (string)Configuration::get('BESLIST_CART_STARTDATE');
             $endDate = date('Y-m-d');
 
             $data = array();
@@ -74,7 +74,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
                 // Shipping cost
-                $price = (float) Product::getPriceStatic($productId['id_product']);
+                $price = (float)Product::getPriceStatic($productId['id_product']);
                 $country_nl = new Country(Country::getByIso('NL'));
                 $address = new Address();
                 $address->id_country = $country_nl->id;
@@ -98,7 +98,7 @@ class AdminBeslistCartOrdersController extends AdminController
                     $cart = $this->parse($shopOrder);
 
                     if (!$cart) {
-                        $this->errors[] = $this->l('Couldn\'t create a cart for order ') .$shopOrder->orderNumber;
+                        $this->errors[] = $this->l('Couldn\'t create a cart for order ') . $shopOrder->orderNumber;
                         continue;
                     }
 
@@ -121,13 +121,13 @@ class AdminBeslistCartOrdersController extends AdminController
                         false,
                         $cart->secure_key
                     );
-                    if(!$verified) {
+                    if (!$verified) {
                         $success = false;
                         $this->errors[] = $this->l('Beslist.nl Shopping cart sync failed.');
                     }
                 }
             }
-            if($success) {
+            if ($success) {
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $endDate);
                 $this->confirmations[] = $this->l('Beslist.nl Shopping cart sync completed.');
             }
@@ -147,8 +147,8 @@ class AdminBeslistCartOrdersController extends AdminController
                     $payment->delete();
                 }
                 $order->deleteAssociations();
-                Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'order_history`
-                                              WHERE `id_order` = '.(int)pSQL($order->id));
+                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'order_history`
+                                              WHERE `id_order` = ' . (int)pSQL($order->id));
                 $order->delete();
                 $customer->delete();
             }
@@ -159,7 +159,7 @@ class AdminBeslistCartOrdersController extends AdminController
     {
         if ($id_order = Tools::getValue('id_order')) {
             Tools::redirectAdmin(
-                Context::getContext()->link->getAdminLink('AdminOrders').'&vieworder&id_order='.(int)$id_order
+                Context::getContext()->link->getAdminLink('AdminOrders') . '&vieworder&id_order=' . (int)$id_order
             );
         }
         $this->bootstrap = true;
@@ -178,17 +178,20 @@ class AdminBeslistCartOrdersController extends AdminController
 		CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) AS `customer`,
 		osl.`name` AS `osname`,
 		os.`color`,
-		IF((SELECT so.id_order FROM `'._DB_PREFIX_.'orders` so WHERE so.id_customer = a.id_customer AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
+		IF((SELECT so.id_order FROM `' . _DB_PREFIX_ . 'orders` so WHERE so.id_customer = a.id_customer 
+		AND so.id_order < a.id_order LIMIT 1) > 0, 0, 1) as new,
 		country_lang.name as cname,
 		IF(a.valid, 1, 0) badge_success';
 
         $this->_join = '
-		LEFT JOIN `'._DB_PREFIX_.'customer` c ON (c.`id_customer` = a.`id_customer`)
-		LEFT JOIN `'._DB_PREFIX_.'address` address ON address.id_address = a.id_address_delivery
-		LEFT JOIN `'._DB_PREFIX_.'country` country ON address.id_country = country.id_country
-		LEFT JOIN `'._DB_PREFIX_.'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country` AND country_lang.`id_lang` = '.(int)$this->context->language->id.')
-		LEFT JOIN `'._DB_PREFIX_.'order_state` os ON (os.`id_order_state` = a.`current_state`)
-		LEFT JOIN `'._DB_PREFIX_.'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` AND osl.`id_lang` = '.(int)$this->context->language->id.')';
+		LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = a.`id_customer`)
+		LEFT JOIN `' . _DB_PREFIX_ . 'address` address ON address.id_address = a.id_address_delivery
+		LEFT JOIN `' . _DB_PREFIX_ . 'country` country ON address.id_country = country.id_country
+		LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country`
+		    AND country_lang.`id_lang` = ' . (int)$this->context->language->id . ')
+		LEFT JOIN `' . _DB_PREFIX_ . 'order_state` os ON (os.`id_order_state` = a.`current_state`)
+		LEFT JOIN `' . _DB_PREFIX_ . 'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` 
+		    AND osl.`id_lang` = ' . (int)$this->context->language->id . ')';
         $this->_orderBy = 'id_order';
         $this->_orderWay = 'DESC';
         $this->_where = 'AND a.module IN (\'beslistcart\', \'beslistcarttest\')';
@@ -251,11 +254,15 @@ class AdminBeslistCartOrdersController extends AdminController
         if (Country::isCurrentlyUsed('country', true)) {
             $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 			SELECT DISTINCT c.id_country, cl.`name`
-			FROM `'._DB_PREFIX_.'orders` o
-			'.Shop::addSqlAssociation('orders', 'o').'
-			INNER JOIN `'._DB_PREFIX_.'address` a ON a.id_address = o.id_address_delivery
-			INNER JOIN `'._DB_PREFIX_.'country` c ON a.id_country = c.id_country
-			INNER JOIN `'._DB_PREFIX_.'country_lang` cl ON (c.`id_country` = cl.`id_country` AND cl.`id_lang` = '.(int)$this->context->language->id.')
+			FROM `' . _DB_PREFIX_ . 'orders` o
+			' . Shop::addSqlAssociation('orders', 'o') . '
+			INNER JOIN `' . _DB_PREFIX_ . 'address` a 
+			    ON a.id_address = o.id_address_delivery
+			INNER JOIN `' . _DB_PREFIX_ . 'country` c 
+			    ON a.id_country = c.id_country
+			INNER JOIN `' . _DB_PREFIX_ . 'country_lang` cl 
+			    ON (c.`id_country` = cl.`id_country` 
+			    AND cl.`id_lang` = ' . (int)$this->context->language->id . ')
 			ORDER BY cl.name ASC');
 
             $country_array = array();
@@ -282,11 +289,24 @@ class AdminBeslistCartOrdersController extends AdminController
         parent::__construct();
     }
 
+    /**
+     * Prints Yes if a new customer was found
+     *
+     * @param $id_order
+     * @param $tr
+     * @return string
+     */
     public function printNewCustomer($id_order, $tr)
     {
         return ($tr['new'] ? $this->l('Yes') : $this->l('No'));
     }
 
+    /**
+     * Display the order total in the correct currency
+     * @param $echo
+     * @param $tr
+     * @return string
+     */
     public static function setOrderCurrency($echo, $tr)
     {
         $order = new Order($tr['id_order']);
@@ -303,7 +323,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $sql = new DbQuery();
         $sql->select('order_reference');
         $sql->from('order_payment', 'op');
-        $sql->where('op.transaction_id = '. pSQL($transaction_id));
+        $sql->where('op.transaction_id = ' . pSQL($transaction_id));
         return (bool)Db::getInstance()->executeS($sql);
     }
 
@@ -317,8 +337,8 @@ class AdminBeslistCartOrdersController extends AdminController
         $customer = $this->parseCustomer($shopOrder);
         Context::getContext()->customer = $customer;
         $shipping = $this->parseAddress($shopOrder->addresses->shipping, $customer, 'Shipping');
-        $billing  = $this->parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
-        $cart     = $this->parseCart($shopOrder, $customer, $billing, $shipping);
+        $billing = $this->parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
+        $cart = $this->parseCart($shopOrder, $customer, $billing, $shipping);
         return $cart;
     }
 
@@ -330,8 +350,8 @@ class AdminBeslistCartOrdersController extends AdminController
     public function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
     {
         $customer = new Customer();
-        $customer->firstname = str_replace(range(0,9),'', $shopOrder->addresses->invoice->firstName);
-        $customer->lastname = str_replace(range(0,9),'', trim(
+        $customer->firstname = str_replace(range(0, 9), '', $shopOrder->addresses->invoice->firstName);
+        $customer->lastname = str_replace(range(0, 9), '', trim(
             $shopOrder->addresses->invoice->lastNameInsertion .
             ' ' .
             $shopOrder->addresses->invoice->lastName
@@ -358,12 +378,12 @@ class AdminBeslistCartOrdersController extends AdminController
     ) {
         $address = new Address();
         $address->id_customer = $customer->id;
-        $address->firstname = str_replace(range(0,9),'', $details->firstName);
-        $address->lastname = str_replace(range(0,9),'', trim($details->lastNameInsertion . ' ' . $details->lastName));
+        $address->firstname = str_replace(range(0, 9), '', $details->firstName);
+        $address->lastname = str_replace(range(0, 9), '', trim($details->lastNameInsertion . ' ' . $details->lastName));
         $address->address1 = $details->address;
-        $address->address1.= ' ' . $details->addressNumber;
+        $address->address1 .= ' ' . $details->addressNumber;
         if (!empty($details->addressNumberAdditional)) {
-            $address->address1.= ' ' . $details->addressNumberAdditional;
+            $address->address1 .= ' ' . $details->addressNumberAdditional;
         }
         $address->postcode = $details->zip;
         $address->city = $details->city;
@@ -396,7 +416,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $cart->id_lang = $this->context->language->id;
         $cart->id_currency = Context::getContext()->currency->id;
         $country = new Country($shipping->id_country);
-        if($country->iso_code == 'NL') {
+        if ($country->iso_code == 'NL') {
             $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
             $cart->id_carrier = $carrier_nl->id;
         } else {
@@ -457,8 +477,14 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param int $id_country
      * @param float $price
      */
-    private function addSpecificPrice(Cart $cart, Customer $customer, Product $product, $id_product_attribute, $id_country, $price)
-    {
+    private function addSpecificPrice(
+        Cart $cart,
+        Customer $customer,
+        Product $product,
+        $id_product_attribute,
+        $id_country,
+        $price
+    ) {
         $specific_price = new SpecificPrice();
         $specific_price->id_cart = (int)$cart->id;
         $specific_price->id_shop = $cart->id_shop;
@@ -499,7 +525,7 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        if(Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
+        if (Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
             $id = Product::getIdByEan13($bvbCode);
         } else {
             $id = self::getProductByReference($bvbCode);
@@ -507,7 +533,7 @@ class AdminBeslistCartOrdersController extends AdminController
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
         } else {
-            if(Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
+            if (Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
                 $attributes = self::getAttributeByEan($bvbCode);
             } else {
                 $attributes = self::getAttributeByReference($bvbCode);
@@ -537,7 +563,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query = new DbQuery();
         $query->select('p.id_product');
         $query->from('product', 'p');
-        $query->where('p.reference = \''.pSQL($reference).'\'');
+        $query->where('p.reference = \'' . pSQL($reference) . '\'');
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
     }
 
@@ -559,7 +585,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query = new DbQuery();
         $query->select('pa.id_product, pa.id_product_attribute');
         $query->from('product_attribute', 'pa');
-        $query->where('pa.ean13 = \''.pSQL($ean).'\'');
+        $query->where('pa.ean13 = \'' . pSQL($ean) . '\'');
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
     }
 
@@ -581,7 +607,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query = new DbQuery();
         $query->select('pa.id_product, pa.id_product_attribute');
         $query->from('product_attribute', 'pa');
-        $query->where('pa.reference = \''.pSQL($reference).'\'');
+        $query->where('pa.reference = \'' . pSQL($reference) . '\'');
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
     }
 
