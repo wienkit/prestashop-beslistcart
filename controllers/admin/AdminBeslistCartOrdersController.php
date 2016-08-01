@@ -253,7 +253,7 @@ class AdminBeslistCartOrdersController extends AdminController
             $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
             // Shipping cost
-            $price = (float)Product::getPriceStatic($productId['id_product']);
+            $price = (float)Product::getPriceStatic((int)$productId['id_product']);
             $country_nl = new Country(Country::getByIso('NL'));
             $address = new Address();
             $address->id_country = $country_nl->id;
