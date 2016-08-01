@@ -230,7 +230,8 @@ class AdminBeslistCartOrdersController extends AdminController
     public static function synchronize()
     {
         $context = Context::getContext();
-        if (!Configuration::get('BESLIST_CART_ENABLED')) {
+        $module = Module::getInstanceByName('beslistcart');
+        if (!Configuration::get('BESLIST_CART_ENABLED') || !$module->isEnabledForShopContext()) {
             $context->controller->errors[] = Tools::displayError(
                 'Beslist Shopping cart isn\'t enabled for the current store.'
             );
