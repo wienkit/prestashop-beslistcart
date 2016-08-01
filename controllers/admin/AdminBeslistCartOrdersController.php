@@ -20,141 +20,6 @@ require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistTestPayment.php';
 
 class AdminBeslistCartOrdersController extends AdminController
 {
-    /**
-     * Overrides parent::initPageHeaderToolbar
-     */
-    public function initPageHeaderToolbar()
-    {
-        parent::initPageHeaderToolbar();
-
-        $this->page_header_toolbar_btn['sync_orders'] = array(
-            'href' => self::$currentIndex . '&token=' . $this->token . '&sync_orders=1',
-            'desc' => $this->l('Sync orders'),
-            'icon' => 'process-icon-download'
-        );
-
-        if (Configuration::get('BESLIST_CART_TESTMODE')) {
-            $this->page_header_toolbar_btn['delete_testdata'] = array(
-                'href' => self::$currentIndex . '&token=' . $this->token . '&delete_testdata=1',
-                'desc' => $this->l('Delete test data'),
-                'icon' => 'process-icon-eraser'
-            );
-        }
-    }
-
-    /**
-     * Processes the request
-     */
-    public function postProcess()
-    {
-        /* PrestaShop demo mode */
-        if (_PS_MODE_DEMO_) {
-            $this->errors[] = Tools::displayError('This functionality has been disabled.');
-            return;
-        }
-
-        if ((bool)Tools::getValue('sync_orders')) {
-            if (!Configuration::get('BESLIST_CART_ENABLED')) {
-                $this->errors[] = Tools::displayError('Beslist Shopping cart isn\'t enabled for the current store.');
-                return;
-            }
-            $Beslist = BeslistCart::getClient();
-            $payment_module = new BeslistPayment();
-            if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
-                $payment_module = new BeslistTestPayment();
-            }
-
-            $startDate = (string)Configuration::get('BESLIST_CART_STARTDATE');
-            $endDate = date('Y-m-d');
-
-            $data = array();
-            if (Configuration::get('BESLIST_CART_TESTMODE')) {
-                $productId = self::getProductIdByBvbCode(Configuration::get('BESLIST_CART_TEST_REFERENCE'));
-                $product = new Product($productId['id_product']);
-                $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
-
-                // Shipping cost
-                $price = (float)Product::getPriceStatic($productId['id_product']);
-                $country_nl = new Country(Country::getByIso('NL'));
-                $address = new Address();
-                $address->id_country = $country_nl->id;
-                $address->id_state = 0;
-                $address->postcode = 0;
-                $tax_rate = $carrier->getTaxesRate($address);
-                $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone);
-                $shippingTaxIncl = $shippingTaxExcl * (1 + ($tax_rate / 100));
-
-                $data = array(array(
-                    'number_ordered' => 2,
-                    'bvb_code' => $product->ean13,
-                    'item_shipping' => $shippingTaxIncl
-                ));
-            }
-
-            $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
-            $success = true;
-            foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
-                if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
-                    $cart = $this->parse($shopOrder);
-
-                    if (!$cart) {
-                        $this->errors[] = $this->l('Couldn\'t create a cart for order ') . $shopOrder->orderNumber;
-                        continue;
-                    }
-
-                    Context::getContext()->cart = $cart;
-                    Context::getContext()->currency = new Currency((int)$cart->id_currency);
-                    Context::getContext()->customer = new Customer((int)$cart->id_customer);
-
-                    $id_order_state = Configuration::get('BESLIST_CART_ORDERS_INITIALSTATE');
-                    $amount_paid = self::getBeslistPaymentTotal($shopOrder);
-                    $verified = $payment_module->validateOrder(
-                        (int)$cart->id,
-                        (int)$id_order_state,
-                        $amount_paid,
-                        $payment_module->displayName,
-                        null,
-                        array(
-                            'transaction_id' => $shopOrder->shopOrderNumber
-                        ),
-                        null,
-                        false,
-                        $cart->secure_key
-                    );
-                    if (!$verified) {
-                        $success = false;
-                        $this->errors[] = $this->l('Beslist.nl Shopping cart sync failed.');
-                    }
-                }
-            }
-            if ($success) {
-                Configuration::updateValue('BESLIST_CART_STARTDATE', $endDate);
-                $this->confirmations[] = $this->l('Beslist.nl Shopping cart sync completed.');
-            }
-        } elseif ((bool)Tools::getValue('delete_testdata')) {
-            $orders = new PrestaShopCollection('Order');
-            $orders->where('module', '=', 'beslistcarttest');
-            foreach ($orders->getResults() as $order) {
-                $customer = $order->getCustomer();
-                $addresses = $customer->getAddresses($customer->id_lang);
-                foreach ($addresses as $addressArr) {
-                    $address = new Address($addressArr['id_address']);
-                    $address->delete();
-                }
-                (new Cart($order->id_cart))->delete();
-                $payments = OrderPayment::getByOrderReference($order->reference);
-                foreach ($payments as $payment) {
-                    $payment->delete();
-                }
-                $order->deleteAssociations();
-                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'order_history`
-                                              WHERE `id_order` = ' . (int)pSQL($order->id));
-                $order->delete();
-                $customer->delete();
-            }
-        }
-        return parent::postProcess();
-    }
 
     public function __construct()
     {
@@ -291,6 +156,28 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
+     * Overrides parent::initPageHeaderToolbar
+     */
+    public function initPageHeaderToolbar()
+    {
+        parent::initPageHeaderToolbar();
+
+        $this->page_header_toolbar_btn['sync_orders'] = array(
+            'href' => self::$currentIndex . '&token=' . $this->token . '&sync_orders=1',
+            'desc' => $this->l('Sync orders'),
+            'icon' => 'process-icon-download'
+        );
+
+        if (Configuration::get('BESLIST_CART_TESTMODE')) {
+            $this->page_header_toolbar_btn['delete_testdata'] = array(
+                'href' => self::$currentIndex . '&token=' . $this->token . '&delete_testdata=1',
+                'desc' => $this->l('Delete test data'),
+                'icon' => 'process-icon-eraser'
+            );
+        }
+    }
+
+    /**
      * Prints Yes if a new customer was found
      *
      * @param $id_order
@@ -300,6 +187,133 @@ class AdminBeslistCartOrdersController extends AdminController
     public function printNewCustomer($id_order, $tr)
     {
         return ($tr['new'] ? $this->l('Yes') : $this->l('No'));
+    }
+
+    /**
+     * Processes the request
+     */
+    public function postProcess()
+    {
+        /* PrestaShop demo mode */
+        if (_PS_MODE_DEMO_) {
+            $this->errors[] = Tools::displayError('This functionality has been disabled.');
+            return;
+        }
+
+        if ((bool)Tools::getValue('sync_orders')) {
+            self::synchronize();
+        } elseif ((bool)Tools::getValue('delete_testdata')) {
+            $orders = new PrestaShopCollection('Order');
+            $orders->where('module', '=', 'beslistcarttest');
+            foreach ($orders->getResults() as $order) {
+                $customer = $order->getCustomer();
+                $addresses = $customer->getAddresses($customer->id_lang);
+                foreach ($addresses as $addressArr) {
+                    $address = new Address($addressArr['id_address']);
+                    $address->delete();
+                }
+                (new Cart($order->id_cart))->delete();
+                $payments = OrderPayment::getByOrderReference($order->reference);
+                foreach ($payments as $payment) {
+                    $payment->delete();
+                }
+                $order->deleteAssociations();
+                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'order_history`
+                                              WHERE `id_order` = ' . (int)pSQL($order->id));
+                $order->delete();
+                $customer->delete();
+            }
+        }
+        return parent::postProcess();
+    }
+
+    public static function synchronize()
+    {
+        $context = Context::getContext();
+        if (!Configuration::get('BESLIST_CART_ENABLED')) {
+            $context->controller->errors[] = Tools::displayError(
+                'Beslist Shopping cart isn\'t enabled for the current store.'
+            );
+            return;
+        }
+        $Beslist = BeslistCart::getClient();
+        $payment_module = new BeslistPayment();
+        if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
+            $payment_module = new BeslistTestPayment();
+        }
+
+        $startDate = (string)Configuration::get('BESLIST_CART_STARTDATE');
+        $endDate = date('Y-m-d');
+
+        $data = array();
+        if (Configuration::get('BESLIST_CART_TESTMODE')) {
+            $productId = self::getProductIdByBvbCode(Configuration::get('BESLIST_CART_TEST_REFERENCE'));
+            $product = new Product($productId['id_product']);
+            $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+
+            // Shipping cost
+            $price = (float)Product::getPriceStatic($productId['id_product']);
+            $country_nl = new Country(Country::getByIso('NL'));
+            $address = new Address();
+            $address->id_country = $country_nl->id;
+            $address->id_state = 0;
+            $address->postcode = 0;
+            $tax_rate = $carrier->getTaxesRate($address);
+            $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone);
+            $shippingTaxIncl = $shippingTaxExcl * (1 + ($tax_rate / 100));
+
+            $data = array(array(
+                'number_ordered' => 2,
+                'bvb_code' => $product->ean13,
+                'item_shipping' => $shippingTaxIncl
+            ));
+        }
+
+        $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
+        $success = true;
+        foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
+            if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
+                $cart = self::parse($shopOrder);
+
+                if (!$cart) {
+                    $context->controller->errors[] = Translate::getAdminTranslation('
+                        Couldn\'t create a cart for order ', 'AdminBeslistCartOrders'
+                    ) . $shopOrder->orderNumber;
+                    continue;
+                }
+
+                Context::getContext()->cart = $cart;
+                Context::getContext()->currency = new Currency((int)$cart->id_currency);
+                Context::getContext()->customer = new Customer((int)$cart->id_customer);
+
+                $id_order_state = Configuration::get('BESLIST_CART_ORDERS_INITIALSTATE');
+                $amount_paid = self::getBeslistPaymentTotal($shopOrder);
+                $verified = $payment_module->validateOrder(
+                    (int)$cart->id,
+                    (int)$id_order_state,
+                    $amount_paid,
+                    $payment_module->displayName,
+                    null,
+                    array(
+                        'transaction_id' => $shopOrder->shopOrderNumber
+                    ),
+                    null,
+                    false,
+                    $cart->secure_key
+                );
+                if (!$verified) {
+                    $success = false;
+
+                    $context->controller->errors[] = Tools::displayError('Beslist.nl Shopping cart sync failed.');
+                }
+            }
+        }
+        if ($success) {
+            Configuration::updateValue('BESLIST_CART_STARTDATE', $endDate);
+            $context->controller->confirmations[] = Translate::getAdminTranslation(
+                'Beslist.nl Shopping cart sync completed.', 'AdminBeslistCartOrders'
+            );
+        }
     }
 
     /**
@@ -317,7 +331,7 @@ class AdminBeslistCartOrdersController extends AdminController
     /**
      * Get OrderID for a Transaction ID
      * @param string $transaction_id
-     * @return array
+     * @return bool
      */
     public static function getTransactionExists($transaction_id)
     {
@@ -333,13 +347,13 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
      * @return Cart
      */
-    public function parse(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+    public static function parse(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
     {
-        $customer = $this->parseCustomer($shopOrder);
+        $customer = self::parseCustomer($shopOrder);
         Context::getContext()->customer = $customer;
-        $shipping = $this->parseAddress($shopOrder->addresses->shipping, $customer, 'Shipping');
-        $billing = $this->parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
-        $cart = $this->parseCart($shopOrder, $customer, $billing, $shipping);
+        $shipping = self::parseAddress($shopOrder->addresses->shipping, $customer, 'Shipping');
+        $billing = self::parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
+        $cart = self::parseCart($shopOrder, $customer, $billing, $shipping);
         return $cart;
     }
 
@@ -348,7 +362,7 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
      * @return Customer
      */
-    public function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
+    public static function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
     {
         $customer = new Customer();
         $customer->firstname = str_replace(range(0, 9), '', $shopOrder->addresses->invoice->firstName);
@@ -372,7 +386,7 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param string $alias a name for the address
      * @return Address
      */
-    public function parseAddress(
+    public static function parseAddress(
         Wienkit\BeslistOrdersClient\Entities\BeslistAddressShipping $details,
         Customer $customer,
         $alias
@@ -396,26 +410,27 @@ class AdminBeslistCartOrdersController extends AdminController
 
     /**
      * Parse the cart for the order
-     * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
+     * @param \Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
      * @param Customer $customer
      * @param Address $billing
      * @param Address $shipping
-     * @return Cart
+     * @return bool|Cart
      */
-    public function parseCart(
+    public static function parseCart(
         Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order,
         Customer $customer,
         Address $billing,
         Address $shipping
     ) {
+        $context = Context::getContext();
         $cart = new Cart();
         $cart->id_customer = $customer->id;
         $cart->id_address_delivery = $shipping->id;
         $cart->id_address_invoice = $billing->id;
-        $cart->id_shop = (int)Context::getContext()->shop->id;
-        $cart->id_shop_group = (int)Context::getContext()->shop->id_shop_group;
-        $cart->id_lang = $this->context->language->id;
-        $cart->id_currency = Context::getContext()->currency->id;
+        $cart->id_shop = (int)$context->shop->id;
+        $cart->id_shop_group = (int)$context->shop->id_shop_group;
+        $cart->id_lang = (int)$context->language->id;
+        $cart->id_currency = (int)Currency::getIdByIsoCode('EUR');
         $country = new Country($shipping->id_country);
         if ($country->iso_code == 'NL') {
             $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
@@ -434,16 +449,20 @@ class AdminBeslistCartOrdersController extends AdminController
             foreach ($items as $item) {
                 $productIds = self::getProductIdByBvbCode($item->bvbCode);
                 if (empty($productIds) || !array_key_exists('id_product', $productIds)) {
-                    $this->errors[] = $this->l('Couldn\'t find product for Bvb code: ') . $item->bvbCode;
+                    $context->controller->errors[] = Translate::getAdminTranslation(
+                        'Couldn\'t find product for Bvb code: ', 'AdminBeslistCartOrders'
+                    ) . $item->bvbCode;
                     continue;
                 }
                 $product = new Product($productIds['id_product']);
                 if (!Validate::isLoadedObject($product)) {
-                    $this->errors[] = $this->l('Couldn\'t load product for Bvb code: ') . $item->bvbCode;
+                    $context->controller->errors[] = Translate::getAdminTranslation(
+                            'Couldn\'t load product for Bvb code: ', 'AdminBeslistCartOrders'
+                        ) . $item->bvbCode;
                     continue;
                 }
                 $hasProducts = true;
-                $this->addSpecificPrice(
+                self::addSpecificPrice(
                     $cart,
                     $customer,
                     $product,
@@ -453,7 +472,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 );
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
                 if (!$cartResult) {
-                    $this->errors[] = Tools::displayError(
+                    $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot
                          be sold because it\'s unavailable or out of stock'
                     );
@@ -478,7 +497,7 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param int $id_country
      * @param float $price
      */
-    private function addSpecificPrice(
+    private static function addSpecificPrice(
         Cart $cart,
         Customer $customer,
         Product $product,
@@ -549,7 +568,7 @@ class AdminBeslistCartOrdersController extends AdminController
     /**
      * Return the product for a reference
      * @param string $reference
-     * @return array the product/attribute combination
+     * @return array|false|int|mysqli_result|null|PDOStatement|resource the product
      */
     private static function getProductByReference($reference)
     {
@@ -571,7 +590,7 @@ class AdminBeslistCartOrdersController extends AdminController
     /**
      * Return the attribute for an ean
      * @param string $ean
-     * @return array the product/attribute combination
+     * @return array|false|int|mysqli_result|null|PDOStatement|resource the product/attribute combination
      */
     private static function getAttributeByEan($ean)
     {
@@ -593,7 +612,7 @@ class AdminBeslistCartOrdersController extends AdminController
     /**
      * Return the attribute for a reference
      * @param string $reference
-     * @return array the product/attribute combination
+     * @return array|false|int|mysqli_result|null|PDOStatement|resource the product/attribute combination
      */
     private static function getAttributeByReference($reference)
     {

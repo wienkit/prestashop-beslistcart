@@ -278,7 +278,15 @@ class BeslistCart extends Module
      */
     public function getContent()
     {
-        $output = null;
+        $cron_url = Tools::getShopDomain(true, true).__PS_BASE_URI__.basename(_PS_MODULE_DIR_);
+        $cron_url.= '/beslistcart/cron.php?secure_key='.md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
+
+        $this->context->smarty->assign(array(
+            'cron_url' => $cron_url,
+            'module_dir' => $this->_path,
+            'module_local_dir' => $this->local_path,
+        ));
+        $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
         if (Tools::isSubmit('submit' . $this->name)) {
 
@@ -336,6 +344,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
+                Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
@@ -998,5 +1007,10 @@ class BeslistCart extends Module
         }
 
         return $client;
+    }
+
+    public static function synchronize()
+    {
+        AdminBeslistCartOrdersController::synchronize();
     }
 }
