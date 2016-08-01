@@ -153,6 +153,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 $customer->delete();
             }
         }
+        return parent::postProcess();
     }
 
     public function __construct()

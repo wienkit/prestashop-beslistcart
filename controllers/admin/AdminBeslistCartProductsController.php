@@ -161,6 +161,7 @@ class AdminBeslistCartProductsController extends AdminController
             self::synchronize($this->context);
             $this->confirmations[] = $this->l('Beslist products fully synchronized.');
         }
+        return parent::postProcess();
     }
 
     /**
