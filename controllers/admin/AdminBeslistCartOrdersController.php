@@ -205,6 +205,9 @@ class AdminBeslistCartOrdersController extends AdminController
         } elseif ((bool)Tools::getValue('delete_testdata')) {
             $orders = new PrestaShopCollection('Order');
             $orders->where('module', '=', 'beslistcarttest');
+            /**
+             * @var Order $order
+             */
             foreach ($orders->getResults() as $order) {
                 $customer = $order->getCustomer();
                 $addresses = $customer->getAddresses($customer->id_lang);
@@ -212,12 +215,16 @@ class AdminBeslistCartOrdersController extends AdminController
                     $address = new Address($addressArr['id_address']);
                     $address->delete();
                 }
+                $details = $order->getOrderDetailList();
+                foreach ($details as $detail) {
+                    (new OrderDetail($detail['id_order_detail']))->delete();
+                }
                 (new Cart($order->id_cart))->delete();
                 $payments = OrderPayment::getByOrderReference($order->reference);
                 foreach ($payments as $payment) {
                     $payment->delete();
                 }
-                $order->deleteAssociations();
+
                 Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'order_history`
                                               WHERE `id_order` = ' . (int)pSQL($order->id));
                 $order->delete();
