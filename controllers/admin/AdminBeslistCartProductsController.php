@@ -38,8 +38,11 @@ class AdminBeslistCartProductsController extends AdminController
 
         $this->identifier = 'id_product';
 
-        $this->_join .= ' INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
-                            ON (pl.`id_product` = a.`id_product` AND pl.`id_shop` = a.`id_shop`) ';
+        $this->_join .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
+                            ON (pl.`id_product` = a.`id_product` AND pl.`id_shop` = a.`id_shop`) 
+                          INNER JOIN `'._DB_PREFIX_.'lang` lang
+                            ON (pl.`id_lang` = lang.`id_lang` AND lang.`iso_code` = \'nl\') ';
+
         $this->_select .= ' pl.`name` as `product_name`,
                             IF(status = 0, 1, 0) as badge_success,
                             IF(status > 0, 1, 0) as badge_danger ';

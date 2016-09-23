@@ -148,21 +148,48 @@ class BeslistProduct extends ObjectModel
      */
     public function getReference()
     {
-        if (isset($this->id_product_attribute) &&
-            !empty($this->id_product_attribute) &&
-            $this->id_product_attribute != 0) {
-            $query = new DbQuery();
-            $query->select('pa.reference');
-            $query->from('product_attribute', 'pa');
-            $query->where('pa.id_product_attribute = \'' . (int)$this->id_product_attribute . '\'');
-            $query->where('pa.id_product = ' . (int)$this->id_product);
-            return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
-        } else {
-            $query = new DbQuery();
-            $query->select('p.reference');
-            $query->from('product', 'p');
-            $query->where('p.id_product = \'' . (int)$this->id_product . '\'');
-            return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+        $isAttribute = isset($this->id_product_attribute)
+            && !empty($this->id_product_attribute)
+            && $this->id_product_attribute != 0;
+
+        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+            case BeslistCart::BESLIST_MATCH_EAN13:
+                if ($isAttribute) {
+                    $query = new DbQuery();
+                    $query->select('pa.ean13');
+                    $query->from('product_attribute', 'pa');
+                    $query->where('pa.id_product_attribute = \'' . (int)$this->id_product_attribute . '\'');
+                    $query->where('pa.id_product = ' . (int)$this->id_product);
+                    return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+                } else {
+                    $query = new DbQuery();
+                    $query->select('p.ean13');
+                    $query->from('product', 'p');
+                    $query->where('p.id_product = \'' . (int)$this->id_product . '\'');
+                    return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+                }
+                break;
+            case BeslistCart::BESLIST_MATCH_REFERENCE:
+                if ($isAttribute) {
+                    $query = new DbQuery();
+                    $query->select('pa.reference');
+                    $query->from('product_attribute', 'pa');
+                    $query->where('pa.id_product_attribute = \'' . (int)$this->id_product_attribute . '\'');
+                    $query->where('pa.id_product = ' . (int)$this->id_product);
+                    return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+                } else {
+                    $query = new DbQuery();
+                    $query->select('p.reference');
+                    $query->from('product', 'p');
+                    $query->where('p.id_product = \'' . (int)$this->id_product . '\'');
+                    return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+                }
+                break;
+            case BeslistCart::BESLIST_MATCH_CHANNABLE:
+                return $this->id_product_attribute . '-' . $this->id_product;
+                break;
+            default:
+                die(Tools::displayError("No Beslist matcher selected."));
         }
     }
 

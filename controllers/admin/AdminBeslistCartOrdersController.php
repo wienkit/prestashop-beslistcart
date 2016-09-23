@@ -255,8 +255,8 @@ class AdminBeslistCartOrdersController extends AdminController
 
         $data = array();
         if (Configuration::get('BESLIST_CART_TESTMODE')) {
-            $productId = self::getProductIdByBvbCode(Configuration::get('BESLIST_CART_TEST_REFERENCE'));
-            $product = new Product($productId['id_product']);
+            $testReference = (string) Configuration::get('BESLIST_CART_TEST_REFERENCE');
+            $productId = self::getProductIdByBvbCode($testReference);
             $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
             // Shipping cost
@@ -272,7 +272,7 @@ class AdminBeslistCartOrdersController extends AdminController
 
             $data = array(array(
                 'number_ordered' => 2,
-                'bvb_code' => $product->ean13,
+                'bvb_code' => $testReference,
                 'item_shipping' => $shippingTaxIncl
             ));
         }
@@ -553,18 +553,34 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        if (Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
-            $id = Product::getIdByEan13($bvbCode);
-        } else {
-            $id = self::getProductByReference($bvbCode);
+        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+            case BeslistCart::BESLIST_MATCH_EAN13:
+                $id = Product::getIdByEan13($bvbCode);
+                break;
+            case BeslistCart::BESLIST_MATCH_REFERENCE:
+                $id = self::getProductByReference($bvbCode);
+                break;
+            case BeslistCart::BESLIST_MATCH_CHANNABLE:
+                $id = self::getProductByChannableCode($bvbCode);
+                break;
+            default:
+                die(Tools::displayError("No Beslist matcher selected."));
         }
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
         } else {
-            if (Configuration::get('BESLIST_CART_MATCHER') == BeslistCart::BESLIST_MATCH_EAN13) {
-                $attributes = self::getAttributeByEan($bvbCode);
-            } else {
-                $attributes = self::getAttributeByReference($bvbCode);
+            switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+                case BeslistCart::BESLIST_MATCH_EAN13:
+                    $attributes = self::getAttributeByEan($bvbCode);
+                    break;
+                case BeslistCart::BESLIST_MATCH_REFERENCE:
+                    $attributes = self::getAttributeByReference($bvbCode);
+                    break;
+                case BeslistCart::BESLIST_MATCH_CHANNABLE:
+                    $attributes = self::getAttributeByChannableCode($bvbCode);
+                    break;
+                default:
+                    die(Tools::displayError("No Beslist matcher selected."));
             }
             if (count($attributes) == 1) {
                 return $attributes[0];
@@ -593,6 +609,20 @@ class AdminBeslistCartOrdersController extends AdminController
         $query->from('product', 'p');
         $query->where('p.reference = \'' . pSQL($reference) . '\'');
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+    }
+
+    /**
+     * Return the product id for a channable code
+     * @param $code
+     * @return int|bool
+     */
+    private static function getProductByChannableCode($code)
+    {
+        if(strpos($code, '-')) {
+            return false;
+        } else {
+            return $code;
+        }
     }
 
     /**
@@ -637,6 +667,24 @@ class AdminBeslistCartOrdersController extends AdminController
         $query->from('product_attribute', 'pa');
         $query->where('pa.reference = \'' . pSQL($reference) . '\'');
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+    }
+
+    /**
+     * Return the attribute for a channable code
+     * @param $code
+     * @return array|false|int the attribute ids
+     */
+    private static function getAttributeByChannableCode($code)
+    {
+        $splitted = explode('-', $code);
+        if(count($splitted) == 2) {
+            return array(
+                'id_product' => $splitted[1],
+                'id_product_attribute' => $splitted[0]
+            );
+        } else {
+            return 0;
+        }
     }
 
     /**

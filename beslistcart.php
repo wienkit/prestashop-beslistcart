@@ -21,6 +21,7 @@ class BeslistCart extends Module
 {
     const BESLIST_MATCH_REFERENCE = 1;
     const BESLIST_MATCH_EAN13 = 2;
+    const BESLIST_MATCH_CHANNABLE = 3;
 
     public function __construct()
     {
