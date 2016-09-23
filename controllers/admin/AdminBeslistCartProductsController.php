@@ -175,14 +175,11 @@ class AdminBeslistCartProductsController extends AdminController
         $beslistProducts = BeslistProduct::getUpdatedProducts();
         foreach ($beslistProducts as $beslistProduct) {
             switch ($beslistProduct->status) {
-                case BeslistProduct::STATUS_NEW:
-                    self::processBeslistProductCreate($beslistProduct, $context);
-                    break;
-                case BeslistProduct::STATUS_INFO_UPDATE:
-                    self::processBeslistProductUpdate($beslistProduct, $context);
-                    break;
                 case BeslistProduct::STATUS_STOCK_UPDATE:
                     self::processBeslistStockUpdate($beslistProduct, $context);
+                    break;
+                default:
+                    self::processBeslistProductUpdate($beslistProduct, $context);
                     break;
             }
         }
