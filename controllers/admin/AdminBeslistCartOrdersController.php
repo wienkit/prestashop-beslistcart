@@ -284,8 +284,9 @@ class AdminBeslistCartOrdersController extends AdminController
                 $cart = self::parse($shopOrder);
 
                 if (!$cart) {
-                    $context->controller->errors[] = Translate::getAdminTranslation('
-                        Couldn\'t create a cart for order ', 'AdminBeslistCartOrders'
+                    $context->controller->errors[] = Translate::getAdminTranslation(
+                        'Couldn\'t create a cart for order ',
+                        'AdminBeslistCartOrders'
                     ) . $shopOrder->orderNumber;
                     continue;
                 }
@@ -319,7 +320,8 @@ class AdminBeslistCartOrdersController extends AdminController
         if ($success) {
             Configuration::updateValue('BESLIST_CART_STARTDATE', $endDate);
             $context->controller->confirmations[] = Translate::getAdminTranslation(
-                'Beslist.nl Shopping cart sync completed.', 'AdminBeslistCartOrders'
+                'Beslist.nl Shopping cart sync completed.',
+                'AdminBeslistCartOrders'
             );
         }
     }
@@ -458,15 +460,17 @@ class AdminBeslistCartOrdersController extends AdminController
                 $productIds = self::getProductIdByBvbCode($item->bvbCode);
                 if (empty($productIds) || !array_key_exists('id_product', $productIds)) {
                     $context->controller->errors[] = Translate::getAdminTranslation(
-                        'Couldn\'t find product for Bvb code: ', 'AdminBeslistCartOrders'
+                        'Couldn\'t find product for Bvb code: ',
+                        'AdminBeslistCartOrders'
                     ) . $item->bvbCode;
                     continue;
                 }
                 $product = new Product($productIds['id_product']);
                 if (!Validate::isLoadedObject($product)) {
                     $context->controller->errors[] = Translate::getAdminTranslation(
-                            'Couldn\'t load product for Bvb code: ', 'AdminBeslistCartOrders'
-                        ) . $item->bvbCode;
+                        'Couldn\'t load product for Bvb code: ',
+                        'AdminBeslistCartOrders'
+                    ) . $item->bvbCode;
                     continue;
                 }
                 $hasProducts = true;
@@ -618,7 +622,7 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     private static function getProductByChannableCode($code)
     {
-        if(strpos($code, '-')) {
+        if (strpos($code, '-')) {
             return false;
         } else {
             return $code;
@@ -677,7 +681,7 @@ class AdminBeslistCartOrdersController extends AdminController
     private static function getAttributeByChannableCode($code)
     {
         $splitted = explode('-', $code);
-        if(count($splitted) == 2) {
+        if (count($splitted) == 2) {
             return array(
                 'id_product' => $splitted[1],
                 'id_product_attribute' => $splitted[0]

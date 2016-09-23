@@ -252,7 +252,7 @@ class AdminBeslistCartProductsController extends AdminController
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
         } catch (Exception $e) {
             $message = $e->getMessage();
-            if(strpos($message, '404') !== false) {
+            if (strpos($message, '404') !== false) {
                 $context->controller->errors[] = Tools::displayError(
                     '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
                 );
@@ -292,7 +292,7 @@ class AdminBeslistCartProductsController extends AdminController
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
         } catch (Exception $e) {
             $message = $e->getMessage();
-            if(strpos($message, '404') !== false) {
+            if (strpos($message, '404') !== false) {
                 $context->controller->errors[] = Tools::displayError(
                     '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
                 );
