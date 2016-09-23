@@ -15,7 +15,7 @@
 <div class="panel">
     <h3>{l s='How do I use this module?' mod='beslistcart'}</h3>
     <div class="row">
-        <div class="col-md-2 text-center"><img src="{$module_dir||escape:'htmlall':'UTF-8'}/logo.png" id="beslistcart-logo" /></div>
+        <div class="col-md-2 text-center"><img src="{$module_dir|escape:'htmlall':'UTF-8'}/logo.png" id="beslistcart-logo" /></div>
         <div class="col-md-10">
             <p class="lead">
                 {l s='This module uses the Beslist.nl Shopping cart functionality. You can apply for an account at Beslist.nl.' mod='beslistcart'}
@@ -28,7 +28,7 @@
             </a></p>
             <div class="collapse" id="collapseAdvanced">
                 <div class="well">
-                    <strong>Cron URL:</strong> {$cron_url||escape:'htmlall':'UTF-8'}
+                    <strong>Cron URL:</strong> {$cron_url|escape:'htmlall':'UTF-8'}
                 </div>
             </div>
         </div>
