@@ -13,8 +13,8 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_bafd7322c6e97d25b6299b5d6fe8920b'
 $_MODULE['<{beslistcart}prestashop>beslistcart_2ff607dde6cfb320bf9f93784a118d90'] = 'U kunt de module per shop instellen';
 $_MODULE['<{beslistcart}prestashop>beslistcart_5e685d48addd4ad52965e16ecb67094a'] = 'Gebruik testverbinding';
 $_MODULE['<{beslistcart}prestashop>beslistcart_06fc5184c4d5d83d8c1de253c10d979c'] = 'Gebruik de testverbinding van Beslist.nl om te kijken of alles werkt';
-$_MODULE['<{beslistcart}prestashop>beslistcart_e9ba58d6f5f4abe5c687b701ea24fb5a'] = 'Persoonlijke sleutel';
-$_MODULE['<{beslistcart}prestashop>beslistcart_0b6926bab5fe40d6df589c73b5435e0a'] = 'Beslist Order API persoonlijke sleutel';
+$_MODULE['<{beslistcart}prestashop>beslistcart_e9ba58d6f5f4abe5c687b701ea24fb5a'] = 'Order API key';
+$_MODULE['<{beslistcart}prestashop>beslistcart_0b6926bab5fe40d6df589c73b5435e0a'] = 'Beslist Order API key';
 $_MODULE['<{beslistcart}prestashop>beslistcart_95a6d2797e6e8c6471302f6fe3f5a681'] = 'Standaard maatattribuut (optioneel)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fdf9661e8f2447d86bb33912ae8b0637'] = 'Indien u maten gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_d7a4fb145b2dc96dccf27f24387587c4'] = 'Standaard kleurattribuut (optioneel)';
@@ -68,6 +68,7 @@ $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_03c2e7e41f
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_88183b946cc5f0e8c96b2e66e1c74a7e'] = 'Onbekend';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_4351cfebe4b61d8aa5efa1d020710005'] = 'Bekijk';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_7db59a7e372cf3c6433750f8078559a3'] = 'Synchroniseer producten';
+$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_be48dee9332145f4b477a2e2431a0735'] = 'De beslist winkelwagen functionaliteit is niet ingeschakeld voor deze store.';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_5e7f61f2a5d6c69fce1c31a6ad5a9669'] = 'Beslist producten gesynchroniseerd';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_8f8b18e6deef4eacaba08aeedee4f83a'] = 'Beslist.nl instellingen';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_c75071e81623afd1ced28127e37bb73f'] = 'In dit formulier kunt u uw Beslist Winkelwagen publicatie beheren.';

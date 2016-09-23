@@ -2,7 +2,7 @@
 <module>
 	<name>beslistcart</name>
 	<displayName><![CDATA[Beslist.nl Winkelwagen integratie]]></displayName>
-	<version><![CDATA[1.0.0]]></version>
+	<version><![CDATA[1.1.0]]></version>
 	<description><![CDATA[Connect to Beslist.nl to synchronize your Beslist.nl Shopping Cart
                                        orders and products with your Prestashop website.]]></description>
 	<author><![CDATA[Wienk IT]]></author>

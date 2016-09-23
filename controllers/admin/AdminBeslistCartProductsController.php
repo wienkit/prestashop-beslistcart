@@ -157,7 +157,7 @@ class AdminBeslistCartProductsController extends AdminController
         if ((bool)Tools::getValue('sync_products')) {
             if (!Configuration::get('BESLIST_CART_ENABLED')) {
                 $this->errors[] = Tools::displayError(
-                    'The Beslist Cart functionality isn\'t enabled for the current store.'
+                    $this->l('The Beslist Cart functionality isn\'t enabled for the current store.')
                 );
                 return;
             }
@@ -258,7 +258,7 @@ class AdminBeslistCartProductsController extends AdminController
                 );
             } else {
                 $context->controller->errors[] = Tools::displayError(
-                    '[beslistcart] Couldn\'t send update to Beslist, error: ' . $e->getMessage()
+                    '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
                 );
             }
         }
@@ -291,9 +291,16 @@ class AdminBeslistCartProductsController extends AdminController
             $client->updateShopItem($shopId, $productRef, $options);
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
         } catch (Exception $e) {
-            $context->controller->errors[] = Tools::displayError(
-                '[beslistcart] Couldn\'t send update to Beslist, error: ' . $e->getMessage()
-            );
+            $message = $e->getMessage();
+            if(strpos($message, '404') !== false) {
+                $context->controller->errors[] = Tools::displayError(
+                    '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
+                );
+            } else {
+                $context->controller->errors[] = Tools::displayError(
+                    '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
+                );
+            }
         }
     }
 }
