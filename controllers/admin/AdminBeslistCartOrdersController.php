@@ -405,7 +405,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $address->lastname = str_replace(range(0, 9), '', trim($details->lastNameInsertion . ' ' . $details->lastName));
         $address->address1 = $details->address;
         $address->address1 .= ' ' . $details->addressNumber;
-        if (!empty($details->addressNumberAdditional)) {
+        if ($details->addressNumberAdditional != '') {
             $address->address1 .= ' ' . $details->addressNumberAdditional;
         }
         $address->postcode = $details->zip;
