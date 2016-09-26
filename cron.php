@@ -19,7 +19,7 @@ require_once(dirname(__FILE__).'/beslistcart.php');
 require_once(dirname(__FILE__).'/controllers/admin/AdminBeslistCartOrdersController.php');
 
 
-if (Tools::getIsset($_GET['secure_key'])) {
+if (Tools::getIsset('secure_key')) {
     $secureKey = md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
     if (!empty($secureKey) && $secureKey === $_GET['secure_key']) {
         $shop_ids = Shop::getCompleteListOfShopsID();
