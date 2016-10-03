@@ -98,7 +98,7 @@ class BeslistProduct extends ObjectModel
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*, c.`name` AS category_name,
+        $sql = 'SELECT b.*, b.price AS override_price, c.`name` AS category_name,
             p.*, prattr.`reference` AS attribute_reference, product_shop.*, pl.* ,
             m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             SUM(st.`quantity`) as stock,
