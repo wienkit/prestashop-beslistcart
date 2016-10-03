@@ -101,7 +101,7 @@ class BeslistProduct extends ObjectModel
         $sql = 'SELECT b.*, b.price AS override_price, c.`name` AS category_name,
             p.*, prattr.`reference` AS attribute_reference, product_shop.*, pl.* ,
             m.`name` AS manufacturer_name, s.`name` AS supplier_name,
-            SUM(st.`quantity`) as stock,
+            st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             size.`name` AS size, color.`name` AS color, color.`id_attribute` AS variant
     				FROM `' . _DB_PREFIX_ . 'beslist_product` b
             LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)

@@ -27,6 +27,7 @@ $cookie = $context->cookie;
 
 $affiliate = '?ac=beslist';
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
 $deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
 $deliveryperiod_nostock_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
 $deliveryperiod_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_BE');
@@ -55,47 +56,47 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 <?php
 foreach ($products as $product) {
     $price = $product['override_price'];
-    if($price == 0) {
+    if ($price == 0) {
         $price = (float)Product::getPriceStatic($product['id_product']);
     }
     echo "\t<product>\n";
-    echo "\t\t<title><![CDATA[".$product['name']."]]></title>\n";
-    echo "\t\t<price>".number_format($price, 2, ',', '')."</price>\n";
+    echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
+    echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
     if (isset($product['attribute_reference'])) {
-        echo "\t\t<code><![CDATA[".$product['attribute_reference']."]]></code>\n";
+        echo "\t\t<code><![CDATA[" . $product['attribute_reference'] . "]]></code>\n";
         echo "\t\t<sku>" . $product['attribute_reference'] . "</sku>\n";
         if (isset($product['variant'])) {
             echo "\t\t<variantcode>" . $product['reference'] . '-' . $product['variant'] . "</variantcode>\n";
         }
         echo "\t\t<modelcode>" . $product['reference'] . "</modelcode>\n"; // Grouping id
     } else {
-        echo "\t\t<code><![CDATA[".$product['reference']."]]></code>\n";
+        echo "\t\t<code><![CDATA[" . $product['reference'] . "]]></code>\n";
         echo "\t\t<sku>" . $product['reference'] . "</sku>\n";
     }
-    echo "\t\t<productlink><![CDATA[".str_replace(
-        '&amp;',
-        '&',
-        htmlspecialchars(
-            $link->getProductLink(
-                $product['id_product'],
-                $product['link_rewrite'],
-                Category::getLinkRewrite(
-                    (int)($product['id_category_default']),
-                    $cookie->id_lang
+    echo "\t\t<productlink><![CDATA[" . str_replace(
+            '&amp;',
+            '&',
+            htmlspecialchars(
+                $link->getProductLink(
+                    $product['id_product'],
+                    $product['link_rewrite'],
+                    Category::getLinkRewrite(
+                        (int)($product['id_category_default']),
+                        $cookie->id_lang
+                    )
                 )
             )
         )
-    )
-    . $affiliate . "]]></productlink>\n";
+        . $affiliate . "]]></productlink>\n";
     $images = Image::getImages((int)$context->language->id, $product['id_product']);
     if (is_array($images) and sizeof($images)) {
         foreach ($images as $idx => $image) {
             $imageObj = new Image($image['id_image']);
             $suffix = $idx > 0 ? "_" . $idx : "";
-            echo "\t\t<imagelink".$suffix."><![CDATA[".$link->getImageLink(
-                $product['link_rewrite'],
-                $image['id_image']
-            )
+            echo "\t\t<imagelink" . $suffix . "><![CDATA[" . $link->getImageLink(
+                    $product['link_rewrite'],
+                    $image['id_image']
+                )
                 . "]]></imagelink" . $suffix . ">\n";
         }
     }
@@ -103,7 +104,7 @@ foreach ($products as $product) {
     echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
     if ($enabled_nl) {
         echo "\t\t<deliveryperiod_nl>" .
-                ($product['stock'] > 0 ? $deliveryperiod_nl : $deliveryperiod_nostock_nl) .
+            ($product['stock'] > 0 ? $deliveryperiod_nl : $deliveryperiod_nostock_nl) .
             "</deliveryperiod_nl>\n";
         echo "\t\t<shippingcost_nl>" .
             Tools::ps_round(
@@ -124,7 +125,20 @@ foreach ($products as $product) {
     }
     echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
     echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";
-    echo "\t\t<display>" . $product['published'] . "</display>\n";
+
+    $display = 1;
+    if ($product['published'] == 0) {
+        $display = 0;
+    } elseif ($product['stock'] > 0) {
+        $display = 1;
+    } elseif ($product['out_of_stock_behaviour'] == 1) {
+        $display = 1;
+    } elseif ($product['out_of_stock_behaviour'] == 2 && $stock_behaviour == 1) {
+        $display = 1;
+    } else {
+        $display = 0;
+    }
+    echo "\t\t<display>" . $display . "</display>\n";
     if (isset($product['manufacturer_name'])) {
         echo "\t\t<brand>" . $product['manufacturer_name'] . "</brand>\n";
     }
