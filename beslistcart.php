@@ -495,6 +495,10 @@ class BeslistCart extends Module
                             array(
                                 'id_matcher' => self::BESLIST_MATCH_EAN13,
                                 'name' => $this->l('EAN-13')
+                            ),
+                            array(
+                                'id_matcher' => self::BESLIST_MATCH_CHANNABLE,
+                                'name' => $this->l('Channable ([$combination-][$product]')
                             )
                         ),
                         'id' => 'id_matcher',
