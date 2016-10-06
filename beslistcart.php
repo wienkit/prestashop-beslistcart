@@ -498,7 +498,7 @@ class BeslistCart extends Module
                             ),
                             array(
                                 'id_matcher' => self::BESLIST_MATCH_CHANNABLE,
-                                'name' => $this->l('Channable ([$combination-][$product]')
+                                'name' => $this->l('Channable ([$combinationid-]$productid)')
                             )
                         ),
                         'id' => 'id_matcher',
