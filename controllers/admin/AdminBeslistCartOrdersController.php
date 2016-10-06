@@ -280,7 +280,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
         $success = true;
         foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
-            if (!self::getTransactionExists($shopOrder->shopOrderNumber)) {
+            if (!self::getTransactionExists($shopOrder->orderNumber)) {
                 $cart = self::parse($shopOrder);
 
                 if (!$cart) {
@@ -304,7 +304,7 @@ class AdminBeslistCartOrdersController extends AdminController
                     $payment_module->displayName,
                     null,
                     array(
-                        'transaction_id' => $shopOrder->shopOrderNumber
+                        'transaction_id' => $shopOrder->orderNumber
                     ),
                     null,
                     false,
