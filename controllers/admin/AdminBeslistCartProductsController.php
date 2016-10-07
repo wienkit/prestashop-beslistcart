@@ -214,9 +214,8 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistStockUpdate($beslistProduct, $context)
     {
-        $product = new Product($beslistProduct->id_product, false, $context->language->id, $context->shop->id);
         $quantity = StockAvailable::getQuantityAvailableByProduct(
-            $product->id,
+            $beslistProduct->id_product,
             $beslistProduct->id_product_attribute
         );
         self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
@@ -233,17 +232,31 @@ class AdminBeslistCartProductsController extends AdminController
         $client = BeslistCart::getShopitemClient();
         $shopId = Configuration::get('BESLIST_CART_SHOPID');
         $productRef = $beslistProduct->getReference();
-        $delivery_time_nl = Configuration::get(
-            'BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_NL'
-        );
-        $delivery_time_be = Configuration::get(
-            'BESLIST_CART_DELIVERYPERIOD' . ($quantity > 0 ? '_NOSTOCK' : '') . '_BE'
-        );
+
         $options = array(
-            'stock' => $quantity,
-            'delivery_time_nl' => $delivery_time_nl,
-            'delivery_time_be' => $delivery_time_be,
+            'stock' => $quantity
         );
+
+        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+            $delivery_time_nl = $beslistProduct->delivery_code_nl;
+            if($delivery_time_nl == '' || $quantity == 0) {
+                $delivery_time_nl = Configuration::get(
+                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
+                );
+            }
+            $options['delivery_time_nl'] = $delivery_time_nl;
+        }
+
+        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+            $delivery_time_be = $beslistProduct->delivery_code_be;
+            if($delivery_time_be == '' || $quantity == 0) {
+                $delivery_time_be = Configuration::get(
+                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
+                );
+            }
+            $options['delivery_time_be'] = $delivery_time_be;
+        }
+
         try {
             $client->updateShopItem($shopId, $productRef, $options);
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
@@ -278,12 +291,39 @@ class AdminBeslistCartProductsController extends AdminController
             );
         }
 
+        $quantity = StockAvailable::getQuantityAvailableByProduct(
+            $beslistProduct->id_product,
+            $beslistProduct->id_product_attribute
+        );
+
         $client = BeslistCart::getShopitemClient();
         $shopId = Configuration::get('BESLIST_CART_SHOPID');
         $productRef = $beslistProduct->getReference();
         $options = array(
-            'price' => $price
+            'price' => $price,
+            'stock' => $quantity
         );
+
+        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+            $delivery_time_nl = $beslistProduct->delivery_code_nl;
+            if($delivery_time_nl == '' || $quantity == 0) {
+                $delivery_time_nl = Configuration::get(
+                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
+                );
+            }
+            $options['delivery_time_nl'] = $delivery_time_nl;
+        }
+
+        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+            $delivery_time_be = $beslistProduct->delivery_code_be;
+            if($delivery_time_be == '' || $quantity == 0) {
+                $delivery_time_be = Configuration::get(
+                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
+                );
+            }
+            $options['delivery_time_be'] = $delivery_time_be;
+        }
+
         try {
             $client->updateShopItem($shopId, $productRef, $options);
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);

@@ -24,6 +24,7 @@ $sql[_DB_PREFIX_.'beslist_product'] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_
               `published` tinyint(1) NOT NULL DEFAULT \'0\',
               `price` DECIMAL(20, 6) NOT NULL DEFAULT \'0.000000\',
               `status` tinyint(1) NOT NULL DEFAULT \'1\',
+              `delivery_code` VARCHAR(255),
               PRIMARY KEY (`id_beslist_product`),
               UNIQUE KEY(`id_product`, `id_product_attribute`, `id_shop`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';

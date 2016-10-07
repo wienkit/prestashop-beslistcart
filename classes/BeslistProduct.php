@@ -41,6 +41,12 @@ class BeslistProduct extends ObjectModel
     /** @var int */
     public $status = self::STATUS_NEW;
 
+    /** @var string */
+    public $delivery_code_nl;
+
+    /** @var string */
+    public $delivery_code_be;
+
     /**
      * @see ObjectModel::$definition
      */
@@ -78,6 +84,16 @@ class BeslistProduct extends ObjectModel
                 'type' => self::TYPE_INT,
                 'shop' => true,
                 'validate' => 'isInt'
+            ),
+            'delivery_code_nl' => array(
+                'type' => self::TYPE_STRING,
+                'shop' => true,
+                'validate' => 'isString'
+            ),
+            'delivery_code_be' => array(
+                'type' => self::TYPE_STRING,
+                'shop' => true,
+                'validate' => 'isString'
             )
         )
     );

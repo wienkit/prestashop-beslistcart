@@ -27,6 +27,7 @@ $cookie = $context->cookie;
 
 $affiliate = '?ac=beslist';
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
 $deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
 $deliveryperiod_nostock_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
@@ -103,8 +104,9 @@ foreach ($products as $product) {
 
     echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
     if ($enabled_nl) {
+        $prod_deliveryperiod_nl = $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
         echo "\t\t<deliveryperiod_nl>" .
-            ($product['stock'] > 0 ? $deliveryperiod_nl : $deliveryperiod_nostock_nl) .
+            ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
             "</deliveryperiod_nl>\n";
         echo "\t\t<shippingcost_nl>" .
             Tools::ps_round(
@@ -114,8 +116,9 @@ foreach ($products as $product) {
             "</shippingcost_nl>\n";
     }
     if ($enabled_be) {
+        $prod_deliveryperiod_be = $product['delivery_code_be'] == '' ? $deliveryperiod_be : $product['delivery_code_be'];
         echo "\t\t<deliveryperiod_be>" .
-            ($product['stock'] > 0 ? $deliveryperiod_be : $deliveryperiod_nostock_be) .
+            ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
             "</deliveryperiod_be>\n";
         echo "\t\t<shippingcost_be>" .
             Tools::ps_round(
@@ -129,7 +132,7 @@ foreach ($products as $product) {
     $display = 1;
     if ($product['published'] == 0) {
         $display = 0;
-    } elseif ($product['stock'] > 0) {
+    } elseif ($product['stock'] > 0 || !$ps_stock_management) {
         $display = 1;
     } elseif ($product['out_of_stock_behaviour'] == 1) {
         $display = 1;
