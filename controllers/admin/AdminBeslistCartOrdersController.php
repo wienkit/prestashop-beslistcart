@@ -288,6 +288,7 @@ class AdminBeslistCartOrdersController extends AdminController
                         'Couldn\'t create a cart for order ',
                         'AdminBeslistCartOrders'
                     ) . $shopOrder->orderNumber;
+                    $success = false;
                     continue;
                 }
 
@@ -486,8 +487,8 @@ class AdminBeslistCartOrdersController extends AdminController
                 if (!$cartResult) {
                     $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot
-                         be sold because it\'s unavailable or out of stock'
-                    );
+                         be sold because it\'s unavailable or out of stock.'
+                    ) . ' Code: ' . $item->bvbCode . '. Product: ' . $product->id . ' (attribute: ' . $productIds['id_product_attribute'] . ')';
                     return false;
                 }
             }
@@ -612,7 +613,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query->select('p.id_product');
         $query->from('product', 'p');
         $query->where('p.reference = \'' . pSQL($reference) . '\'');
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
     }
 
     /**
@@ -648,7 +649,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query->select('pa.id_product, pa.id_product_attribute');
         $query->from('product_attribute', 'pa');
         $query->where('pa.ean13 = \'' . pSQL($ean) . '\'');
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($query);
     }
 
     /**
@@ -670,7 +671,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $query->select('pa.id_product, pa.id_product_attribute');
         $query->from('product_attribute', 'pa');
         $query->where('pa.reference = \'' . pSQL($reference) . '\'');
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($query);
     }
 
     /**
