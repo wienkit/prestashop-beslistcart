@@ -348,7 +348,7 @@ class AdminBeslistCartOrdersController extends AdminController
         $sql = new DbQuery();
         $sql->select('order_reference');
         $sql->from('order_payment', 'op');
-        $sql->where('op.transaction_id = ' . pSQL($transaction_id));
+        $sql->where('op.transaction_id = \'' . pSQL($transaction_id) . '\'');
         return (bool)Db::getInstance()->executeS($sql);
     }
 
