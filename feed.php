@@ -63,15 +63,16 @@ foreach ($products as $product) {
     echo "\t<product>\n";
     echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
     echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
+    if($product['id_product_attribute']) {
+        echo "\t\t<code>" . $product['id_product_attribute'] . "-" . $product['id_product'] . "</code>\n";
+    }
     if (isset($product['attribute_reference'])) {
-        echo "\t\t<code><![CDATA[" . $product['attribute_reference'] . "]]></code>\n";
         echo "\t\t<sku>" . $product['attribute_reference'] . "</sku>\n";
         if (isset($product['variant'])) {
             echo "\t\t<variantcode>" . $product['reference'] . '-' . $product['variant'] . "</variantcode>\n";
         }
         echo "\t\t<modelcode>" . $product['reference'] . "</modelcode>\n"; // Grouping id
     } else {
-        echo "\t\t<code><![CDATA[" . $product['reference'] . "]]></code>\n";
         echo "\t\t<sku>" . $product['reference'] . "</sku>\n";
     }
     echo "\t\t<productlink><![CDATA[" . str_replace(
@@ -126,7 +127,11 @@ foreach ($products as $product) {
                 2
             ) . "</shippingcost_be>\n";
     }
-    echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
+    if(isset($product['attrean'])) {
+        echo "\t\t<eancode>" . $product['attrean'] . "</eancode>\n";
+    } else {
+        echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
+    }
     echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";
 
     $display = 1;
