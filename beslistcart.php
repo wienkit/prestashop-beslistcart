@@ -504,16 +504,16 @@ class BeslistCart extends Module
                     'options' => array(
                         'query' => array(
                             array(
+                                'id_matcher' => self::BESLIST_MATCH_CHANNABLE,
+                                'name' => $this->l('Default ([$combinationid-]$productid)')
+                            ),
+                            array(
                                 'id_matcher' => self::BESLIST_MATCH_REFERENCE,
                                 'name' => $this->l('Product reference')
                             ),
                             array(
                                 'id_matcher' => self::BESLIST_MATCH_EAN13,
                                 'name' => $this->l('EAN-13')
-                            ),
-                            array(
-                                'id_matcher' => self::BESLIST_MATCH_CHANNABLE,
-                                'name' => $this->l('Channable ([$combinationid-]$productid)')
                             )
                         ),
                         'id' => 'id_matcher',
