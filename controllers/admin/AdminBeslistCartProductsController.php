@@ -19,9 +19,11 @@ require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistProduct.php';
 
 class AdminBeslistCartProductsController extends AdminController
 {
+
+    protected $statuses_array;
+
     public function __construct()
     {
-
         if ($id_product = Tools::getValue('id_product')) {
             Tools::redirectAdmin(
                 Context::getContext()
@@ -46,6 +48,13 @@ class AdminBeslistCartProductsController extends AdminController
         $this->_select .= ' pl.`name` as `product_name`,
                             IF(status = 0, 1, 0) as badge_success,
                             IF(status > 0, 1, 0) as badge_danger ';
+
+        $this->statuses_array = array(
+            BeslistProduct::STATUS_OK => $this->l('OK'),
+            BeslistProduct::STATUS_STOCK_UPDATE => $this->l('Stock updated'),
+            BeslistProduct::STATUS_INFO_UPDATE => $this->l('Info updated'),
+            BeslistProduct::STATUS_NEW => $this->l('New')
+        );
 
         $this->fields_list = array(
             'id_beslist_product' => array(
@@ -76,11 +85,15 @@ class AdminBeslistCartProductsController extends AdminController
             ),
             'status' => array(
                 'title' => $this->l('Synchronized'),
-                'callback' => 'getSychronizedState',
+                'type' => 'select',
+                'callback' => 'getSynchronizedState',
                 'badge_danger' => true,
                 'badge_success' => true,
                 'align' => 'text-center',
-                'class' => 'fixed-width-sm'
+                'class' => 'fixed-width-sm',
+                'list' => $this->statuses_array,
+                'filter_key' => 'status',
+                'filter_type' => 'int'
             )
         );
 
@@ -94,20 +107,9 @@ class AdminBeslistCartProductsController extends AdminController
      * @param int $status the status
      * @return string the status
      */
-    public function getSychronizedState($status)
+    public function getSynchronizedState($status)
     {
-        switch ($status) {
-            case BeslistProduct::STATUS_OK:
-                return $this->l('OK');
-            case BeslistProduct::STATUS_STOCK_UPDATE:
-                return $this->l('Stock updated');
-            case BeslistProduct::STATUS_INFO_UPDATE:
-                return $this->l('Info updated');
-            case BeslistProduct::STATUS_NEW:
-                return $this->l('New');
-            default:
-                return $this->l('Unknown');
-        }
+        return $this->statuses_array[$status];
     }
 
     /**
