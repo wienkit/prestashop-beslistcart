@@ -239,9 +239,9 @@ class AdminBeslistCartProductsController extends AdminController
             'stock' => $quantity
         );
 
-        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
             $delivery_time_nl = $beslistProduct->delivery_code_nl;
-            if($delivery_time_nl == '' || $quantity == 0) {
+            if ($delivery_time_nl == '' || $quantity == 0) {
                 $delivery_time_nl = Configuration::get(
                     'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
                 );
@@ -249,9 +249,9 @@ class AdminBeslistCartProductsController extends AdminController
             $options['delivery_time_nl'] = $delivery_time_nl;
         }
 
-        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
             $delivery_time_be = $beslistProduct->delivery_code_be;
-            if($delivery_time_be == '' || $quantity == 0) {
+            if ($delivery_time_be == '' || $quantity == 0) {
                 $delivery_time_be = Configuration::get(
                     'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
                 );
@@ -306,9 +306,9 @@ class AdminBeslistCartProductsController extends AdminController
             'stock' => $quantity
         );
 
-        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
             $delivery_time_nl = $beslistProduct->delivery_code_nl;
-            if($delivery_time_nl == '' || $quantity == 0) {
+            if ($delivery_time_nl == '' || $quantity == 0) {
                 $delivery_time_nl = Configuration::get(
                     'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
                 );
@@ -316,9 +316,9 @@ class AdminBeslistCartProductsController extends AdminController
             $options['delivery_time_nl'] = $delivery_time_nl;
         }
 
-        if(Configuration::get('BESLIST_CART_ENABLED_NL')) {
+        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
             $delivery_time_be = $beslistProduct->delivery_code_be;
-            if($delivery_time_be == '' || $quantity == 0) {
+            if ($delivery_time_be == '' || $quantity == 0) {
                 $delivery_time_be = Configuration::get(
                     'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
                 );

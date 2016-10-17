@@ -63,7 +63,7 @@ foreach ($products as $product) {
     echo "\t<product>\n";
     echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
     echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
-    if($product['id_product_attribute']) {
+    if ($product['id_product_attribute']) {
         echo "\t\t<code>" . $product['id_product_attribute'] . "-" . $product['id_product'] . "</code>\n";
     }
     if (isset($product['attribute_reference'])) {
@@ -76,36 +76,37 @@ foreach ($products as $product) {
         echo "\t\t<sku>" . $product['reference'] . "</sku>\n";
     }
     echo "\t\t<productlink><![CDATA[" . str_replace(
-            '&amp;',
-            '&',
-            htmlspecialchars(
-                $link->getProductLink(
-                    $product['id_product'],
-                    $product['link_rewrite'],
-                    Category::getLinkRewrite(
-                        (int)($product['id_category_default']),
-                        $cookie->id_lang
-                    )
+        '&amp;',
+        '&',
+        htmlspecialchars(
+            $link->getProductLink(
+                $product['id_product'],
+                $product['link_rewrite'],
+                Category::getLinkRewrite(
+                    (int)($product['id_category_default']),
+                    $cookie->id_lang
                 )
             )
         )
-        . $affiliate . "]]></productlink>\n";
+    )
+    . $affiliate . "]]></productlink>\n";
     $images = Image::getImages((int)$context->language->id, $product['id_product']);
     if (is_array($images) and sizeof($images)) {
         foreach ($images as $idx => $image) {
             $imageObj = new Image($image['id_image']);
             $suffix = $idx > 0 ? "_" . $idx : "";
             echo "\t\t<imagelink" . $suffix . "><![CDATA[" . $link->getImageLink(
-                    $product['link_rewrite'],
-                    $image['id_image']
-                )
-                . "]]></imagelink" . $suffix . ">\n";
+                $product['link_rewrite'],
+                $image['id_image']
+            )
+            . "]]></imagelink" . $suffix . ">\n";
         }
     }
 
     echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
     if ($enabled_nl) {
-        $prod_deliveryperiod_nl = $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
+        $prod_deliveryperiod_nl =
+            $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
         echo "\t\t<deliveryperiod_nl>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
             "</deliveryperiod_nl>\n";
@@ -117,7 +118,8 @@ foreach ($products as $product) {
             "</shippingcost_nl>\n";
     }
     if ($enabled_be) {
-        $prod_deliveryperiod_be = $product['delivery_code_be'] == '' ? $deliveryperiod_be : $product['delivery_code_be'];
+        $prod_deliveryperiod_be =
+            $product['delivery_code_be'] == '' ? $deliveryperiod_be : $product['delivery_code_be'];
         echo "\t\t<deliveryperiod_be>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
             "</deliveryperiod_be>\n";
@@ -127,7 +129,7 @@ foreach ($products as $product) {
                 2
             ) . "</shippingcost_be>\n";
     }
-    if(isset($product['attrean'])) {
+    if (isset($product['attrean'])) {
         echo "\t\t<eancode>" . $product['attrean'] . "</eancode>\n";
     } else {
         echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";

@@ -203,7 +203,7 @@ class BeslistProduct extends ObjectModel
                 }
                 break;
             case BeslistCart::BESLIST_MATCH_CHANNABLE:
-                if($isAttribute) {
+                if ($isAttribute) {
                     return $this->id_product_attribute . '-' . $this->id_product;
                 } else {
                     return $this->id_product;

@@ -488,7 +488,9 @@ class AdminBeslistCartOrdersController extends AdminController
                     $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot
                          be sold because it\'s unavailable or out of stock.'
-                    ) . ' Code: ' . $item->bvbCode . '. Product: ' . $product->id . ' (attribute: ' . $productIds['id_product_attribute'] . ')';
+                    ) . ' Code: ' . $item->bvbCode
+                        . '. Product: ' . $product->id
+                        . ' (attribute: ' . $productIds['id_product_attribute'] . ')';
                     return false;
                 }
             }
