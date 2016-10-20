@@ -21,7 +21,7 @@
                 {l s='This module uses the Beslist.nl Shopping cart functionality. You can apply for an account at Beslist.nl.' mod='beslistcart'}
             </p>
             <p>
-                {l s='Find help online at ' mod='beslistcart'}<a href="http://www.werkaandewebshop.com/beslistcart-docs/">{l s='the online documentation (dutch)' mod='beslistcart'}</a>.
+                {l s='Find help online at ' mod='beslistcart'}<a href="http://werkaandewebshop-beslistcart.readthedocs.io/">{l s='the online documentation (dutch)' mod='beslistcart'}</a>.
             </p>
             <p><a data-toggle="collapse" href="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
                 {l s='Show advanced options' mod='beslistcart'}
