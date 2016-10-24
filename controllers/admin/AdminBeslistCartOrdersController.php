@@ -562,6 +562,23 @@ class AdminBeslistCartOrdersController extends AdminController
     {
         switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
             case BeslistCart::BESLIST_MATCH_EAN13:
+                $attributes = self::getAttributeByEan($bvbCode);
+                break;
+            case BeslistCart::BESLIST_MATCH_REFERENCE:
+                $attributes = self::getAttributeByReference($bvbCode);
+                break;
+            case BeslistCart::BESLIST_MATCH_CHANNABLE:
+                $attributes = self::getAttributeByChannableCode($bvbCode);
+                break;
+            default:
+                die(Tools::displayError("No Beslist matcher selected."));
+        }
+        if (count($attributes) == 1) {
+            return $attributes[0];
+        }
+
+        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+            case BeslistCart::BESLIST_MATCH_EAN13:
                 $id = Product::getIdByEan13($bvbCode);
                 break;
             case BeslistCart::BESLIST_MATCH_REFERENCE:
@@ -575,25 +592,8 @@ class AdminBeslistCartOrdersController extends AdminController
         }
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
-        } else {
-            switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
-                case BeslistCart::BESLIST_MATCH_EAN13:
-                    $attributes = self::getAttributeByEan($bvbCode);
-                    break;
-                case BeslistCart::BESLIST_MATCH_REFERENCE:
-                    $attributes = self::getAttributeByReference($bvbCode);
-                    break;
-                case BeslistCart::BESLIST_MATCH_CHANNABLE:
-                    $attributes = self::getAttributeByChannableCode($bvbCode);
-                    break;
-                default:
-                    die(Tools::displayError("No Beslist matcher selected."));
-            }
-            if (count($attributes) == 1) {
-                return $attributes[0];
-            }
-            return $attributes;
         }
+        return $attributes;
     }
 
     /**
