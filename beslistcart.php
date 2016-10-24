@@ -27,7 +27,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.2.0';
+        $this->version = '1.3.0';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -61,7 +61,8 @@ class BeslistCart extends Module
             && $this->registerHook('actionObjectBeslistProductAddAfter')
             && $this->registerHook('actionObjectBeslistProductDeleteAfter')
             && $this->registerHook('actionObjectBeslistProductUpdateAfter')
-            && $this->registerHook('displayAdminProductsExtra');
+            && $this->registerHook('displayAdminProductsExtra')
+            && $this->registerHook('displayBackOfficeCategory');
         }
         return false;
     }
@@ -81,6 +82,7 @@ class BeslistCart extends Module
         && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
         && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
         && $this->unregisterHook('displayAdminProductsExtra')
+        && $this->unregisterHook('displayBackOfficeCategory')
         && parent::uninstall();
     }
 
@@ -824,6 +826,16 @@ class BeslistCart extends Module
         return $helper->generateForm($fields_form);
     }
 
+    public function hookDisplayBackOfficeCategory($params)
+    {
+        $beslistCategories = BeslistProduct::getBeslistCategories();
+        $this->context->controller->addJS("blaat.js");
+        $this->context->smarty->assign(array(
+            'beslist_categories' => $beslistCategories
+        ));
+        return $this->display(__FILE__, 'views/templates/admin/category.tpl');
+    }
+
     /**
      * Add a new tab to the product page
      * Executes hook: displayAdminProductsExtra
@@ -1062,7 +1074,10 @@ class BeslistCart extends Module
      */
     public function hookActionAdminControllerSetMedia($params)
     {
-        if ($this->context->controller->controller_name == 'AdminProducts') {
+        if (
+            $this->context->controller->controller_name == 'AdminProducts' ||
+            $this->context->controller->controller_name == 'AdminCategories'
+        ) {
             $this->context->controller->addCSS(
                 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css'
             );
