@@ -202,11 +202,11 @@ class BeslistProduct extends ObjectModel
                     return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
                 }
                 break;
-            case BeslistCart::BESLIST_MATCH_CHANNABLE:
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
                 if ($isAttribute) {
                     return $this->id_product_attribute . '-' . $this->id_product;
                 } else {
-                    return $this->id_product;
+                    return $this->id_product . '-' . $this->id_product;
                 }
                 break;
             default:

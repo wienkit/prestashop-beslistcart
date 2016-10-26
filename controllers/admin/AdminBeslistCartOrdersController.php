@@ -567,13 +567,13 @@ class AdminBeslistCartOrdersController extends AdminController
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $attributes = self::getAttributeByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_CHANNABLE:
-                $attributes = self::getAttributeByChannableCode($bvbCode);
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
+                $attributes = self::getAttributeByDefaultCode($bvbCode);
                 break;
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
         }
-        if (count($attributes) == 1) {
+        if (is_array($attributes) && count($attributes) == 1) {
             return $attributes[0];
         }
 
@@ -584,12 +584,13 @@ class AdminBeslistCartOrdersController extends AdminController
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $id = self::getProductByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_CHANNABLE:
-                $id = self::getProductByChannableCode($bvbCode);
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
+                $id = self::getProductByDefaultCode($bvbCode);
                 break;
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
         }
+
         if ($id) {
             return array('id_product' => $id, 'id_product_attribute' => 0);
         }
@@ -619,14 +620,15 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
-     * Return the product id for a channable code
+     * Return the product id for a default code
      * @param $code
      * @return int|bool
      */
-    private static function getProductByChannableCode($code)
+    private static function getProductByDefaultCode($code)
     {
         if (strpos($code, '-')) {
-            return false;
+            $splitted = explode('-', $code);
+            return $splitted[1];
         } else {
             return $code;
         }
@@ -677,21 +679,31 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
-     * Return the attribute for a channable code
+     * Return the attribute for a default code
      * @param $code
-     * @return array|false|int the attribute ids
+     * @return array|int the attribute ids
      */
-    private static function getAttributeByChannableCode($code)
+    private static function getAttributeByDefaultCode($code)
     {
         $splitted = explode('-', $code);
         if (count($splitted) == 2) {
-            return array(
-                'id_product' => $splitted[1],
-                'id_product_attribute' => $splitted[0]
+            $query = new DbQuery();
+            $query->select('pa.id_product, pa.id_product_attribute');
+            $query->from('product_attribute', 'pa');
+            $query->where(
+                'pa.id_product = \'' . (int)$splitted[1] . '\' AND ' .
+                'pa.id_product_attribute = \'' . (int)$splitted[0] . '\''
             );
-        } else {
-            return 0;
+            if ((bool)Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query)) {
+                return array(
+                    array(
+                        'id_product' => $splitted[1],
+                        'id_product_attribute' => $splitted[0]
+                    )
+                );
+            }
         }
+        return 0;
     }
 
     /**
