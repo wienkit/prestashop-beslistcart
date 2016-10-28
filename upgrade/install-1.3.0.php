@@ -19,5 +19,18 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_1_3_0($object)
 {
-    return $object->registerHook('displayBackOfficeCategory');
+    return $object->registerHook('displayBackOfficeCategory')
+        && $object->registerHook('actionObjectCategoryDeleteAfter')
+        && $object->registerHook('actionAdminCategoriesControllerSaveBefore')
+        && Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'beslist_category` (
+              `id_category` int(11) NOT NULL,
+              `id_beslist_category` int(11) NOT NULL,
+            PRIMARY KEY (`id_category`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;'
+        )
+        && Db::getInstance()->execute(
+            'ALTER TABLE `'._DB_PREFIX_.'beslist_product`
+            MODIFY COLUMN `id_beslist_category` int(11) NULL'
+        );
 }

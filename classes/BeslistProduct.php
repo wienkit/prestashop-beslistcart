@@ -67,8 +67,7 @@ class BeslistProduct extends ObjectModel
             ),
             'id_beslist_category' => array(
                 'type' => self::TYPE_INT,
-                'validate' => 'isUnsignedId',
-                'required' => true
+                'validate' => 'isUnsignedId'
             ),
             'published' => array(
                 'type' => self::TYPE_BOOL,
@@ -119,7 +118,7 @@ class BeslistProduct extends ObjectModel
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 
-            color.`id_attribute` AS variant
+            color.`id_attribute` AS variant, bc.`id_beslist_category` AS cat_id_beslist_category
     				FROM `' . _DB_PREFIX_ . 'beslist_product` b
             LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
     				' . Shop::addSqlAssociation('product', 'p') . '
@@ -151,6 +150,9 @@ class BeslistProduct extends ObjectModel
             )
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` color ON (
               attrcolor.`id_attribute` = color.`id_attribute`
+            )
+            LEFT JOIN `' . _DB_PREFIX_ . 'beslist_category` bc ON (
+              bc.`id_category` = p.`id_category_default`
             )
     				WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1

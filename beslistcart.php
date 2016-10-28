@@ -62,7 +62,9 @@ class BeslistCart extends Module
             && $this->registerHook('actionObjectBeslistProductDeleteAfter')
             && $this->registerHook('actionObjectBeslistProductUpdateAfter')
             && $this->registerHook('displayAdminProductsExtra')
-            && $this->registerHook('displayBackOfficeCategory');
+            && $this->registerHook('displayBackOfficeCategory')
+            && $this->registerHook('actionObjectCategoryDeleteAfter')
+            && $this->registerHook('actionAdminCategoriesControllerSaveBefore');
         }
         return false;
     }
@@ -83,6 +85,8 @@ class BeslistCart extends Module
         && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
         && $this->unregisterHook('displayAdminProductsExtra')
         && $this->unregisterHook('displayBackOfficeCategory')
+        && $this->unregisterHook('actionObjectCategoryDeleteAfter')
+        && $this->unregisterHook('actionAdminCategoriesControllerSaveBefore')
         && parent::uninstall();
     }
 
@@ -826,14 +830,26 @@ class BeslistCart extends Module
         return $helper->generateForm($fields_form);
     }
 
-    public function hookDisplayBackOfficeCategory($params)
+    /**
+     * Shows the Beslist Category field on the Category edit page
+     * @return null|string
+     */
+    public function hookDisplayBackOfficeCategory()
     {
-        $beslistCategories = BeslistProduct::getBeslistCategories();
-        $this->context->controller->addJS("blaat.js");
-        $this->context->smarty->assign(array(
-            'beslist_categories' => $beslistCategories
-        ));
-        return $this->display(__FILE__, 'views/templates/admin/category.tpl');
+        $id_category = Tools::getValue('id_category');
+        if($id_category && is_numeric($id_category)) {
+            $beslistCategories = BeslistProduct::getBeslistCategories();
+            $id_beslist_category = Db::getInstance()->getValue(
+                'SELECT id_beslist_category FROM `' . _DB_PREFIX_ . 'beslist_category` 
+                WHERE id_category = ' . (int) $id_category
+            );
+            $this->context->smarty->assign(array(
+                'beslist_category' => $id_beslist_category,
+                'beslist_categories' => $beslistCategories
+            ));
+            return $this->display(__FILE__, 'views/templates/admin/category.tpl');
+        }
+        return null;
     }
 
     /**
@@ -896,7 +912,7 @@ class BeslistCart extends Module
         }
 
         $beslistProducts = BeslistProduct::getByProductId($id_product);
-        $currentCategory = Configuration::get('BESLIST_CART_CATEGORY');
+        $currentCategory = null;
         $indexedBeslistProducts = array();
         foreach ($beslistProducts as $beslistProduct) {
             $currentCategory = $beslistProduct['id_beslist_category'];
@@ -904,8 +920,6 @@ class BeslistCart extends Module
         }
 
         $beslistCategories = BeslistProduct::getBeslistCategories();
-
-        $this->context->controller->addJS("blaat.js");
 
         $this->context->smarty->assign(array(
             'attributes' => $attributes,
@@ -989,7 +1003,9 @@ class BeslistCart extends Module
 
             $beslistProduct->id_product = $product->id;
             $beslistProduct->id_product_attribute = $attribute['id_product_attribute'];
-            $beslistProduct->id_beslist_category = $category_id;
+            if($category_id && is_numeric($category_id)) {
+                $beslistProduct->id_beslist_category = $category_id;
+            }
             $beslistProduct->price = $price;
             $beslistProduct->published = $published;
             $beslistProduct->delivery_code_nl = $delivery_code_nl;
@@ -1025,6 +1041,39 @@ class BeslistCart extends Module
                 $param['quantity'],
                 $this->context
             );
+        }
+    }
+
+    /**
+     * Reads the Beslist Category ID and adds it to the database
+     */
+    public function hookActionAdminCategoriesControllerSaveBefore()
+    {
+        $id_beslistcart_category = (int) Tools::getValue('beslistcart_category');
+        $id_category = (int) Tools::getValue('id_category');
+        if ($id_beslistcart_category && $id_category) {
+            Db::getInstance()->execute(
+                'INSERT INTO `' . _DB_PREFIX_ . 'beslist_category` (id_category, id_beslist_category) 
+                VALUES (' . (int) $id_category . ', ' . (int) $id_beslistcart_category .')
+                ON DUPLICATE KEY UPDATE id_beslist_category = ' . (int) $id_beslistcart_category
+            );
+        }
+    }
+
+    /**
+     * Delete the linked Beslist category
+     * @param $param
+     */
+    public function hookActionObjectCategoryDeleteAfter($param)
+    {
+        if (!empty($param['object'])) {
+            $category = $param['object'];
+            if($category->id_category) {
+                Db::getInstance()->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . 'beslist_category`
+                     WHERE id_category = ' . (int) $category->id_category
+                );
+            }
         }
     }
 
@@ -1086,7 +1135,6 @@ class BeslistCart extends Module
             );
         }
     }
-
 
     /**
      * Retrieve the BeslistOrdersClient

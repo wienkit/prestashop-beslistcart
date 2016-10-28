@@ -19,8 +19,9 @@
 	<div class="col-lg-9">
 		<div class="form-group">
 			<select class="selectpicker form-control" data-live-search="true" name="beslistcart_category" id="beslistcart_category">
+				<option value="default" {if !$beslist_category}selected="selected"{/if}>{l s='--- Use configuration setting ---' mod='beslistcart'}</option>
 				{foreach $beslist_categories as $category}
-					<option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}">{$category.name|escape:'html':'UTF-8'}</option>
+					<option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name|escape:'html':'UTF-8'}</option>
 				{/foreach}
 			</select>
 			<script>

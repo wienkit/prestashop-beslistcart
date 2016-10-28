@@ -20,11 +20,12 @@ $sql[_DB_PREFIX_.'beslist_product'] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_
               `id_product` int(10) unsigned NOT NULL,
               `id_product_attribute` int(10) unsigned NOT NULL,
               `id_shop` INT(11) UNSIGNED NOT NULL DEFAULT \'1\',
-              `id_beslist_category` int(11) NOT NULL,
+              `id_beslist_category` int(11) NULL,
               `published` tinyint(1) NOT NULL DEFAULT \'0\',
               `price` DECIMAL(20, 6) NOT NULL DEFAULT \'0.000000\',
               `status` tinyint(1) NOT NULL DEFAULT \'1\',
-              `delivery_code` VARCHAR(255),
+              `delivery_code_nl` VARCHAR(255),
+              `delivery_code_be` VARCHAR(255),
               PRIMARY KEY (`id_beslist_product`),
               UNIQUE KEY(`id_product`, `id_product_attribute`, `id_shop`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
@@ -34,3 +35,10 @@ $sql[_DB_PREFIX_.'beslist_categories'] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREF
               `name` varchar(255),
               PRIMARY KEY (`id_beslist_category`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
+$sql[_DB_PREFIX_.'beslist_category'] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'beslist_category` (
+              `id_category` int(11) NOT NULL,
+              `id_beslist_category` int(11) NOT NULL,
+            PRIMARY KEY (`id_category`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+

@@ -102,8 +102,13 @@ foreach ($products as $product) {
             . "]]></imagelink" . $suffix . ">\n";
         }
     }
-
-    echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
+    if ($product['category_name']) {
+        echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
+    } else if($product['cat_id_beslist_category']) {
+        echo "\t\t<category>" . htmlspecialchars($product['cat_id_beslist_category'], ENT_XML1, 'UTF-8') . "</category>\n";
+    } else {
+        echo "\t\t<category>" . htmlspecialchars($product['cat_id_beslist_category'], ENT_XML1, 'UTF-8') . "</category>\n";
+    }
     if ($enabled_nl) {
         $prod_deliveryperiod_nl =
             $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
