@@ -27,6 +27,11 @@ $cookie = $context->cookie;
 
 $affiliate = '?ac=beslist';
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$categories = array();
+foreach (BeslistProduct::getBeslistCategories() as $category) {
+    $categories[$category['id_beslist_category']] = $category['name'];
+}
+$default_category = $categories[Configuration::get('BESLIST_CART_CATEGORY')];
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
 $deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
@@ -105,9 +110,9 @@ foreach ($products as $product) {
     if ($product['category_name']) {
         echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
     } else if($product['cat_id_beslist_category']) {
-        echo "\t\t<category>" . htmlspecialchars($product['cat_id_beslist_category'], ENT_XML1, 'UTF-8') . "</category>\n";
+        echo "\t\t<category>" . htmlspecialchars($categories[$product['cat_id_beslist_category']], ENT_XML1, 'UTF-8') . "</category>\n";
     } else {
-        echo "\t\t<category>" . htmlspecialchars($product['cat_id_beslist_category'], ENT_XML1, 'UTF-8') . "</category>\n";
+        echo "\t\t<category>" . htmlspecialchars($default_category, ENT_XML1, 'UTF-8') . "</category>\n";
     }
     if ($enabled_nl) {
         $prod_deliveryperiod_nl =
