@@ -6,6 +6,7 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_d0581b62b8f7d96426b60c8de702dca6'
 $_MODULE['<{beslistcart}prestashop>beslistcart_876f23178c29dc2552c0b48bf23cd9bd'] = 'Weet u zeker dat u deze module wilt deïnstalleren?';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fe5d926454b6a8144efce13a44d019ba'] = 'Ongeldige configuratiewaarde';
 $_MODULE['<{beslistcart}prestashop>beslistcart_c888438d14855d7d96a2724ee9c306bd'] = 'Instellingen bijgewerkt';
+$_MODULE['<{beslistcart}prestashop>beslistcart_254c025e293a58b4f541570faaf54a09'] = '--- Geen ---';
 $_MODULE['<{beslistcart}prestashop>beslistcart_3297f3f04a34cf3f0b111c03a0c37487'] = 'Beslist Winkelwagen instellingen';
 $_MODULE['<{beslistcart}prestashop>beslistcart_cb3dd8508c71d4227091d6c69d57e8ae'] = 'Beslist Winkelwagen activeren';
 $_MODULE['<{beslistcart}prestashop>beslistcart_93cba07454f06a4a960172bbd6e2a435'] = 'Ja';
@@ -45,6 +46,10 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_9aa12e21b9f94eae0e86e419ea9b84fe'
 $_MODULE['<{beslistcart}prestashop>beslistcart_706d08b7377c5645a224beb0723c9fef'] = 'Beslist.be gebruiken';
 $_MODULE['<{beslistcart}prestashop>beslistcart_a74266f4094eb08f9ff0dc21bfd66578'] = 'Publiceer uw producten op Beslist.be (België)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_9ddf61a04be623a1a2aa76b6580fed56'] = 'Selecteer een vervoerder voor uw Beslist.be bestellingen';
+$_MODULE['<{beslistcart}prestashop>beslistcart_ed5e362bcdc4e0c0e70a24adfdeb54de'] = 'Bulk operaties';
+$_MODULE['<{beslistcart}prestashop>beslistcart_b49f80cdfd2039fcbcbc00e6eda4a482'] = 'Alle producten toevoegen';
+$_MODULE['<{beslistcart}prestashop>beslistcart_fd35f0a8a83b003ec740ac316c9946d5'] = 'Voegt alle producten toe aan Beslist';
+$_MODULE['<{beslistcart}prestashop>beslistcart_7f5c25dc790d4ea75fde868c2db6f773'] = 'Markeer de producten voor Beslist, gebruikt de standaardinstellingen.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_af1b98adf7f686b84cd0b443e022b7a0'] = 'Categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_cc2d9891a96475f37841cfc76b4fa357'] = 'Update Beslist categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_ef8b6437230814b21da452236954e49b'] = 'Haalt de laatste categoriën van Beslist.nl op';

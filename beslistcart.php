@@ -51,20 +51,20 @@ class BeslistCart extends Module
     {
         if (parent::install()) {
             return $this->installDb()
-            && $this->installOrderState()
-            && $this->installOrdersTab()
-            && $this->installProductsTab()
-            && $this->importCategories()
-            && $this->registerHook('actionAdminControllerSetMedia')
-            && $this->registerHook('actionProductUpdate')
-            && $this->registerHook('actionUpdateQuantity')
-            && $this->registerHook('actionObjectBeslistProductAddAfter')
-            && $this->registerHook('actionObjectBeslistProductDeleteAfter')
-            && $this->registerHook('actionObjectBeslistProductUpdateAfter')
-            && $this->registerHook('displayAdminProductsExtra')
-            && $this->registerHook('displayBackOfficeCategory')
-            && $this->registerHook('actionObjectCategoryDeleteAfter')
-            && $this->registerHook('actionAdminCategoriesControllerSaveBefore');
+                && $this->installOrderState()
+                && $this->installOrdersTab()
+                && $this->installProductsTab()
+                && $this->importCategories()
+                && $this->registerHook('actionAdminControllerSetMedia')
+                && $this->registerHook('actionProductUpdate')
+                && $this->registerHook('actionUpdateQuantity')
+                && $this->registerHook('actionObjectBeslistProductAddAfter')
+                && $this->registerHook('actionObjectBeslistProductDeleteAfter')
+                && $this->registerHook('actionObjectBeslistProductUpdateAfter')
+                && $this->registerHook('displayAdminProductsExtra')
+                && $this->registerHook('displayBackOfficeCategory')
+                && $this->registerHook('actionObjectCategoryDeleteAfter')
+                && $this->registerHook('actionAdminCategoriesControllerSaveBefore');
         }
         return false;
     }
@@ -75,19 +75,19 @@ class BeslistCart extends Module
     public function uninstall()
     {
         return $this->uninstallDb()
-        && $this->uninstallTabs()
-        && $this->uninstallOrderState()
-        && $this->unregisterHook('actionAdminControllerSetMedia')
-        && $this->unregisterHook('actionProductUpdate')
-        && $this->unregisterHook('actionUpdateQuantity')
-        && $this->unregisterHook('actionObjectBeslistProductAddAfter')
-        && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
-        && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
-        && $this->unregisterHook('displayAdminProductsExtra')
-        && $this->unregisterHook('displayBackOfficeCategory')
-        && $this->unregisterHook('actionObjectCategoryDeleteAfter')
-        && $this->unregisterHook('actionAdminCategoriesControllerSaveBefore')
-        && parent::uninstall();
+            && $this->uninstallTabs()
+            && $this->uninstallOrderState()
+            && $this->unregisterHook('actionAdminControllerSetMedia')
+            && $this->unregisterHook('actionProductUpdate')
+            && $this->unregisterHook('actionUpdateQuantity')
+            && $this->unregisterHook('actionObjectBeslistProductAddAfter')
+            && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
+            && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
+            && $this->unregisterHook('displayAdminProductsExtra')
+            && $this->unregisterHook('displayBackOfficeCategory')
+            && $this->unregisterHook('actionObjectCategoryDeleteAfter')
+            && $this->unregisterHook('actionAdminCategoriesControllerSaveBefore')
+            && parent::uninstall();
     }
 
     /**
@@ -338,6 +338,7 @@ class BeslistCart extends Module
 
 
             $update_categories = (bool)Tools::getValue('beslist_cart_update_categories');
+            $add_products = (bool)Tools::getValue('beslist_cart_add_all_products');
             $category = (int)Tools::getValue('beslist_cart_category');
 
             if (!$personalkey
@@ -387,6 +388,9 @@ class BeslistCart extends Module
             if ($update_categories) {
                 $this->importCategories();
             }
+            if ($add_products) {
+                AdminBeslistCartProductsController::addAllProducts();
+            }
         }
         return $output . $this->displayForm();
     }
@@ -405,7 +409,7 @@ class BeslistCart extends Module
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
         array_unshift($attributes, array(
             'id_attribute_group' => 0,
-            'name' => $this->l("--- None ---")
+            'name' => $this->l('--- None ---')
         ));
 
         // Init Fields form array
@@ -458,12 +462,14 @@ class BeslistCart extends Module
                     'label' => $this->l('Shop ID'),
                     'desc' => $this->l('Beslist.nl Order API Shop ID'),
                     'name' => 'beslist_cart_shopid',
+                    'required' => true,
                     'size' => 20
                 ),
                 array(
                     'type' => 'text',
                     'label' => $this->l('Client ID'),
                     'desc' => $this->l('Beslist.nl Order API Client ID'),
+                    'required' => true,
                     'name' => 'beslist_cart_clientid'
                 ),
                 array(
@@ -471,6 +477,7 @@ class BeslistCart extends Module
                     'label' => $this->l('Personal key'),
                     'desc' => $this->l('Beslist.nl Order API Personal key'),
                     'name' => 'beslist_cart_personalkey',
+                    'required' => true,
                     'size' => 20
                 ),
                 array(
@@ -478,6 +485,7 @@ class BeslistCart extends Module
                     'label' => $this->l('Shopitem API key'),
                     'desc' => $this->l('Beslist.nl ShopItem API key'),
                     'name' => 'beslist_cart_shopitem_apikey',
+                    'required' => true,
                     'size' => 20
                 ),
                 array(
@@ -537,6 +545,7 @@ class BeslistCart extends Module
                     'label' => $this->l('Order from date'),
                     'desc' => $this->l('Use this field to override the from date (format: 2016-12-31).'),
                     'name' => 'beslist_cart_startdate',
+                    'required' => true,
                     'size' => 20
                 ),
             )
@@ -717,9 +726,37 @@ class BeslistCart extends Module
             )
         );
 
+        $fields_form[5]['form'] = array(
+            'legend' => array(
+                'title' => $this->l('Bulk operations')
+            ),
+            'input' => array(
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Add all products'),
+                    'name' => 'beslist_cart_add_all_products',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_add_all_products_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_add_all_products_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Add all product to Beslist.'),
+                    'desc' => $this->l('Mark all products to be added to Beslist, using the default settings.')
+                ),
+            )
+        );
+
         $fields_form[4]['form'] = array(
             'legend' => array(
-                'title' => $this->l('Categories'),
+                'title' => $this->l('Categories')
             ),
             'input' => array(
                 array(
@@ -819,6 +856,7 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_deliveryperiod_nostock_be'] =
             Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 
+        $helper->fields_value['beslist_cart_add_all_products'] = 0;
 
         $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
 

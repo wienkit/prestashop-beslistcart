@@ -342,4 +342,42 @@ class AdminBeslistCartProductsController extends AdminController
             }
         }
     }
+
+    public static function addAllProducts()
+    {
+        $context = Context::getContext();
+        $id_shop = $context->shop->id;
+        if (!$id_shop) {
+            $context->controller->errors[] = Tools::displayError(
+                'You have to be in a Shop context to add all products'
+            );
+            return;
+        }
+
+        $insert = 'INSERT INTO `' . _DB_PREFIX_ . 'beslist_product` (
+                      id_product, 
+                      id_product_attribute, 
+                      id_shop, 
+                      id_beslist_category, 
+                      published, 
+                      delivery_code_nl, 
+                      delivery_code_be
+                    )
+                    SELECT p.`id_product`, 
+                        IFNULL(pa.`id_product_attribute`, 0) as id_product_attribute, 
+                        ' . (int) $id_shop . ' as id_shop,
+                        0 as id_beslist_category,
+                        1 as published,
+                        \'\' as delivery_code_nl,
+                        \'\' as delivery_code_be
+                    FROM `' . _DB_PREFIX_ . 'product` p
+                    LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute` pa ON pa.`id_product` = p.`id_product`
+                   ON DUPLICATE KEY UPDATE id_product = p.id_product';
+        $result = Db::getInstance()->execute($insert);
+        if ($result) {
+            $context->controller->confirmations[] = $context->controller->l(
+                'All products and combinations were marked to be added to Beslist'
+            );
+        }
+    }
 }
