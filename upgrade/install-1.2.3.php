@@ -26,19 +26,19 @@ function upgrade_module_1_2_3($object)
         $columns[] = $column['Field'];
     }
 
-    $result = false;
-    if(in_array('delivery_code', $columns)) {
+    $result = true;
+    if($result && in_array('delivery_code', $columns)) {
         $result = Db::getInstance()->execute(
             'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP COLUMN `delivery_code`'
         );
     }
     if($result && !in_array('delivery_code_nl', $columns)) {
-        Db::getInstance()->execute(
+        $result = Db::getInstance()->execute(
             'ALTER TABLE `'._DB_PREFIX_.'beslist_product` ADD `delivery_code_nl` VARCHAR(255) AFTER `status`'
         );
     }
     if($result && !in_array('delivery_code_be', $columns)) {
-        Db::getInstance()->execute(
+        $result = Db::getInstance()->execute(
             'ALTER TABLE `'._DB_PREFIX_.'beslist_product` ADD `delivery_code_be` VARCHAR(255) AFTER `delivery_code_nl`'
         );
     }
