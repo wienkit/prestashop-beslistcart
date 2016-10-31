@@ -208,7 +208,7 @@ class BeslistProduct extends ObjectModel
                 if ($isAttribute) {
                     return $this->id_product_attribute . '-' . $this->id_product;
                 } else {
-                    return $this->id_product . '-' . $this->id_product;
+                    return $this->id_product;
                 }
                 break;
             default:
