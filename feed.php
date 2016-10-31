@@ -177,7 +177,7 @@ foreach ($products as $product) {
     }
     echo "\t\t<display>" . $display . "</display>\n";
     if (isset($product['manufacturer_name'])) {
-        echo "\t\t<brand>" . $product['manufacturer_name'] . "</brand>\n";
+        echo "\t\t<brand><![CDATA[" . $product['manufacturer_name'] . "]]></brand>\n";
     }
     // echo "\t\t<gender> (man/vrouw/ jongen/meisje/baby/unisex) </gender>\n";
     // echo "\t\t<material>?</material>\n";
