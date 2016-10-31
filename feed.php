@@ -24,7 +24,6 @@ $context = Context::getContext();
 $link = $context->link;
 $cookie = $context->cookie;
 
-
 $affiliate = '?ac=beslist';
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
 $categories = array();
@@ -68,18 +67,33 @@ foreach ($products as $product) {
     echo "\t<product>\n";
     echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
     echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
+
     if ($product['id_product_attribute']) {
         echo "\t\t<code>" . $product['id_product_attribute'] . "-" . $product['id_product'] . "</code>\n";
+    } else {
+        echo "\t\t<code>" . $product['id_product'] . "</code>\n";
     }
+
     if (isset($product['attribute_reference'])) {
         echo "\t\t<sku>" . $product['attribute_reference'] . "</sku>\n";
-        if (isset($product['variant'])) {
-            echo "\t\t<variantcode>" . $product['reference'] . '-' . $product['variant'] . "</variantcode>\n";
-        }
-        echo "\t\t<modelcode>" . $product['reference'] . "</modelcode>\n"; // Grouping id
-    } else {
+    } elseif (isset($product['reference'])) {
         echo "\t\t<sku>" . $product['reference'] . "</sku>\n";
     }
+
+    if (isset($product['size'])) {
+        if (isset($product['variant'])) {
+            echo "\t\t<variantcode>" . $product['id_product'] . "-" . $product['variant'] . "</variantcode>\n";
+        } else {
+            echo "\t\t<variantcode>" . $product['id_product'] . "</variantcode>\n";
+        }
+        echo "\t\t<size>" . $product['size'] . "</size>\n";
+    }
+
+    if (isset($product['color'])) {
+        echo "\t\t<modelcode>" . $product['id_product'] . "</modelcode>\n"; // Grouping id
+        echo "\t\t<color>" . $product['color'] . "</color>\n";
+    }
+
     echo "\t\t<productlink><![CDATA[" . str_replace(
         '&amp;',
         '&',
@@ -161,12 +175,6 @@ foreach ($products as $product) {
     echo "\t\t<display>" . $display . "</display>\n";
     if (isset($product['manufacturer_name'])) {
         echo "\t\t<brand>" . $product['manufacturer_name'] . "</brand>\n";
-    }
-    if (isset($product['size'])) {
-        echo "\t\t<size>" . $product['size'] . "</size>\n";
-    }
-    if (isset($product['color'])) {
-        echo "\t\t<color>" . $product['color'] . "</color>\n";
     }
     // echo "\t\t<gender> (man/vrouw/ jongen/meisje/baby/unisex) </gender>\n";
     // echo "\t\t<material>?</material>\n";
