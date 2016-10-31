@@ -124,7 +124,10 @@ foreach ($products as $product) {
     }
     if ($product['category_name']) {
         echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
-    } else if($product['id_category_default'] && array_key_exists($product['id_category_default'], $mapped_categories)) {
+    } elseif (
+        $product['id_category_default']
+        && array_key_exists($product['id_category_default'], $mapped_categories)
+    ) {
         echo "\t\t<category>"
             . htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8')
             . "</category>\n";

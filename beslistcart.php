@@ -875,7 +875,7 @@ class BeslistCart extends Module
     public function hookDisplayBackOfficeCategory()
     {
         $id_category = Tools::getValue('id_category');
-        if($id_category && is_numeric($id_category)) {
+        if ($id_category && is_numeric($id_category)) {
             $beslistCategories = BeslistProduct::getBeslistCategories();
             $id_beslist_category = Db::getInstance()->getValue(
                 'SELECT id_beslist_category FROM `' . _DB_PREFIX_ . 'beslist_category` 
@@ -1041,7 +1041,7 @@ class BeslistCart extends Module
 
             $beslistProduct->id_product = $product->id;
             $beslistProduct->id_product_attribute = $attribute['id_product_attribute'];
-            if($category_id && is_numeric($category_id)) {
+            if ($category_id && is_numeric($category_id)) {
                 $beslistProduct->id_beslist_category = $category_id;
             }
             $beslistProduct->price = $price;
@@ -1106,7 +1106,7 @@ class BeslistCart extends Module
     {
         if (!empty($param['object'])) {
             $category = $param['object'];
-            if($category->id_category) {
+            if ($category->id_category) {
                 Db::getInstance()->execute(
                     'DELETE FROM `' . _DB_PREFIX_ . 'beslist_category`
                      WHERE id_category = ' . (int) $category->id_category

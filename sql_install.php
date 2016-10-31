@@ -41,4 +41,3 @@ $sql[_DB_PREFIX_.'beslist_category'] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX
               `id_beslist_category` int(11) NOT NULL,
             PRIMARY KEY (`id_category`)
             ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
-
