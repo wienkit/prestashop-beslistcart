@@ -108,6 +108,40 @@ class BeslistProduct extends ObjectModel
     }
 
     /**
+     * Returns the category to beslist category mappings
+     * @return array
+     */
+    public static function getMappedCategoryTree()
+    {
+        $sql = 'SELECT category.id_category, mappedparent.parentbeslistcategory FROM '._DB_PREFIX_.'category category
+                INNER JOIN (
+                   SELECT 
+                        MIN(parent.nright - parent.nleft) as parentdist, 
+                        parent.id_category as parentid, 
+                        parent.nleft as parentnleft, 
+                        parent.nright as parentnright, 
+                        bc.id_beslist_category as parentbeslistcategory
+                   FROM '._DB_PREFIX_.'category parent 
+                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
+                   GROUP BY parent.id_category, bc.id_beslist_category
+                ) as mappedparent 
+                ON mappedparent.parentnleft <= category.nleft 
+                AND mappedparent.parentnright >= category.nright
+                AND mappedparent.parentdist = (
+                   SELECT MIN(parent.nright - parent.nleft) 
+                   FROM '._DB_PREFIX_.'category parent 
+                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
+                   WHERE parent.nleft <= category.nleft AND parent.nright >= category.nright
+                )';
+        $result = array();
+        $rows = Db::getInstance()->executeS($sql);
+        foreach ($rows as $row) {
+            $result[$row['id_category']] = $row['parentbeslistcategory'];
+        }
+        return $result;
+    }
+
+    /**
      * Returns all Beslist products
      * @return array
      */
@@ -118,7 +152,7 @@ class BeslistProduct extends ObjectModel
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 
-            color.`id_attribute` AS variant, bc.`id_beslist_category` AS cat_id_beslist_category
+            color.`id_attribute` AS variant
     				FROM `' . _DB_PREFIX_ . 'beslist_product` b
             LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
     				' . Shop::addSqlAssociation('product', 'p') . '
@@ -154,7 +188,7 @@ class BeslistProduct extends ObjectModel
             LEFT JOIN `' . _DB_PREFIX_ . 'beslist_category` bc ON (
               bc.`id_category` = p.`id_category_default`
             )
-    				WHERE pl.`id_lang` = ' . (int)$id_lang . '
+            WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
     				ORDER BY p.id_product';

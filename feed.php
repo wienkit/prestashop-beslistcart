@@ -30,6 +30,7 @@ $categories = array();
 foreach (BeslistProduct::getBeslistCategories() as $category) {
     $categories[$category['id_beslist_category']] = $category['name'];
 }
+$mapped_categories = BeslistProduct::getMappedCategoryTree();
 $default_category = $categories[Configuration::get('BESLIST_CART_CATEGORY')];
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
@@ -123,8 +124,10 @@ foreach ($products as $product) {
     }
     if ($product['category_name']) {
         echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
-    } else if($product['cat_id_beslist_category']) {
-        echo "\t\t<category>" . htmlspecialchars($categories[$product['cat_id_beslist_category']], ENT_XML1, 'UTF-8') . "</category>\n";
+    } else if($product['id_category_default'] && array_key_exists($product['id_category_default'], $mapped_categories)) {
+        echo "\t\t<category>"
+            . htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8')
+            . "</category>\n";
     } else {
         echo "\t\t<category>" . htmlspecialchars($default_category, ENT_XML1, 'UTF-8') . "</category>\n";
     }
