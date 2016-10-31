@@ -26,8 +26,8 @@ function upgrade_module_1_2_3($object)
         $columns[] = $column['Field'];
     }
 
-    $result = false;
-    if(in_array('delivery_code', $columns)) {
+    $result = true;
+    if($result && in_array('delivery_code', $columns)) {
         $result = Db::getInstance()->execute(
             'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP COLUMN `delivery_code`'
         );
