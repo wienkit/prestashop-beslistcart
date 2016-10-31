@@ -50,6 +50,12 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_ed5e362bcdc4e0c0e70a24adfdeb54de'
 $_MODULE['<{beslistcart}prestashop>beslistcart_b49f80cdfd2039fcbcbc00e6eda4a482'] = 'Alle producten toevoegen';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fd35f0a8a83b003ec740ac316c9946d5'] = 'Voegt alle producten toe aan Beslist';
 $_MODULE['<{beslistcart}prestashop>beslistcart_7f5c25dc790d4ea75fde868c2db6f773'] = 'Markeer de producten voor Beslist, gebruikt de standaardinstellingen.';
+$_MODULE['<{beslistcart}prestashop>beslistcart_ad6a348d7385748e952aaf8dbdce7a13'] = 'Voeg standaardcategorieën toe';
+$_MODULE['<{beslistcart}prestashop>beslistcart_eb67a204ea4a46a67919eb66be217d20'] = 'Zet de standaardcategorie van Beslist producten';
+$_MODULE['<{beslistcart}prestashop>beslistcart_cb5a8702198bdb70d15538707a98e933'] = 'Zet de categorie op het Beslist product. Hierbij wordt gebruik gemaakt van de Beslist categorie instelling op de categorieën. Deze optie is alleen nuttig wanneer je niet de standaardcategorie van het product gebruikt voor de Beslist.nl mapping.';
+$_MODULE['<{beslistcart}prestashop>beslistcart_fc56121f441bdcb09af04d34d93316e7'] = 'Overschijf bestaande categorieën';
+$_MODULE['<{beslistcart}prestashop>beslistcart_9d60694d8065be3834daa84b16f6033b'] = 'Overschrijft de bestaande categorieën op de Beslist producten';
+$_MODULE['<{beslistcart}prestashop>beslistcart_eaefeea69cadc3e860a74c89c017f4f5'] = 'Voorzichtigheid geboden! Hiermee worden de producten die al een categorie toegewezen hebben gekregen overschreven.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_af1b98adf7f686b84cd0b443e022b7a0'] = 'Categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_cc2d9891a96475f37841cfc76b4fa357'] = 'Update Beslist categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_ef8b6437230814b21da452236954e49b'] = 'Haalt de laatste categoriën van Beslist.nl op';
@@ -92,6 +98,9 @@ $_MODULE['<{beslistcart}prestashop>beslistproduct_575f4bc72cda1d1bfbd6cb0cc9d355
 $_MODULE['<{beslistcart}prestashop>beslistproduct_40dec546414c1ebdfde8d9858f0938c3'] = 'Alle producten';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_81b3b426c7dd6fff02b3d949f3563998'] = 'Custom levertijd NL (optioneel)';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_228b60b2687eef67df4fe77d3b445e52'] = 'Custom levertijd BE (optioneel)';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_ea4788705e6873b424c65e91c2846b19'] = 'Annuleren';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_c9cc8cce247e49bae79f15173ce97354'] = 'Opslaan';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_9ea67be453eaccf020697b4654fc021a'] = 'Opslaan en blijven';
 $_MODULE['<{beslistcart}prestashop>category_07c1b0326d2ed14b91bac10279318e30'] = 'Beslist categorie';
 $_MODULE['<{beslistcart}prestashop>category_f3a3b6fba2c3a43007e7a9ae49bbba5f'] = '--- Gebruik configuratiewaarde ---';
 $_MODULE['<{beslistcart}prestashop>configure_91f0f1da9a25ecc5d73f44c2560556cd'] = 'Hoe gebruik ik deze module?';

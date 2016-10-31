@@ -338,6 +338,8 @@ class BeslistCart extends Module
 
 
             $update_categories = (bool)Tools::getValue('beslist_cart_update_categories');
+            $add_default_categories = (bool)Tools::getValue('beslist_cart_add_default_categories');
+            $overwrite_categories = (bool)Tools::getValue('beslist_cart_overwrite_categories');
             $add_products = (bool)Tools::getValue('beslist_cart_add_all_products');
             $category = (int)Tools::getValue('beslist_cart_category');
 
@@ -390,6 +392,9 @@ class BeslistCart extends Module
             }
             if ($add_products) {
                 AdminBeslistCartProductsController::addAllProducts();
+            }
+            if ($add_default_categories) {
+                AdminBeslistCartProductsController::setDefaultCategories($overwrite_categories);
             }
         }
         return $output . $this->displayForm();
@@ -751,6 +756,53 @@ class BeslistCart extends Module
                     'hint' => $this->l('Add all product to Beslist.'),
                     'desc' => $this->l('Mark all products to be added to Beslist, using the default settings.')
                 ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Add default categories'),
+                    'name' => 'beslist_cart_add_default_categories',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_add_default_categories_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_add_default_categories_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Add all default Beslist categories to Beslist products.'),
+                    'desc' => $this->l(
+                        'Set the Beslist.nl category on all product, retrieves the categories from ' .
+                        'the closest category settings. Useful if you do not use you default category for the ' .
+                        'Beslist mapping.'
+                    )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Overwrite categories'),
+                    'name' => 'beslist_cart_overwrite_categories',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_overwrite_categories_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_overwrite_categories_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Overwrites the already known categories.'),
+                    'desc' => $this->l(
+                        'Use with caution, as this will remove all existing customly selected ' .
+                        'categories. Enable only if you are certain you want to overwrite categories.'
+                    )
+                )
             )
         );
 
@@ -857,6 +909,8 @@ class BeslistCart extends Module
             Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 
         $helper->fields_value['beslist_cart_add_all_products'] = 0;
+        $helper->fields_value['beslist_cart_add_default_categories'] = 0;
+        $helper->fields_value['beslist_cart_overwrite_categories'] = 0;
 
         $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
 

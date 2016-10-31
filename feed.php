@@ -122,18 +122,19 @@ foreach ($products as $product) {
             . "]]></imagelink" . $suffix . ">\n";
         }
     }
-    if ($product['category_name']) {
-        echo "\t\t<category>" . htmlspecialchars($product['category_name'], ENT_XML1, 'UTF-8') . "</category>\n";
+
+    echo "\t\t<category>";
+    if ($product['id_beslist_category']) {
+        echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
     } elseif (
         $product['id_category_default']
         && array_key_exists($product['id_category_default'], $mapped_categories)
     ) {
-        echo "\t\t<category>"
-            . htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8')
-            . "</category>\n";
+        echo htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8');
     } else {
-        echo "\t\t<category>" . htmlspecialchars($default_category, ENT_XML1, 'UTF-8') . "</category>\n";
+        echo htmlspecialchars($default_category, ENT_XML1, 'UTF-8');
     }
+    echo "</category>\n";
     if ($enabled_nl) {
         $prod_deliveryperiod_nl =
             $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];

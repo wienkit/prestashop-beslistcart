@@ -147,7 +147,7 @@ class BeslistProduct extends ObjectModel
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*, b.price AS override_price, c.`name` AS category_name,
+        $sql = 'SELECT b.*, b.price AS override_price,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
@@ -160,7 +160,6 @@ class BeslistProduct extends ObjectModel
             ' . Shop::addSqlRestrictionOnLang('pl') . ')
     				LEFT JOIN `' . _DB_PREFIX_ . 'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
     				LEFT JOIN `' . _DB_PREFIX_ . 'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
-            LEFT JOIN `' . _DB_PREFIX_ . 'beslist_categories` c ON (b.`id_beslist_category` = c.`id_beslist_category`)
             LEFT JOIN `' . _DB_PREFIX_ . 'stock_available` st ON (
               b.`id_product` = st.`id_product` AND
               b.`id_product_attribute` = st.`id_product_attribute`
@@ -184,9 +183,6 @@ class BeslistProduct extends ObjectModel
             )
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` color ON (
               attrcolor.`id_attribute` = color.`id_attribute`
-            )
-            LEFT JOIN `' . _DB_PREFIX_ . 'beslist_category` bc ON (
-              bc.`id_category` = p.`id_category_default`
             )
             WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
