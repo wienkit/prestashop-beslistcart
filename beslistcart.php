@@ -21,7 +21,7 @@ class BeslistCart extends Module
 {
     const BESLIST_MATCH_REFERENCE = 1;
     const BESLIST_MATCH_EAN13 = 2;
-    const BESLIST_MATCH_CHANNABLE = 3;
+    const BESLIST_MATCH_DEFAULT = 3;
 
     public function __construct()
     {
@@ -518,7 +518,7 @@ class BeslistCart extends Module
                     'options' => array(
                         'query' => array(
                             array(
-                                'id_matcher' => self::BESLIST_MATCH_CHANNABLE,
+                                'id_matcher' => self::BESLIST_MATCH_DEFAULT,
                                 'name' => $this->l('Default ([$combinationid-]$productid)')
                             ),
                             array(
