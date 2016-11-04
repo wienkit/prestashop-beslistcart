@@ -124,7 +124,7 @@ foreach ($products as $product) {
     }
 
     echo "\t\t<category>";
-    if (array_key_exists('category_name', $product)) {
+    if (array_key_exists('id_beslist_category', $product) && $product['id_beslist_category']) {
         echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
     } elseif (
         $product['id_category_default']
