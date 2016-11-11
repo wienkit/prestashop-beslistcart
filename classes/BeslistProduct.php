@@ -241,6 +241,13 @@ class BeslistProduct extends ObjectModel
                     return $this->id_product;
                 }
                 break;
+            case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
+                if ($isAttribute) {
+                    return $this->id_product . '_' . $this->id_product_attribute;
+                } else {
+                    return $this->id_product;
+                }
+                break;
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
         }

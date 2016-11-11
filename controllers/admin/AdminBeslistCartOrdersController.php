@@ -570,6 +570,9 @@ class AdminBeslistCartOrdersController extends AdminController
             case BeslistCart::BESLIST_MATCH_DEFAULT:
                 $attributes = self::getAttributeByDefaultCode($bvbCode);
                 break;
+            case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
+                $attributes = self::getAttributeByStorecommanderCode($bvbCode);
+                break;
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
         }
@@ -586,6 +589,9 @@ class AdminBeslistCartOrdersController extends AdminController
                 break;
             case BeslistCart::BESLIST_MATCH_DEFAULT:
                 $id = self::getProductByDefaultCode($bvbCode);
+                break;
+            case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
+                $id = self::getProductByStorecommanderCode($bvbCode);
                 break;
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
@@ -629,6 +635,21 @@ class AdminBeslistCartOrdersController extends AdminController
         if (strpos($code, '-')) {
             $splitted = explode('-', $code);
             return $splitted[1];
+        } else {
+            return $code;
+        }
+    }
+
+    /**
+     * Return the product id for a storecommander code
+     * @param $code
+     * @return int|bool
+     */
+    private static function getProductByStorecommanderCode($code)
+    {
+        if (strpos($code, '_')) {
+            $splitted = explode('_', $code);
+            return $splitted[0];
         } else {
             return $code;
         }
@@ -699,6 +720,34 @@ class AdminBeslistCartOrdersController extends AdminController
                     array(
                         'id_product' => $splitted[1],
                         'id_product_attribute' => $splitted[0]
+                    )
+                );
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Return the attribute for a storecommander code
+     * @param $code
+     * @return array|int the attribute ids
+     */
+    private static function getAttributeByStorecommanderCode($code)
+    {
+        $splitted = explode('_', $code);
+        if (count($splitted) == 2) {
+            $query = new DbQuery();
+            $query->select('pa.id_product, pa.id_product_attribute');
+            $query->from('product_attribute', 'pa');
+            $query->where(
+                'pa.id_product = \'' . (int)$splitted[0] . '\' AND ' .
+                'pa.id_product_attribute = \'' . (int)$splitted[1] . '\''
+            );
+            if ((bool)Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query)) {
+                return array(
+                    array(
+                        'id_product' => $splitted[0],
+                        'id_product_attribute' => $splitted[1]
                     )
                 );
             }
