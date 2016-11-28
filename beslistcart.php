@@ -1269,5 +1269,6 @@ class BeslistCart extends Module
     public static function synchronize()
     {
         AdminBeslistCartOrdersController::synchronize();
+        AdminBeslistCartProductsController::synchronize(Context::getContext());
     }
 }
