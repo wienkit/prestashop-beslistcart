@@ -292,7 +292,8 @@ class BeslistProduct extends ObjectModel
             Db::getInstance()->executeS('
                 SELECT *
                 FROM `' . _DB_PREFIX_ . 'beslist_product`
-                WHERE `status` > 0')
+                WHERE `status` > 0 
+                LIMIT 1000')
         );
     }
 }
