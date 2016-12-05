@@ -1039,6 +1039,7 @@ class BeslistCart extends Module
     public function hookActionProductUpdate($params)
     {
         if ((int)Tools::getValue('beslistcart_loaded') === 1
+            && Configuration::get('BESLIST_CART_ENABLED')
             && Validate::isLoadedObject($product = new Product((int)$params['id_product']))
         ) {
             $this->processBeslistProductEntities($product);
