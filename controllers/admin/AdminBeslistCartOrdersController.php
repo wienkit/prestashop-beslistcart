@@ -313,7 +313,6 @@ class AdminBeslistCartOrdersController extends AdminController
                 );
                 if (!$verified) {
                     $success = false;
-
                     $context->controller->errors[] = Tools::displayError('Beslist.nl Shopping cart sync failed.');
                 }
             }
@@ -375,6 +374,11 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function parseCustomer(Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder)
     {
+        $customers = Customer::getCustomersByEmail($shopOrder->customer->email);
+        if (count($customers) > 0) {
+            $customer = $customers[0];
+            return new Customer($customer['id_customer']);
+        }
         $customer = new Customer();
         $customer->firstname = str_replace(range(0, 9), '', $shopOrder->addresses->invoice->firstName);
         $customer->lastname = str_replace(range(0, 9), '', trim(
