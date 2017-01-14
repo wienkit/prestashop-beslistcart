@@ -142,7 +142,32 @@ class BeslistProduct extends ObjectModel
     }
 
     /**
+     * Return the full list of categories, indexed by id
+     *
+     * @param int $id_lang
+     * @return array
+     */
+    public static function getShopCategoriesComplete($id_lang = null)
+    {
+        $sql = 'SELECT category.id_category, category.id_parent, lang.name FROM '._DB_PREFIX_.'category category 
+                INNER JOIN '._DB_PREFIX_.'category_lang lang ON category.id_category = lang.id_category
+                WHERE lang.`id_lang` = ' . (int)$id_lang . '
+                ORDER BY category.level_depth ASC';
+        $rows = Db::getInstance()->executeS($sql);
+        $result = array();
+        foreach ($rows as $row) {
+            if (array_key_exists($row['id_parent'], $result)) {
+                $result[$row['id_category']] = $result[$row['id_parent']] . ' > ' . $row['name'];
+            } else {
+                $result[$row['id_category']] = $row['name'];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Returns all Beslist products
+     * @param int $id_lang
      * @return array
      */
     public static function getLoadedBeslistProducts($id_lang = null)
