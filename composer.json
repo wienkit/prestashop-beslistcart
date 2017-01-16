@@ -20,5 +20,13 @@
   },
   "config": {
     "vendor-dir": "libraries"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "find libraries -type d -exec cp index.php {} \\;"
+    ],
+    "post-update-cmd": [
+      "find libraries -type d -exec cp index.php {} \\;"
+    ]
   }
 }

@@ -4,7 +4,6 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "532409c38cff0d4a21b8c0dad971ba5f",
     "content-hash": "4124502f6274a8afa8a1af5f74e1d264",
     "packages": [
         {
@@ -57,7 +56,7 @@
                 "rest",
                 "xml"
             ],
-            "time": "2016-05-19 16:57:42"
+            "time": "2016-05-19T16:57:42+00:00"
         },
         {
             "name": "wienkit/beslist-order-api-php-client",
@@ -103,7 +102,7 @@
                 "beslist.nl",
                 "php"
             ],
-            "time": "2016-07-10 15:29:42"
+            "time": "2016-07-10T15:29:42+00:00"
         },
         {
             "name": "wienkit/beslist-shopitem-api-php-client",
@@ -150,7 +149,7 @@
                 "beslist.nl",
                 "php"
             ],
-            "time": "2016-07-10 13:58:30"
+            "time": "2016-07-10T13:58:30+00:00"
         }
     ],
     "packages-dev": [],
