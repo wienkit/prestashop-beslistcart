@@ -26,6 +26,7 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_1e8cecca2e4458769059552733391762'
 $_MODULE['<{beslistcart}prestashop>beslistcart_013bd893f4ff87fa818390ab738d23f3'] = 'Dit product wordt gebruikt bij de tests, vul een EAN-13 of Product referentiecode in. Dit moet overeenkomen met het Beslist productreferentie veld (zie hierboven).';
 $_MODULE['<{beslistcart}prestashop>beslistcart_094198aba5d8668a3fb4e75a9634be46'] = 'Vanaf datum';
 $_MODULE['<{beslistcart}prestashop>beslistcart_735b79b7ded146a312f5a27a9657fd95'] = 'Hier kunt u aangeven vanaf welke datum u de orders wilt importeren (formaat: 2016-12-31)';
+$_MODULE['<{beslistcart}prestashop>beslistcart_c9cc8cce247e49bae79f15173ce97354'] = 'Opslaan';
 $_MODULE['<{beslistcart}prestashop>beslistcart_8f8b18e6deef4eacaba08aeedee4f83a'] = 'Beslist.nl instellingen';
 $_MODULE['<{beslistcart}prestashop>beslistcart_7ee6a2f79e039ccfef104894af7bd534'] = 'Gebruik Beslist.nl';
 $_MODULE['<{beslistcart}prestashop>beslistcart_bdf6f48947b31b9f196d8d00ec670b3f'] = 'Publiceer uw producten op Beslist.nl';
@@ -43,7 +44,6 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_cc2d9891a96475f37841cfc76b4fa357'
 $_MODULE['<{beslistcart}prestashop>beslistcart_ef8b6437230814b21da452236954e49b'] = 'Haalt de laatste categoriën van Beslist.nl op';
 $_MODULE['<{beslistcart}prestashop>beslistcart_a17f5bc22553d897f6363867c0165256'] = 'Standaard categorie';
 $_MODULE['<{beslistcart}prestashop>beslistcart_c034e4d171fc2e0850778bfb2bf8f6b7'] = 'Selecteer een standaard categorie voor uw producten';
-$_MODULE['<{beslistcart}prestashop>beslistcart_c9cc8cce247e49bae79f15173ce97354'] = 'Opslaan';
 $_MODULE['<{beslistcart}prestashop>beslistcart_630f6dc397fe74e52d5189e2c80f282b'] = 'Terug naar lijst';
 $_MODULE['<{beslistcart}prestashop>beslistpayment_795a7283939d3fd58eaf68560a730df1'] = 'Beslist Winkelwagen bestelling';
 $_MODULE['<{beslistcart}prestashop>beslisttestpayment_db6f433d82b94ee5788b2c1b52cc46b2'] = 'Beslist WInkelwagen test';
@@ -57,15 +57,14 @@ $_MODULE['<{beslistcart}prestashop>adminbeslistcartorderscontroller_9fec7a6c9775
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartorderscontroller_84554a51873fc755f9c4d8759921bfe4'] = 'Verwijder testdata';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartorderscontroller_93cba07454f06a4a960172bbd6e2a435'] = 'Ja';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartorderscontroller_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Nee';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_b11ab6582de5c5df25f69247d6172042'] = 'Productcombinatie';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_7de0613b4fcf1a55db947689286559f9'] = 'Beslist specifieke prijs';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_9b9d8a976b42e0bd66381797644943d5'] = 'Gepubliceerd';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_fda39cc5b167799979a72d7ebb73171e'] = 'Gesynchroniseerd';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_e0aa021e21dddbd6d8cecec71e9cf564'] = 'OK';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_698487014d16702298a35e712c0c6745'] = 'Voorraad bijgewerkt';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_f19216ecc2afee9da3a61de55128d9d1'] = 'Info bijgewerkt';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_03c2e7e41ffc181a4e84080b4710e81e'] = 'Nieuw';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_88183b946cc5f0e8c96b2e66e1c74a7e'] = 'Onbekend';
+$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_b11ab6582de5c5df25f69247d6172042'] = 'Productcombinatie';
+$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_7de0613b4fcf1a55db947689286559f9'] = 'Beslist specifieke prijs';
+$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_9b9d8a976b42e0bd66381797644943d5'] = 'Gepubliceerd';
+$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_fda39cc5b167799979a72d7ebb73171e'] = 'Gesynchroniseerd';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_4351cfebe4b61d8aa5efa1d020710005'] = 'Bekijk';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_7db59a7e372cf3c6433750f8078559a3'] = 'Synchroniseer producten';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_be48dee9332145f4b477a2e2431a0735'] = 'De beslist winkelwagen functionaliteit is niet ingeschakeld voor deze store.';
