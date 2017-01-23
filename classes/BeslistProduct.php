@@ -67,8 +67,7 @@ class BeslistProduct extends ObjectModel
             ),
             'id_beslist_category' => array(
                 'type' => self::TYPE_INT,
-                'validate' => 'isUnsignedId',
-                'required' => true
+                'validate' => 'isUnsignedId'
             ),
             'published' => array(
                 'type' => self::TYPE_BOOL,
@@ -109,12 +108,71 @@ class BeslistProduct extends ObjectModel
     }
 
     /**
+     * Returns the category to beslist category mappings
+     * @return array
+     */
+    public static function getMappedCategoryTree()
+    {
+        $sql = 'SELECT category.id_category, mappedparent.parentbeslistcategory FROM '._DB_PREFIX_.'category category
+                INNER JOIN (
+                   SELECT 
+                        MIN(parent.nright - parent.nleft) as parentdist, 
+                        parent.id_category as parentid, 
+                        parent.nleft as parentnleft, 
+                        parent.nright as parentnright, 
+                        bc.id_beslist_category as parentbeslistcategory
+                   FROM '._DB_PREFIX_.'category parent 
+                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
+                   GROUP BY parent.id_category, bc.id_beslist_category
+                ) as mappedparent 
+                ON mappedparent.parentnleft <= category.nleft 
+                AND mappedparent.parentnright >= category.nright
+                AND mappedparent.parentdist = (
+                   SELECT MIN(parent.nright - parent.nleft) 
+                   FROM '._DB_PREFIX_.'category parent 
+                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
+                   WHERE parent.nleft <= category.nleft AND parent.nright >= category.nright
+                )';
+        $result = array();
+        $rows = Db::getInstance()->executeS($sql);
+        foreach ($rows as $row) {
+            $result[$row['id_category']] = $row['parentbeslistcategory'];
+        }
+        return $result;
+    }
+
+    /**
+     * Return the full list of categories, indexed by id
+     *
+     * @param int $id_lang
+     * @return array
+     */
+    public static function getShopCategoriesComplete($id_lang = null)
+    {
+        $sql = 'SELECT category.id_category, category.id_parent, lang.name FROM '._DB_PREFIX_.'category category 
+                INNER JOIN '._DB_PREFIX_.'category_lang lang ON category.id_category = lang.id_category
+                WHERE lang.`id_lang` = ' . (int)$id_lang . '
+                ORDER BY category.level_depth ASC';
+        $rows = Db::getInstance()->executeS($sql);
+        $result = array();
+        foreach ($rows as $row) {
+            if (array_key_exists($row['id_parent'], $result)) {
+                $result[$row['id_category']] = $result[$row['id_parent']] . ' > ' . $row['name'];
+            } else {
+                $result[$row['id_category']] = $row['name'];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Returns all Beslist products
+     * @param int $id_lang
      * @return array
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*, b.price AS override_price, c.`name` AS category_name,
+        $sql = 'SELECT b.*, b.price AS override_price,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
@@ -127,7 +185,6 @@ class BeslistProduct extends ObjectModel
             ' . Shop::addSqlRestrictionOnLang('pl') . ')
     				LEFT JOIN `' . _DB_PREFIX_ . 'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
     				LEFT JOIN `' . _DB_PREFIX_ . 'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
-            LEFT JOIN `' . _DB_PREFIX_ . 'beslist_categories` c ON (b.`id_beslist_category` = c.`id_beslist_category`)
             LEFT JOIN `' . _DB_PREFIX_ . 'stock_available` st ON (
               b.`id_product` = st.`id_product` AND
               b.`id_product_attribute` = st.`id_product_attribute`
@@ -152,7 +209,7 @@ class BeslistProduct extends ObjectModel
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` color ON (
               attrcolor.`id_attribute` = color.`id_attribute`
             )
-    				WHERE pl.`id_lang` = ' . (int)$id_lang . '
+            WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
     				ORDER BY p.id_product';
@@ -206,7 +263,14 @@ class BeslistProduct extends ObjectModel
                 if ($isAttribute) {
                     return $this->id_product_attribute . '-' . $this->id_product;
                 } else {
-                    return $this->id_product . '-' . $this->id_product;
+                    return $this->id_product;
+                }
+                break;
+            case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
+                if ($isAttribute) {
+                    return $this->id_product . '_' . $this->id_product_attribute;
+                } else {
+                    return $this->id_product;
                 }
                 break;
             default:
@@ -253,7 +317,8 @@ class BeslistProduct extends ObjectModel
             Db::getInstance()->executeS('
                 SELECT *
                 FROM `' . _DB_PREFIX_ . 'beslist_product`
-                WHERE `status` > 0')
+                WHERE `status` > 0 
+                LIMIT 1000')
         );
     }
 }

@@ -342,4 +342,96 @@ class AdminBeslistCartProductsController extends AdminController
             }
         }
     }
+
+    /**
+     * Adds all products to Beslist, uses the default settings
+     */
+    public static function addAllProducts()
+    {
+        $context = Context::getContext();
+        $id_shop = $context->shop->id;
+        if (!$id_shop) {
+            $context->controller->errors[] = Tools::displayError(
+                'You have to be in a Shop context to add all products'
+            );
+            return;
+        }
+
+        $insert = 'INSERT INTO `' . _DB_PREFIX_ . 'beslist_product` (
+                      id_product, 
+                      id_product_attribute, 
+                      id_shop, 
+                      id_beslist_category, 
+                      published, 
+                      delivery_code_nl, 
+                      delivery_code_be
+                    )
+                    SELECT p.`id_product`, 
+                        IFNULL(pa.`id_product_attribute`, 0) as id_product_attribute, 
+                        ' . (int) $id_shop . ' as id_shop,
+                        0 as id_beslist_category,
+                        1 as published,
+                        \'\' as delivery_code_nl,
+                        \'\' as delivery_code_be
+                    FROM `' . _DB_PREFIX_ . 'product` p
+                    LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute` pa ON pa.`id_product` = p.`id_product`
+                   ON DUPLICATE KEY UPDATE id_product = p.id_product';
+        $result = Db::getInstance()->execute($insert);
+        if ($result) {
+            $context->controller->confirmations[] = $context->controller->l(
+                'All products and combinations were marked to be added to Beslist'
+            );
+        }
+    }
+
+    /**
+     * Sets the category of all products to the closest Beslist category
+     */
+    public static function setDefaultCategories($overwrite = false)
+    {
+        $sql = 'SELECT 
+                  bp.id_beslist_product as id_beslist_product,
+                  bc.id_beslist_category,
+                  parent.nright - parent.nleft as distance
+                FROM `'._DB_PREFIX_.'beslist_product` bp
+                INNER JOIN `'._DB_PREFIX_.'product` p 
+                    ON p.id_product = bp.id_product
+                INNER JOIN `'._DB_PREFIX_.'category_product`cp 
+                    ON bp.id_product = cp.id_product
+                INNER JOIN `'._DB_PREFIX_.'category` category 
+                    ON category.id_category = cp.id_category
+                INNER JOIN `'._DB_PREFIX_.'category` parent 
+                    ON parent.nleft <= category.nleft 
+                    AND parent.nright >= category.nright
+                INNER JOIN `'._DB_PREFIX_.'beslist_category` bc 
+                    ON parent.id_category = bc.id_category
+                LEFT JOIN `'._DB_PREFIX_.'beslist_category` default_category
+                    ON p.id_category_default = default_category.id_category
+                WHERE cp.id_category != p.id_category_default
+                AND default_category.id_category IS NULL';
+        if (!$overwrite) {
+            $sql .= ' AND (bp.id_beslist_category IS NULL
+                     OR bp.id_beslist_category = 0)';
+        }
+        $sql .= ' ORDER BY id_beslist_product, distance';
+        $rows = Db::getInstance()->executeS($sql);
+        $current = 0;
+        $total = 0;
+        foreach ($rows as $row) {
+            if ($row['id_beslist_product'] != $current) {
+                $current = $row['id_beslist_product'];
+                $updateSql = 'UPDATE `'._DB_PREFIX_.'beslist_product` 
+                    SET `id_beslist_category` = ' . (int) $row['id_beslist_category'] . ' 
+                    WHERE `id_beslist_product` = ' . (int) $row['id_beslist_product'];
+                $result = Db::getInstance()->execute($updateSql);
+                if ($result) {
+                    $total++;
+                }
+            }
+        }
+        $context = Context::getContext();
+        $context->controller->confirmations[] = $context->controller->l(
+            'Updated categories, total: '
+        ) . $total;
+    }
 }

@@ -34,6 +34,7 @@
                 <div class="col-lg-6">
                     <div class="form-group">
                         <select class="selectpicker form-control" data-live-search="true" name="beslistcart_category" id="beslistcart_category">
+                            <option value="default" {if !$beslist_category}selected="selected"{/if}>{l s='--- Use category / configuration setting ---' mod='beslistcart'}</option>
                             {foreach $beslist_categories as $category}
                                 <option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name|escape:'html':'UTF-8'}</option>
                             {/foreach}
@@ -73,6 +74,8 @@
                     {foreach $attributes AS $index => $attribute}
                         {assign var=price value=''}
                         {assign var=selected value=''}
+                        {assign var=delivery_code_nl value=''}
+                        {assign var=delivery_code_be value=''}
                         {if array_key_exists($attribute['id_product_attribute'], $beslist_products)}
                             {assign var=price value=$beslist_products[$attribute['id_product_attribute']]['price']}
                             {assign var=selected value=$beslist_products[$attribute['id_product_attribute']]['published']}
@@ -123,9 +126,9 @@
             </div>
         </div>
         <div class="panel-footer">
-            <a href="{$link->getAdminLink('AdminProducts')|escape:'htmlall':'UTF-8'}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel' mod='beslistcart'}</a>
-            <button type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save' mod='beslistcart'}</button>
-            <button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save and stay' mod='beslistcart'}</button>
+            <a href="{$link->getAdminLink('AdminProducts')|escape:'html':'UTF-8'}{if isset($smarty.request.page) && $smarty.request.page > 1}&amp;submitFilterproduct={$smarty.request.page|intval}{/if}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel' mod='beslistcart'}</a>
+            <button type="submit" name="submitAddproduct" class="btn btn-default pull-right" disabled="disabled"><i class="process-icon-loading"></i> {l s='Save' mod='beslistcart'}</button>
+            <button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right" disabled="disabled"><i class="process-icon-loading"></i> {l s='Save and stay' mod='beslistcart'}</button>
         </div>
     </div>
     <script>
