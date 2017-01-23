@@ -12,6 +12,28 @@
 *  @license   LICENSE.txt
 *
 *}
+<style>
+    span.twitter-typeahead {
+        width: 100%;
+    }
+    span.tt-dropdown-menu {
+        width: 100%;
+    }
+    div.tt-suggestion {
+        font-size: 13px;
+        padding: 7px;
+    }
+    .bootstrap span.tt-suggestions {
+        padding: 0;
+    }
+    .bootstrap .tt-suggestion p {
+        border-bottom: 0;
+    }
+    div.tt-suggestion.tt-is-under-cursor,
+    div.tt-suggestion:hover {
+        background: #DCF4F9;
+    }
+</style>
 <input type="hidden" name="beslistcart_loaded" value="1">
 {if isset($product->id)}
     <div class="panel product-tab" id="product-ModuleBeslistcart">
@@ -25,24 +47,53 @@
         </div>
         <div class="row">
             <div class="form-group">
-                <div class="col-lg-1">
-                    <span class="pull-right"></span>
+                <label class="control-label col-lg-3" for="beslist_category">
+                    {l s='Beslist category ID' mod='beslistcart'}
+                </label>
+                <div class="col-lg-6">
+                    <div class="form-group">
+                        {assign var=beslist_category_name value=''}
+                        <script>
+                            $(document).ready(function() {
+                                $('.typeahead').typeahead({
+                                    name: 'categories',
+                                    local: [
+                                        {foreach $beslist_categories as $category}
+                                            {if $category.id_beslist_category == $beslist_category}
+                                                {assign var=beslist_category_name value=$category.name}
+                                            {/if}
+                                            {ldelim}
+                                                value: '{$category.id_beslist_category|escape:'htmlall':'UTF-8'}',
+                                                name: '[{$category.id_beslist_category|escape:'htmlall':'UTF-8'}] {$category.name|escape:'html':'UTF-8'}',
+                                                tokens: [{foreach " "|explode:$category.name as $token}'{$token|escape:'html':'UTF-8'}',{/foreach}
+                                                    '{$category.id_beslist_category|escape:'htmlall':'UTF-8'}'
+                                                ]
+                                            {rdelim},
+                                        {/foreach}
+                                    ],
+                                    engine: Hogan,
+                                    template: "<p>{literal}{{{name}}}{/literal}</p>"
+                                });
+                                $(document).on({
+                                    'blur': function(e) {
+                                        if(parseInt(e.currentTarget.value) != {$beslist_category|escape:'html':'UTF-8'}) {
+                                            $("#currently_selected").val('{l s='Category changed, save the product first.' mod='beslistcart'}');
+                                        }
+                                    }
+                                }, '.typeahead');
+                            });
+                        </script>
+                        <input type="text" value="{$beslist_category|escape:'html':'UTF-8'}" class="form-control typeahead" autocomplete="off" name="beslistcart_category" id="beslistcart_category">
+                        <div class="help-block">{l s='For a complete overview, look at: ' mod='beslistcart'} <a href="https://www.beslist.nl/categories/">https://www.beslist.nl/categories/</a></div>
+                    </div>
                 </div>
+            </div>
+            <div class="form-group">
                 <label class="control-label col-lg-3" for="beslist_category">
                     {l s='Beslist category' mod='beslistcart'}
                 </label>
                 <div class="col-lg-6">
-                    <div class="form-group">
-                        <select class="selectpicker form-control" data-live-search="true" name="beslistcart_category" id="beslistcart_category">
-                            <option value="default" {if !$beslist_category}selected="selected"{/if}>{l s='--- Use category / configuration setting ---' mod='beslistcart'}</option>
-                            {foreach $beslist_categories as $category}
-                                <option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name|escape:'html':'UTF-8'}</option>
-                            {/foreach}
-                        </select>
-                        <script>
-                            $('.selectpicker').selectpicker('render');
-                        </script>
-                    </div>
+                    <input type="text" disabled id="currently_selected" value="{$beslist_category_name|escape:'html':'UTF-8'}"/>
                 </div>
             </div>
         </div>

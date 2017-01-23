@@ -52,10 +52,8 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_fd35f0a8a83b003ec740ac316c9946d5'
 $_MODULE['<{beslistcart}prestashop>beslistcart_7f5c25dc790d4ea75fde868c2db6f773'] = 'Markeer de producten voor Beslist, gebruikt de standaardinstellingen.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_ad6a348d7385748e952aaf8dbdce7a13'] = 'Voeg standaardcategorieën toe';
 $_MODULE['<{beslistcart}prestashop>beslistcart_eb67a204ea4a46a67919eb66be217d20'] = 'Zet de standaardcategorie van Beslist producten';
-$_MODULE['<{beslistcart}prestashop>beslistcart_cb5a8702198bdb70d15538707a98e933'] = 'Zet de categorie op het Beslist product. Hierbij wordt gebruik gemaakt van de Beslist categorie instelling op de categorieën. Deze optie is alleen nuttig wanneer je niet de standaardcategorie van het product gebruikt voor de Beslist.nl mapping.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fc56121f441bdcb09af04d34d93316e7'] = 'Overschijf bestaande categorieën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_9d60694d8065be3834daa84b16f6033b'] = 'Overschrijft de bestaande categorieën op de Beslist producten';
-$_MODULE['<{beslistcart}prestashop>beslistcart_eaefeea69cadc3e860a74c89c017f4f5'] = 'Voorzichtigheid geboden! Hiermee worden de producten die al een categorie toegewezen hebben gekregen overschreven.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_af1b98adf7f686b84cd0b443e022b7a0'] = 'Categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_cc2d9891a96475f37841cfc76b4fa357'] = 'Update Beslist categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_ef8b6437230814b21da452236954e49b'] = 'Haalt de laatste categoriën van Beslist.nl op';
@@ -89,8 +87,9 @@ $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_5e7f61f2a5
 $_MODULE['<{beslistcart}prestashop>beslistproduct_8f8b18e6deef4eacaba08aeedee4f83a'] = 'Beslist.nl instellingen';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_c75071e81623afd1ced28127e37bb73f'] = 'In dit formulier kunt u uw Beslist Winkelwagen publicatie beheren.';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_a75f25f860ff0d217a64e5a95bdb800b'] = 'U kunt product en productcombinaties beheren.';
-$_MODULE['<{beslistcart}prestashop>beslistproduct_07c1b0326d2ed14b91bac10279318e30'] = 'Beslist categorie';
-$_MODULE['<{beslistcart}prestashop>beslistproduct_0a9123331d485da46d5b89a79153aa1f'] = '--- Gebruik categorie / module instelling ---';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_67edaeffc975b48199791c506a7aad91'] = 'Beslist categorie ID';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_16b42215c15a373c044545eb7da856b3'] = 'De categorie is veranderd, sla het product eerst op';
+$_MODULE['<{beslistcart}prestashop>beslistproduct_f658deaaa97a2f3f72b19d7f99a12900'] = 'Voor een volledig overzicht, kijk op:';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_18be85bdcf0a4529a2dc393442d3a25f'] = 'Beslist.nl producten';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_9b9d8a976b42e0bd66381797644943d5'] = 'Gepubliceerd';
 $_MODULE['<{beslistcart}prestashop>beslistproduct_9a52a2f060680d82c7d8f1c609e05f2f'] = 'Berekende prijs';

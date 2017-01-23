@@ -1225,11 +1225,20 @@ class BeslistCart extends Module
             $this->context->controller->controller_name == 'AdminProducts' ||
             $this->context->controller->controller_name == 'AdminCategories'
         ) {
-            $this->context->controller->addCSS(
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css'
+            $admin_webpath = str_ireplace(_PS_CORE_DIR_, '', _PS_ADMIN_DIR_);
+            $admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
+            $bo_theme = ((Validate::isLoadedObject(Context::getContext()->employee)
+                && Context::getContext()->employee->bo_theme) ? Context::getContext()->employee->bo_theme : 'default');
+
+            if (!file_exists(_PS_BO_ALL_THEMES_DIR_.$bo_theme.DIRECTORY_SEPARATOR.'template')) {
+                $bo_theme = 'default';
+            }
+
+            $this->context->controller->addJS(
+                __PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/vendor/typeahead.min.js'
             );
             $this->context->controller->addJS(
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js'
+                'http://twitter.github.com/hogan.js/builds/3.0.1/hogan-3.0.1.js'
             );
         }
     }
