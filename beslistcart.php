@@ -951,6 +951,14 @@ class BeslistCart extends Module
         $indexedBeslistProducts = array();
         foreach ($beslistProducts as $beslistProduct) {
             $currentCategory = $beslistProduct['id_beslist_category'];
+            if (!$currentCategory) {
+                $tree = BeslistProduct::getMappedCategoryTree();
+                if(array_key_exists($product->id_category_default, $tree)) {
+                    $currentCategory = $tree[$product->id_category_default];
+                } else {
+                    $currentCategory = Configuration::get('BESLIST_CART_CATEGORY');
+                }
+            }
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
         }
 
