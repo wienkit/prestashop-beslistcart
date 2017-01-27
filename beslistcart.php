@@ -953,7 +953,7 @@ class BeslistCart extends Module
             $currentCategory = $beslistProduct['id_beslist_category'];
             if (!$currentCategory) {
                 $tree = BeslistProduct::getMappedCategoryTree();
-                if(array_key_exists($product->id_category_default, $tree)) {
+                if (array_key_exists($product->id_category_default, $tree)) {
                     $currentCategory = $tree[$product->id_category_default];
                 } else {
                     $currentCategory = Configuration::get('BESLIST_CART_CATEGORY');
