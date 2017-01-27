@@ -71,11 +71,6 @@ class AdminBeslistCartProductsController extends AdminController
                 'title' => $this->l('Product combination'),
                 'align' => 'text-left',
             ),
-            'price' => array(
-                'title' => $this->l('Beslist specific price'),
-                'type' => 'price',
-                'align' => 'text-right',
-            ),
             'published' => array(
                 'title' => $this->l('Published'),
                 'type' => 'bool',
@@ -284,14 +279,11 @@ class AdminBeslistCartProductsController extends AdminController
     public static function processBeslistProductUpdate($beslistProduct, $context)
     {
         $price_calculator = Adapter_ServiceLocator::get('Adapter_ProductPriceCalculator');
-        $price = $beslistProduct->price;
-        if ($price == 0) {
-            $price = $price_calculator->getProductPrice(
-                (int)$beslistProduct->id_product,
-                true,
-                (int)$beslistProduct->id_product_attribute
-            );
-        }
+        $price = $price_calculator->getProductPrice(
+            (int)$beslistProduct->id_product,
+            true,
+            (int)$beslistProduct->id_product_attribute
+        );
 
         $quantity = StockAvailable::getQuantityAvailableByProduct(
             $beslistProduct->id_product,

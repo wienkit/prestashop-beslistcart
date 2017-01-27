@@ -107,28 +107,18 @@
                     <tr>
                         <th class="width: 10%; min-width: 50px;" align="center"><span class="title_box">{l s='Published' mod='beslistcart'}</span></th>
                         <th style="width: 40%"><span class="title_box">{l s='Product' mod='beslistcart'}</span></th>
-                        <th style="width: 10%"><span class="title_box">{l s='Calculated price' mod='beslistcart'}</span></th>
-                        <th style="width: 40%"><span class="title_box">{l s='Custom price (optional)' mod='beslistcart'}</span></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
                         <td class="fixed-width-xs" align="center"><input type="checkbox" id="toggle_beslistcart_check" /></td>
                         <td colspan="2">-- {l s='All products' mod='beslistcart'} -- </td>
-                        <td>
-                            <div class="input-group">
-                                <span class="input-group-addon"> &euro;</span>
-                                <input id="toggle_beslistcart_price" type="text" onchange="noComma('toggle_beslistcart_price');" maxlength="27">
-                            </div>
-                        </td>
                     </tr>
                     {foreach $attributes AS $index => $attribute}
-                        {assign var=price value=''}
                         {assign var=selected value=''}
                         {assign var=delivery_code_nl value=''}
                         {assign var=delivery_code_be value=''}
                         {if array_key_exists($attribute['id_product_attribute'], $beslist_products)}
-                            {assign var=price value=$beslist_products[$attribute['id_product_attribute']]['price']}
                             {assign var=selected value=$beslist_products[$attribute['id_product_attribute']]['published']}
                             {assign var=delivery_code_nl value=$beslist_products[$attribute['id_product_attribute']]['delivery_code_nl']}
                             {assign var=delivery_code_be value=$beslist_products[$attribute['id_product_attribute']]['delivery_code_be']}
@@ -143,30 +133,15 @@
                                 {$product_designation[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'}
                                 <i class="icon-caret-up pull-right"></i>
                             </td>
-                            <td>
-                                <a class="use_calculated_price" data-val="{$calculated_price[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'|string_format:"%.2f"}">&euro; {$calculated_price[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'|string_format:"%.2f"}</a>
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-addon"> &euro;</span>
-                                    <input name="beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$price|escape:'html':'UTF-8'}" onchange="noComma('beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}');" maxlength="27">
-                                </div>
-                            </td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
-                            <td>&nbsp;</td>
-                            <td colspan="2">
-                                {l s='Custom Delivery time NL (optional)' mod='beslistcart'}
-                            </td>
+                            <td>{l s='Custom Delivery time NL (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_nl_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_nl|escape:'html':'UTF-8'}">
                             </td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
-                            <td>&nbsp;</td>
-                            <td colspan="2">
-                                {l s='Custom Delivery time BE (optional)' mod='beslistcart'}
-                            </td>
+                            <td>{l s='Custom Delivery time BE (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_be_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_be|escape:'html':'UTF-8'}">
                             </td>
@@ -187,16 +162,6 @@
             var value = $('#toggle_beslistcart_check').prop('checked');
             var checkBoxes = $("input[name^=beslistcart_published_]");
             checkBoxes.prop("checked", value);
-        });
-        $('#toggle_beslistcart_price').change(function() {
-            var value = $(this).val();
-            var prices = $("input[name^=beslistcart_price_]");
-            prices.val(value);
-        });
-        $('.use_calculated_price').click(function(e) {
-            var value = $(this).data('val');
-            var prices = $("input[name^=beslistcart_price_]");
-            prices.val(value);
         });
     </script>
 {/if}

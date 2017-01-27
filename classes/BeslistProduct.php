@@ -35,9 +35,6 @@ class BeslistProduct extends ObjectModel
     /** @var bool */
     public $published = false;
 
-    /** @var float */
-    public $price;
-
     /** @var int */
     public $status = self::STATUS_NEW;
 
@@ -73,11 +70,6 @@ class BeslistProduct extends ObjectModel
                 'type' => self::TYPE_BOOL,
                 'shop' => true,
                 'validate' => 'isBool'
-            ),
-            'price' => array(
-                'type' => self::TYPE_FLOAT,
-                'shop' => true,
-                'validate' => 'isPrice'
             ),
             'status' => array(
                 'type' => self::TYPE_INT,
@@ -172,7 +164,7 @@ class BeslistProduct extends ObjectModel
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*, b.price AS override_price,
+        $sql = 'SELECT b.*,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
@@ -211,6 +203,7 @@ class BeslistProduct extends ObjectModel
             )
             WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
+              ' . ((bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK') ? 'AND st.`quantity` > 0' : '') . '
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
     				ORDER BY p.id_product';
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);

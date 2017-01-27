@@ -28,7 +28,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.0';
+        $this->version = '1.3.1';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -305,27 +305,13 @@ class BeslistCart extends Module
             $shopid = (int)Tools::getValue('beslist_cart_shopid');
             $clientid = (int)Tools::getValue('beslist_cart_clientid');
             $shopitemKey = (string)Tools::getValue('beslist_cart_shopitem_apikey');
+            $filterNoStock = (bool)Tools::getValue('beslist_cart_filter_no_stock');
 
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
             $startDate = (string)Tools::getValue('beslist_cart_startdate');
-
-            $multiplication = (double) Tools::getValue('beslist_cart_price_multiplication');
-            if (!empty($multiplication)) {
-                Configuration::updateValue('BESLIST_CART_PRICE_MULTIPLICATION', $multiplication);
-            }
-
-            $addition = (double) Tools::getValue('beslist_cart_price_addition');
-            if (!empty($addition)) {
-                Configuration::updateValue('BESLIST_CART_PRICE_ADDITION', $addition);
-            }
-
-            $roundup = (double) Tools::getValue('beslist_cart_price_roundup');
-            if (!empty($roundup)) {
-                Configuration::updateValue('BESLIST_CART_PRICE_ROUNDUP', $roundup);
-            }
 
             $enabled_nl = (bool)Tools::getValue('beslist_cart_enabled_nl');
             $carrier_nl = (int)Tools::getValue('beslist_cart_carrier_nl');
@@ -368,6 +354,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
                 Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
                 Configuration::updateValue('BESLIST_CART_SHOPITEM_APIKEY', $shopitemKey);
+                Configuration::updateValue('BESLIST_CART_FILTER_NO_STOCK', $filterNoStock);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
@@ -558,53 +545,29 @@ class BeslistCart extends Module
                     'required' => true,
                     'size' => 20
                 ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Filter products without stock from feed'),
+                    'name' => 'beslist_cart_filter_no_stock',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_filter_no_stock_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_filter_no_stock_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Removes the items without stock from your productfeed.')
+                ),
             )
         );
 
         $fields_form[1]['form'] = array(
-            'legend' => array(
-                'title' => $this->l('Pricing settings'),
-            ),
-            'description' => $this->l(
-                'These settings are used to generate default pricing settings per product, 
-                you can always override the price per product.'
-            ),
-            'input' => array(
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Addition amount'),
-                    'desc' => $this->l('Adds the amount to the normal price (incl. VAT), for example 1 for € 1,00'),
-                    'name' => 'beslist_cart_price_addition',
-                    'size' => 20
-                ),
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Multiplication factor'),
-                    'desc' => $this->l(
-                        'Multiply the normal price (incl. VAT and addition amount) 
-                        with this factor, for example 1.20 for 20 percent'
-                    ),
-                    'name' => 'beslist_cart_price_multiplication',
-                    'size' => 20
-                ),
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Round up amount'),
-                    'desc' => $this->l(
-                        'Round the amount up to a specific unit. For example, 
-                        use 0.10 to round from 1.52 to 1.60'
-                    ),
-                    'name' => 'beslist_cart_price_roundup',
-                    'size' => 20
-                )
-            ),
-            'submit' => array(
-                'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right'
-            )
-        );
-
-        $fields_form[2]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Beslist.nl settings'),
             ),
@@ -670,7 +633,7 @@ class BeslistCart extends Module
             )
         );
 
-        $fields_form[3]['form'] = array(
+        $fields_form[2]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Beslist.be settings'),
             ),
@@ -736,7 +699,7 @@ class BeslistCart extends Module
             )
         );
 
-        $fields_form[5]['form'] = array(
+        $fields_form[3]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Bulk operations')
             ),
@@ -890,16 +853,12 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
         $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
         $helper->fields_value['beslist_cart_shopitem_apikey'] = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
+        $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
-
-        $helper->fields_value['beslist_cart_price_addition'] = Configuration::get('BESLIST_CART_PRICE_ADDITION');
-        $helper->fields_value['beslist_cart_price_multiplication'] =
-            Configuration::get('BESLIST_CART_PRICE_MULTIPLICATION');
-        $helper->fields_value['beslist_cart_price_roundup'] = Configuration::get('BESLIST_CART_PRICE_ROUNDUP');
 
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
         $helper->fields_value['beslist_cart_carrier_nl'] = Configuration::get('BESLIST_CART_CARRIER_NL');
@@ -979,33 +938,12 @@ class BeslistCart extends Module
         }
 
         $product_designation = array();
-        $product_calculatedprice = array();
-
-        $addition = (double) Configuration::get('BESLIST_CART_PRICE_ADDITION');
-        $multiplication = (double) Configuration::get('BESLIST_CART_PRICE_MULTIPLICATION');
-        $roundup = (double) Configuration::get('BESLIST_CART_PRICE_ROUNDUP');
 
         foreach ($attributes as $attribute) {
             $product_designation[$attribute['id_product_attribute']] = rtrim(
                 $product->name . ' - ' . $attribute['attribute_designation'],
                 ' - '
             );
-
-            $price = $product->getPrice();
-            if ($attribute['id_product_attribute'] != 0) {
-                $price += Combination::getPrice($attribute['id_product_attribute']);
-            }
-            if ($addition > 0) {
-                $price += $addition;
-            }
-            if ($multiplication > 0) {
-                $price = $price * $multiplication;
-            }
-            if ($roundup > 0) {
-                $price =  ceil($price / $roundup) * $roundup;
-            }
-
-            $product_calculatedprice[$attribute['id_product_attribute']] = $price;
         }
 
         $beslistProducts = BeslistProduct::getByProductId($id_product);
@@ -1022,7 +960,6 @@ class BeslistCart extends Module
             'attributes' => $attributes,
             'product_designation' => $product_designation,
             'product' => $product,
-            'calculated_price' => $product_calculatedprice,
             'beslist_category' => $currentCategory,
             'beslist_products' => $indexedBeslistProducts,
             'beslist_categories' => $beslistCategories
@@ -1076,7 +1013,6 @@ class BeslistCart extends Module
 
             // get elements to manage
             $published = Tools::getValue('beslistcart_published_' . $key);
-            $price = Tools::getValue('beslistcart_price_' . $key, 0);
             $delivery_code_nl = Tools::getValue('beslistcart_delivery_code_nl_' . $key, 0);
             $delivery_code_be = Tools::getValue('beslistcart_delivery_code_be_' . $key, 0);
 
@@ -1084,8 +1020,7 @@ class BeslistCart extends Module
                 $beslistProduct = new BeslistProduct(
                     $indexedBeslistProducts[$attribute['id_product_attribute']]['id_beslist_product']
                 );
-                if ($beslistProduct->price == $price
-                    && $beslistProduct->published == $published
+                if ($beslistProduct->published == $published
                     && $beslistProduct->id_beslist_category == $category_id
                     && $beslistProduct->delivery_code_nl == $delivery_code_nl
                     && $beslistProduct->delivery_code_be == $delivery_code_be
@@ -1093,7 +1028,7 @@ class BeslistCart extends Module
                     continue;
                 }
                 $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
-            } elseif (!$published && $price == 0 && $delivery_code_nl == '' && $delivery_code_be == '') {
+            } elseif (!$published && $delivery_code_nl == '' && $delivery_code_be == '') {
                 continue;
             } else {
                 $beslistProduct = new BeslistProduct();
@@ -1104,12 +1039,11 @@ class BeslistCart extends Module
             if ($category_id && is_numeric($category_id)) {
                 $beslistProduct->id_beslist_category = $category_id;
             }
-            $beslistProduct->price = $price;
             $beslistProduct->published = $published;
             $beslistProduct->delivery_code_nl = $delivery_code_nl;
             $beslistProduct->delivery_code_be = $delivery_code_be;
 
-            if (!$beslistProduct->published && $price == 0 && $delivery_code_nl == '' && $delivery_code_be == '') {
+            if (!$beslistProduct->published && $delivery_code_nl == '' && $delivery_code_be == '') {
                 $beslistProduct->delete();
             } else {
                 $beslistProduct->save();
