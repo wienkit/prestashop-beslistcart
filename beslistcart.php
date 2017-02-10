@@ -1187,16 +1187,29 @@ class BeslistCart extends Module
 
     /**
      * Retrieve the BeslistOrdersClient
-     * @return Wienkit\BeslistOrdersClient\BeslistOrdersClient
+     * @param null $id_lang
+     * @param null $id_shop
+     * @param null $id_shop_group
+     * @return \Wienkit\BeslistOrdersClient\BeslistOrdersClient
      */
-    public static function getClient()
+    public static function getClient($id_lang = null, $id_shop = null, $id_shop_group = null)
     {
-        $personalKey = Configuration::get('BESLIST_CART_PERSONALKEY');
-        $shopId = Configuration::get('BESLIST_CART_SHOPID');
-        $clientId = Configuration::get('BESLIST_CART_CLIENTID');
+        if ($id_shop == null) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+        if ($id_shop_group == null) {
+            $id_shop_group = Context::getContext()->shop->id_shop_group;
+        }
+        if ($id_lang == null) {
+            $id_lang = Context::getContext()->language->id;
+        }
+
+        $personalKey = Configuration::get('BESLIST_CART_PERSONALKEY', $id_lang, $id_shop_group, $id_shop);
+        $shopId = Configuration::get('BESLIST_CART_SHOPID', $id_lang, $id_shop_group, $id_shop);
+        $clientId = Configuration::get('BESLIST_CART_CLIENTID', $id_lang, $id_shop_group, $id_shop);
 
         $client = new Wienkit\BeslistOrdersClient\BeslistOrdersClient($personalKey, $shopId, $clientId);
-        if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
+        if ((bool)Configuration::get('BESLIST_CART_TESTMODE', $id_lang, $id_shop_group, $id_shop)) {
             $client->setTestMode(true);
         }
         return $client;
@@ -1204,14 +1217,18 @@ class BeslistCart extends Module
 
     /**
      * Retrieve the BeslistShopItemClient
-     * @return Wienkit\BeslistShopitemClient\BeslistShopitemClient
+     * @param null $id_lang
+     * @param null $id_shop
+     * @param null $id_shop_group
+     * @return \Wienkit\BeslistShopitemClient\BeslistShopitemClient
      */
-    public static function getShopitemClient()
+    public static function getShopitemClient($id_lang = null, $id_shop = null, $id_shop_group = null)
     {
-        $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
+
+        $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY', $id_lang, $id_shop_group, $id_shop);
 
         $client = new Wienkit\BeslistShopitemClient\BeslistShopitemClient($apiKey);
-        if ((bool)Configuration::get('BESLIST_CART_TESTMODE')) {
+        if ((bool)Configuration::get('BESLIST_CART_TESTMODE', $id_lang, $id_shop_group, $id_shop)) {
             $client->setTestMode(true);
         }
 

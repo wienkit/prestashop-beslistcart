@@ -27,4 +27,7 @@ function upgrade_module_1_3_1($object)
         Db::getInstance()->execute(
             'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `price`'
         );
+        Db::getInstance()->execute(
+            'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `id_shop`'
+        );
 }

@@ -40,8 +40,12 @@ class AdminBeslistCartProductsController extends AdminController
 
         $this->identifier = 'id_product';
 
+        $cookie = Context::getContext()->cookie->getAll();
+        $shopId = (int)substr($cookie['shopContext'], 2);
+
         $this->_join .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
-                            ON (pl.`id_product` = a.`id_product` AND pl.`id_shop` = a.`id_shop`) 
+                            ON (pl.`id_product` = a.`id_product` 
+                            AND pl.`id_shop` = ' . $shopId . ') 
                           INNER JOIN `'._DB_PREFIX_.'lang` lang
                             ON (pl.`id_lang` = lang.`id_lang` AND lang.`iso_code` = \'nl\') ';
 
@@ -91,8 +95,6 @@ class AdminBeslistCartProductsController extends AdminController
                 'filter_type' => 'int'
             )
         );
-
-        $this->shopLinkType = 'shop';
 
         parent::__construct();
     }
@@ -226,48 +228,59 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistQuantityUpdate($beslistProduct, $quantity, $context)
     {
-        $client = BeslistCart::getShopitemClient();
-        $shopId = Configuration::get('BESLIST_CART_SHOPID');
-        $productRef = $beslistProduct->getReference();
+        $shopsIds = Product::getShopsByProduct($beslistProduct->id_product);
+        $errors = array();
 
-        $options = array(
-            'stock' => $quantity
-        );
+        foreach ($shopsIds as $shopId) {
+            $shopId = $shopId['id_shop'];
+            $client = BeslistCart::getShopitemClient(null, $shopId);
 
-        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-            $delivery_time_nl = $beslistProduct->delivery_code_nl;
-            if ($delivery_time_nl == '' || $quantity == 0) {
-                $delivery_time_nl = Configuration::get(
-                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
-                );
+            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, $shopId);
+            $productRef = $beslistProduct->getReference();
+
+            $options = array(
+                'stock' => $quantity
+            );
+
+            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
+                $delivery_time_nl = $beslistProduct->delivery_code_nl;
+                if ($delivery_time_nl == '' || $quantity == 0) {
+                    $delivery_time_nl = Configuration::get(
+                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
+                    );
+                }
+                $options['delivery_time_nl'] = $delivery_time_nl;
             }
-            $options['delivery_time_nl'] = $delivery_time_nl;
-        }
 
-        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-            $delivery_time_be = $beslistProduct->delivery_code_be;
-            if ($delivery_time_be == '' || $quantity == 0) {
-                $delivery_time_be = Configuration::get(
-                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
-                );
+            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
+                $delivery_time_be = $beslistProduct->delivery_code_be;
+                if ($delivery_time_be == '' || $quantity == 0) {
+                    $delivery_time_be = Configuration::get(
+                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
+                    );
+                }
+                $options['delivery_time_be'] = $delivery_time_be;
             }
-            $options['delivery_time_be'] = $delivery_time_be;
-        }
 
-        try {
-            $client->updateShopItem($shopId, $productRef, $options);
+            try {
+                $client->updateShopItem($beslistShopId, $productRef, $options);
+            } catch (Exception $e) {
+                $message = $e->getMessage();
+                if (strpos($message, '404') !== false) {
+                    $errors[] = Tools::displayError(
+                        '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
+                    );
+                } else {
+                    $errors[] = Tools::displayError(
+                        '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
+                    );
+                }
+            }
+        }
+        if (count($errors) == 0) {
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        } catch (Exception $e) {
-            $message = $e->getMessage();
-            if (strpos($message, '404') !== false) {
-                $context->controller->errors[] = Tools::displayError(
-                    '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
-                );
-            } else {
-                $context->controller->errors[] = Tools::displayError(
-                    '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
-                );
-            }
+        } else {
+            $context->controller->errors = array_merge($context->controller->errors, $errors);
         }
     }
 
@@ -278,6 +291,7 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistProductUpdate($beslistProduct, $context)
     {
+        /** @var Adapter_ProductPriceCalculator $price_calculator */
         $price_calculator = Adapter_ServiceLocator::get('Adapter_ProductPriceCalculator');
         $price = $price_calculator->getProductPrice(
             (int)$beslistProduct->id_product,
@@ -290,48 +304,60 @@ class AdminBeslistCartProductsController extends AdminController
             $beslistProduct->id_product_attribute
         );
 
-        $client = BeslistCart::getShopitemClient();
-        $shopId = Configuration::get('BESLIST_CART_SHOPID');
-        $productRef = $beslistProduct->getReference();
-        $options = array(
-            'price' => $price,
-            'stock' => $quantity
-        );
+        $shopsIds = Product::getShopsByProduct($beslistProduct->id_product);
+        $errors = array();
 
-        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-            $delivery_time_nl = $beslistProduct->delivery_code_nl;
-            if ($delivery_time_nl == '' || $quantity == 0) {
-                $delivery_time_nl = Configuration::get(
-                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
-                );
+        foreach ($shopsIds as $shopId) {
+            $shopId = $shopId['id_shop'];
+            $client = BeslistCart::getShopitemClient(null, $shopId);
+
+            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, $shopId);
+
+            $productRef = $beslistProduct->getReference();
+            $options = array(
+                'price' => $price,
+                'stock' => $quantity
+            );
+
+            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
+                $delivery_time_nl = $beslistProduct->delivery_code_nl;
+                if ($delivery_time_nl == '' || $quantity == 0) {
+                    $delivery_time_nl = Configuration::get(
+                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
+                    );
+                }
+                $options['delivery_time_nl'] = $delivery_time_nl;
             }
-            $options['delivery_time_nl'] = $delivery_time_nl;
-        }
 
-        if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-            $delivery_time_be = $beslistProduct->delivery_code_be;
-            if ($delivery_time_be == '' || $quantity == 0) {
-                $delivery_time_be = Configuration::get(
-                    'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
-                );
+            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
+                $delivery_time_be = $beslistProduct->delivery_code_be;
+                if ($delivery_time_be == '' || $quantity == 0) {
+                    $delivery_time_be = Configuration::get(
+                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
+                    );
+                }
+                $options['delivery_time_be'] = $delivery_time_be;
             }
-            $options['delivery_time_be'] = $delivery_time_be;
-        }
 
-        try {
-            $client->updateShopItem($shopId, $productRef, $options);
+            try {
+                $client->updateShopItem($beslistShopId, $productRef, $options);
+            } catch (Exception $e) {
+                $message = $e->getMessage();
+                if (strpos($message, '404') !== false) {
+                    $errors[] = Tools::displayError(
+                        '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
+                    );
+                } else {
+                    $errors[] = Tools::displayError(
+                        '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
+                    );
+                }
+            }
+        }
+        if (count($errors) == 0) {
             self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        } catch (Exception $e) {
-            $message = $e->getMessage();
-            if (strpos($message, '404') !== false) {
-                $context->controller->errors[] = Tools::displayError(
-                    '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
-                );
-            } else {
-                $context->controller->errors[] = Tools::displayError(
-                    '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
-                );
-            }
+        } else {
+            $context->controller->errors = array_merge($context->controller->errors, $errors);
         }
     }
 

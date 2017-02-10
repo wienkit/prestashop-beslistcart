@@ -23,6 +23,9 @@
         font-size: 13px;
         padding: 7px;
     }
+    .bootstrap .table tbody>tr>td.bc-padded {
+        padding: 11px 8px;
+    }
     .bootstrap span.tt-suggestions {
         padding: 0;
     }
@@ -76,7 +79,7 @@
                                 });
                                 $(document).on({
                                     'blur': function(e) {
-                                        if(parseInt(e.currentTarget.value) != {$beslist_category|escape:'html':'UTF-8'}) {
+                                        if(e.currentTarget.value != '{$beslist_category|escape:'html':'UTF-8'}') {
                                             $("#currently_selected").val('{l s='Category changed, save the product first.' mod='beslistcart'}');
                                         }
                                     }
@@ -107,12 +110,14 @@
                     <tr>
                         <th class="width: 10%; min-width: 50px;" align="center"><span class="title_box">{l s='Published' mod='beslistcart'}</span></th>
                         <th style="width: 40%"><span class="title_box">{l s='Product' mod='beslistcart'}</span></th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
                         <td class="fixed-width-xs" align="center"><input type="checkbox" id="toggle_beslistcart_check" /></td>
-                        <td colspan="2">-- {l s='All products' mod='beslistcart'} -- </td>
+                        <td class="bc-padded">-- {l s='All products' mod='beslistcart'} -- </td>
+                        <td></td>
                     </tr>
                     {foreach $attributes AS $index => $attribute}
                         {assign var=selected value=''}
@@ -129,18 +134,21 @@
                                                                              {if $selected == true}checked="checked"{/if}
                                                                              value="1" />
                             </td>
-                            <td class="clickable collapsed" data-toggle="collapse" data-target=".{$index|escape:'htmlall':'UTF-8'}collapsed">
+                            <td class="clickable collapsed bc-padded" data-toggle="collapse" data-target=".{$index|escape:'htmlall':'UTF-8'}collapsed">
                                 {$product_designation[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'}
                                 <i class="icon-caret-up pull-right"></i>
                             </td>
+                            <td></td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
+                            <td></td>
                             <td>{l s='Custom Delivery time NL (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_nl_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_nl|escape:'html':'UTF-8'}">
                             </td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
+                            <td></td>
                             <td>{l s='Custom Delivery time BE (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_be_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_be|escape:'html':'UTF-8'}">

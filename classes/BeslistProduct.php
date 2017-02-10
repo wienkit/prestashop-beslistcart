@@ -50,7 +50,6 @@ class BeslistProduct extends ObjectModel
     public static $definition = array(
         'table' => 'beslist_product',
         'primary' => 'id_beslist_product',
-        'multishop' => true,
         'fields' => array(
             'id_product' => array(
                 'type' => self::TYPE_INT,
