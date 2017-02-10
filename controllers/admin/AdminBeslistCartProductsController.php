@@ -390,6 +390,8 @@ class AdminBeslistCartProductsController extends AdminController
                         \'\' as delivery_code_nl,
                         \'\' as delivery_code_be
                     FROM `' . _DB_PREFIX_ . 'product` p
+                    INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON p.`id_product` = ps.`id_product`
+                    AND ps.`id_shop` = ' . (int)$id_shop . '
                     LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute` pa ON pa.`id_product` = p.`id_product`
                    ON DUPLICATE KEY UPDATE id_product = p.id_product';
         $result = Db::getInstance()->execute($insert);
