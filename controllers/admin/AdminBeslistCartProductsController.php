@@ -378,7 +378,6 @@ class AdminBeslistCartProductsController extends AdminController
         $insert = 'INSERT INTO `' . _DB_PREFIX_ . 'beslist_product` (
                       id_product, 
                       id_product_attribute, 
-                      id_shop, 
                       id_beslist_category, 
                       published, 
                       delivery_code_nl, 
@@ -386,7 +385,6 @@ class AdminBeslistCartProductsController extends AdminController
                     )
                     SELECT p.`id_product`, 
                         IFNULL(pa.`id_product_attribute`, 0) as id_product_attribute, 
-                        ' . (int) $id_shop . ' as id_shop,
                         0 as id_beslist_category,
                         1 as published,
                         \'\' as delivery_code_nl,
