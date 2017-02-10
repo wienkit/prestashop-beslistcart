@@ -1194,16 +1194,6 @@ class BeslistCart extends Module
      */
     public static function getClient($id_lang = null, $id_shop = null, $id_shop_group = null)
     {
-        if ($id_shop == null) {
-            $id_shop = Context::getContext()->shop->id;
-        }
-        if ($id_shop_group == null) {
-            $id_shop_group = Context::getContext()->shop->id_shop_group;
-        }
-        if ($id_lang == null) {
-            $id_lang = Context::getContext()->language->id;
-        }
-
         $personalKey = Configuration::get('BESLIST_CART_PERSONALKEY', $id_lang, $id_shop_group, $id_shop);
         $shopId = Configuration::get('BESLIST_CART_SHOPID', $id_lang, $id_shop_group, $id_shop);
         $clientId = Configuration::get('BESLIST_CART_CLIENTID', $id_lang, $id_shop_group, $id_shop);
@@ -1213,6 +1203,17 @@ class BeslistCart extends Module
             $client->setTestMode(true);
         }
         return $client;
+    }
+
+    /**
+     * Check if the Beslist cart is enabled
+     * @param $id_shop
+     * @return bool
+     */
+    public static function isEnabledForShop($id_shop)
+    {
+        return (bool) BeslistCart::isEnabled('beslistcart') &&
+            Configuration::get('BESLIST_CART_ENABLED', null, null, $id_shop);
     }
 
     /**

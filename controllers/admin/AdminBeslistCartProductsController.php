@@ -232,6 +232,9 @@ class AdminBeslistCartProductsController extends AdminController
         $errors = array();
 
         foreach ($shopsIds as $shopId) {
+            if (!BeslistCart::isEnabledForShop($shopId)) {
+                continue;
+            }
             $shopId = $shopId['id_shop'];
             $client = BeslistCart::getShopitemClient(null, $shopId);
 
@@ -308,6 +311,9 @@ class AdminBeslistCartProductsController extends AdminController
         $errors = array();
 
         foreach ($shopsIds as $shopId) {
+            if (!BeslistCart::isEnabledForShop($shopId)) {
+                continue;
+            }
             $shopId = $shopId['id_shop'];
             $client = BeslistCart::getShopitemClient(null, $shopId);
 
