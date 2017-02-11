@@ -45,8 +45,9 @@ class AdminBeslistCartProductsController extends AdminController
         $shopId = (int)substr($cookie['shopContext'], 2);
 
         $this->_join .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
-                            ON (pl.`id_product` = a.`id_product` 
-                            AND pl.`id_shop` = ' . $shopId . ') 
+                            ON (pl.`id_product` = a.`id_product`)
+                          INNER JOIN `'._DB_PREFIX_.'product_shop` ps
+                            ON (ps.`id_product` = a.`id_product` AND ps.`id_shop` = ' . (int)$shopId . ')
                           INNER JOIN `'._DB_PREFIX_.'lang` lang
                             ON (pl.`id_lang` = lang.`id_lang` AND lang.`iso_code` = \'nl\') ';
 
