@@ -24,8 +24,7 @@ class AdminBeslistCartProductsController extends AdminController
 
     public function __construct()
     {
-        if (Tools::getIsset('viewbeslist_product') &&
-            $id_beslist_product = Tools::getValue('id_beslist_product')) {
+        if (Tools::getIsset('viewbeslist_product') && $id_beslist_product = Tools::getValue('id_beslist_product')) {
             $beslistProduct =  new BeslistProduct($id_beslist_product);
             $id_product = $beslistProduct->id_product;
             Tools::redirectAdmin(
