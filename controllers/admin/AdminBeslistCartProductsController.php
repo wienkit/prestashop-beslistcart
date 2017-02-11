@@ -24,7 +24,10 @@ class AdminBeslistCartProductsController extends AdminController
 
     public function __construct()
     {
-        if ($id_product = Tools::getValue('id_product')) {
+        if (Tools::getIsset('viewbeslist_product') &&
+            $id_beslist_product = Tools::getValue('id_beslist_product')) {
+            $beslistProduct =  new BeslistProduct($id_beslist_product);
+            $id_product = $beslistProduct->id_product;
             Tools::redirectAdmin(
                 Context::getContext()
                     ->link
@@ -37,8 +40,7 @@ class AdminBeslistCartProductsController extends AdminController
         $this->className = 'BeslistProduct';
 
         $this->addRowAction('view');
-
-        $this->identifier = 'id_product';
+        $this->addRowAction('delete');
 
         $cookie = Context::getContext()->cookie->getAll();
         $shopId = (int)substr($cookie['shopContext'], 2);
@@ -63,6 +65,11 @@ class AdminBeslistCartProductsController extends AdminController
         $this->fields_list = array(
             'id_beslist_product' => array(
                 'title' => $this->l('Beslist Product ID'),
+                'align' => 'text-left',
+                'class' => 'fixed-width-xs'
+            ),
+            'id_product' => array(
+                'title' => $this->l('Product ID'),
                 'align' => 'text-left',
                 'class' => 'fixed-width-xs'
             ),
@@ -107,29 +114,6 @@ class AdminBeslistCartProductsController extends AdminController
     public function getSynchronizedState($status)
     {
         return $this->statuses_array[$status];
-    }
-
-    /**
-     * Overrides parent::displayViewLink
-     */
-    public function displayViewLink($token = null, $id = 0, $name = null)
-    {
-        if ($this->tabAccess['view'] == 1) {
-            $tpl = $this->createTemplate('helpers/list/list_action_view.tpl');
-            if (!array_key_exists('View', self::$cache_lang)) {
-                self::$cache_lang['View'] = $this->l('View', 'Helper');
-            }
-
-            $tpl->assign(array(
-                'href' => $this->context->link->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id,
-                'action' => self::$cache_lang['View'],
-                'id' => $id
-            ));
-
-            return $tpl->fetch();
-        } else {
-            return;
-        }
     }
 
     /**
