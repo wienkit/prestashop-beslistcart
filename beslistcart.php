@@ -1180,7 +1180,7 @@ class BeslistCart extends Module
                 __PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/vendor/typeahead.min.js'
             );
             $this->context->controller->addJS(
-                'http://twitter.github.com/hogan.js/builds/3.0.1/hogan-3.0.1.js'
+                'https://twitter.github.com/hogan.js/builds/3.0.1/hogan-3.0.1.js'
             );
         }
     }
