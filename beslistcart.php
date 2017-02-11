@@ -1207,13 +1207,14 @@ class BeslistCart extends Module
 
     /**
      * Check if the Beslist cart is enabled
+     * @param $id_lang
      * @param $id_shop
      * @return bool
      */
-    public static function isEnabledForShop($id_shop)
+    public static function isEnabledForShop($id_lang, $id_shop)
     {
         return (bool) BeslistCart::isEnabled('beslistcart') &&
-            Configuration::get('BESLIST_CART_ENABLED', null, null, $id_shop);
+            Configuration::get('BESLIST_CART_ENABLED', $id_lang, null, $id_shop);
     }
 
     /**
@@ -1225,7 +1226,6 @@ class BeslistCart extends Module
      */
     public static function getShopitemClient($id_lang = null, $id_shop = null, $id_shop_group = null)
     {
-
         $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY', $id_lang, $id_shop_group, $id_shop);
 
         $client = new Wienkit\BeslistShopitemClient\BeslistShopitemClient($apiKey);
