@@ -109,7 +109,7 @@ foreach ($products as $product) {
     )
     . $affiliate . "]]></productlink>\n";
     $hasAttributeImage = array_key_exists('attribute_image', $product) && $product['attribute_image'];
-    $images = Image::getImages((int)$context->language->id, $product['id_product'], $product['id_product_attribute']);
+    $images = Image::getImages((int)$context->language->id, $product['id_product']);
     if (is_array($images) and sizeof($images)) {
         $extraImageCounter = 1;
         foreach ($images as $idx => $image) {
