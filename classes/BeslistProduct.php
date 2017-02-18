@@ -168,7 +168,7 @@ class BeslistProduct extends ObjectModel
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 
-            color.`id_attribute` AS variant
+            color.`id_attribute` AS variant, attrimg.id_image AS attribute_image
     				FROM `' . _DB_PREFIX_ . 'beslist_product` b
             LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
     				' . Shop::addSqlAssociation('product', 'p') . '
@@ -185,6 +185,9 @@ class BeslistProduct extends ObjectModel
             )
             LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_combination` com ON (
               b.`id_product_attribute` = com.`id_product_attribute`
+            )
+            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_image` attrimg ON (
+              b.`id_product_attribute` = attrimg.`id_product_attribute`
             )
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrsize ON (
               com.`id_attribute` = attrsize.`id_attribute` AND

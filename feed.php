@@ -108,11 +108,19 @@ foreach ($products as $product) {
         )
     )
     . $affiliate . "]]></productlink>\n";
-    $images = Image::getImages((int)$context->language->id, $product['id_product']);
+    $hasAttributeImage = array_key_exists('attribute_image', $product) && $product['attribute_image'];
+    $images = Image::getImages((int)$context->language->id, $product['id_product'], $product['id_product_attribute']);
     if (is_array($images) and sizeof($images)) {
+        $extraImageCounter = 1;
         foreach ($images as $idx => $image) {
+            $isPrimary = false;
+            if ($hasAttributeImage && $image['id_image'] == $product['attribute_image']) {
+                $isPrimary = true;
+            } elseif (!$hasAttributeImage && $idx == 0) {
+                $isPrimary = true;
+            }
             $imageObj = new Image($image['id_image']);
-            $suffix = $idx > 0 ? "_" . $idx : "";
+            $suffix = $isPrimary ? "" : "_" . $extraImageCounter++;
             echo "\t\t<imagelink" . $suffix . "><![CDATA[" . $link->getImageLink(
                 $product['link_rewrite'],
                 $image['id_image']

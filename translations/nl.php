@@ -50,6 +50,9 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_ad6a348d7385748e952aaf8dbdce7a13'
 $_MODULE['<{beslistcart}prestashop>beslistcart_eb67a204ea4a46a67919eb66be217d20'] = 'Zet de standaardcategorie van Beslist producten';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fc56121f441bdcb09af04d34d93316e7'] = 'Overschijf bestaande categorieën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_9d60694d8065be3834daa84b16f6033b'] = 'Overschrijft de bestaande categorieën op de Beslist producten';
+$_MODULE['<{beslistcart}prestashop>beslistcart_a93cc6905beef6be5c1baa007bead411'] = 'Markeer 1000 als bijgewerkt';
+$_MODULE['<{beslistcart}prestashop>beslistcart_038bf056b248e91bd982adb0a93eb688'] = 'Verstuur de producten bij de volgende ShopItem API run';
+$_MODULE['<{beslistcart}prestashop>beslistcart_4db40e863fe147070838843fb661f501'] = 'Markeer 1000 product als bijgewerkt, zodat ze met de volgende update worden meegenomen.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_af1b98adf7f686b84cd0b443e022b7a0'] = 'Categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_cc2d9891a96475f37841cfc76b4fa357'] = 'Update Beslist categoriën';
 $_MODULE['<{beslistcart}prestashop>beslistcart_ef8b6437230814b21da452236954e49b'] = 'Haalt de laatste categoriën van Beslist.nl op';
@@ -76,7 +79,6 @@ $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_03c2e7e41f
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_b11ab6582de5c5df25f69247d6172042'] = 'Productcombinatie';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_9b9d8a976b42e0bd66381797644943d5'] = 'Gepubliceerd';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_fda39cc5b167799979a72d7ebb73171e'] = 'Gesynchroniseerd';
-$_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_4351cfebe4b61d8aa5efa1d020710005'] = 'Bekijk';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_7db59a7e372cf3c6433750f8078559a3'] = 'Synchroniseer producten';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_be48dee9332145f4b477a2e2431a0735'] = 'De beslist winkelwagen functionaliteit is niet ingeschakeld voor deze store.';
 $_MODULE['<{beslistcart}prestashop>adminbeslistcartproductscontroller_5e7f61f2a5d6c69fce1c31a6ad5a9669'] = 'Beslist producten gesynchroniseerd';

@@ -181,6 +181,31 @@ class AdminBeslistCartProductsController extends AdminController
     }
 
     /**
+     * Update a thousand products to status updated
+     */
+    public static function setBulkProductsToUpdatedStatus()
+    {
+        $context = Context::getContext();
+        $id_shop = $context->shop->id;
+        if (!$id_shop) {
+            $context->controller->errors[] = Tools::displayError(
+                'You have to be in a Shop context to add all products'
+            );
+            return;
+        }
+
+        $update = 'UPDATE `' . _DB_PREFIX_ . 'beslist_product` 
+                   SET `status` = '. (int)BeslistProduct::STATUS_INFO_UPDATE .'
+                   WHERE `id_product` IN (
+                       SELECT ps.`id_product`
+                       FROM `'. _DB_PREFIX_ . 'product_shop` ps
+                       WHERE ps.`id_shop` = '. (int) $id_shop .'
+                   ) LIMIT 1000';
+
+        DB::getInstance()->execute($update);
+    }
+
+    /**
      * Delete a product from Beslist
      * @param BeslistProduct $beslistProduct
      * @param Context $context

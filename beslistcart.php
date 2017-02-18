@@ -323,7 +323,7 @@ class BeslistCart extends Module
             $deliveryperiod_be = (string)Tools::getValue('beslist_cart_deliveryperiod_be');
             $deliveryperiod_nostock_be = (string)Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
 
-
+            $update_bulk_status = (bool)Tools::getValue('beslist_cart_update_bulk_status');
             $update_categories = (bool)Tools::getValue('beslist_cart_update_categories');
             $add_default_categories = (bool)Tools::getValue('beslist_cart_add_default_categories');
             $overwrite_categories = (bool)Tools::getValue('beslist_cart_overwrite_categories');
@@ -377,6 +377,9 @@ class BeslistCart extends Module
 
             if ($update_categories) {
                 $this->importCategories();
+            }
+            if ($update_bulk_status) {
+                AdminBeslistCartProductsController::setBulkProductsToUpdatedStatus();
             }
             if ($add_products) {
                 AdminBeslistCartProductsController::addAllProducts();
@@ -770,7 +773,27 @@ class BeslistCart extends Module
                         'Use with caution, as this will remove all existing customly selected ' .
                         'categories. Enable only if you are certain you want to overwrite categories.'
                     )
-                )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Set 1000 products as updated'),
+                    'name' => 'beslist_cart_update_bulk_status',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_update_bulk_status_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_update_bulk_status_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Send products on next run.'),
+                    'desc' => $this->l('Set 1000 products as updated, so they are sent to Beslist on the next run.')
+                ),
             )
         );
 
@@ -875,6 +898,7 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_add_all_products'] = 0;
         $helper->fields_value['beslist_cart_add_default_categories'] = 0;
         $helper->fields_value['beslist_cart_overwrite_categories'] = 0;
+        $helper->fields_value['beslist_cart_update_bulk_status'] = 0;
 
         $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
 
