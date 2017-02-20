@@ -237,19 +237,19 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistQuantityUpdate($beslistProduct, $quantity, $context)
     {
-        $shopsIds = Product::getShopsByProduct($beslistProduct->id_product);
-        $errors = array();
-        $id_lang = $context->language->id;
+        $shopIds = array();
+        $shopIds = BeslistProduct::getShops($beslistProduct);
 
-        foreach ($shopsIds as $shopId) {
-            if (!BeslistCart::isEnabledForShop($id_lang, $shopId)) {
+        $errors = array();
+
+        foreach ($shopIds as $shopIdRow) {
+            $shopId = $shopIdRow['id_shop'];
+            if (!BeslistCart::isEnabledForShop($shopId)) {
                 continue;
             }
-            $shopId = $shopId['id_shop'];
-            $client = BeslistCart::getShopitemClient($id_lang, $shopId);
 
-
-            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', $id_lang, null, $shopId);
+            $client = BeslistCart::getShopitemClient($shopId);
+            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
             $productRef = $beslistProduct->getReference();
 
             $options = array(
@@ -318,20 +318,19 @@ class AdminBeslistCartProductsController extends AdminController
             $beslistProduct->id_product_attribute
         );
 
-        $shopsIds = Product::getShopsByProduct($beslistProduct->id_product);
+        $shopIds = array();
+        $shopIds = BeslistProduct::getShops($beslistProduct);
         $errors = array();
 
-        $id_lang = $context->language->id;
-
-        foreach ($shopsIds as $shopId) {
-            if (!BeslistCart::isEnabledForShop($id_lang, $shopId)) {
+        foreach ($shopIds as $shopIdRow) {
+            $shopId = $shopIdRow['id_shop'];
+            if (!BeslistCart::isEnabledForShop($shopId)) {
                 continue;
             }
 
-            $shopId = $shopId['id_shop'];
-            $client = BeslistCart::getShopitemClient($id_lang, $shopId);
+            $client = BeslistCart::getShopitemClient($shopId);
 
-            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', $id_lang, null, $shopId);
+            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
 
             $productRef = $beslistProduct->getReference();
             $options = array(

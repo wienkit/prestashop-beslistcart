@@ -274,6 +274,21 @@ class BeslistProduct extends ObjectModel
     }
 
     /**
+     * Get the shop ids for a Beslist product
+     *
+     * @param BeslistProduct $beslistProduct
+     * @return array|false|mysqli_result|null|PDOStatement|resource
+     */
+    public static function getShops($beslistProduct)
+    {
+        $sql = new DbQuery();
+        $sql->select('ps.id_shop');
+        $sql->from('product_shop', 'ps');
+        $sql->where('ps.id_product = ' . (int) $beslistProduct->id_product);
+        return Db::getInstance()->executeS($sql);
+    }
+
+    /**
      * Returns the BeslistProduct data for a product ID
      * @param string $id_product
      * @return array the BeslistProduct data

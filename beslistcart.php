@@ -1216,7 +1216,7 @@ class BeslistCart extends Module
      * @param null $id_shop_group
      * @return \Wienkit\BeslistOrdersClient\BeslistOrdersClient
      */
-    public static function getClient($id_lang = null, $id_shop = null, $id_shop_group = null)
+    public static function getClient($id_shop = null, $id_shop_group = null, $id_lang = null)
     {
         $personalKey = Configuration::get('BESLIST_CART_PERSONALKEY', $id_lang, $id_shop_group, $id_shop);
         $shopId = Configuration::get('BESLIST_CART_SHOPID', $id_lang, $id_shop_group, $id_shop);
@@ -1231,24 +1231,25 @@ class BeslistCart extends Module
 
     /**
      * Check if the Beslist cart is enabled
-     * @param $id_lang
-     * @param $id_shop
+     * @param null $id_shop
+     * @param null $id_shop_group
+     * @param null $id_lang
      * @return bool
      */
-    public static function isEnabledForShop($id_lang, $id_shop)
+    public static function isEnabledForShop($id_shop = null, $id_shop_group = null, $id_lang = null)
     {
-        return (bool) BeslistCart::isEnabled('beslistcart') &&
-            Configuration::get('BESLIST_CART_ENABLED', $id_lang, null, $id_shop);
+        return (bool) Configuration::get('BESLIST_CART_ENABLED', $id_lang, $id_shop_group, $id_shop);
     }
 
     /**
      * Retrieve the BeslistShopItemClient
-     * @param null $id_lang
+     *
      * @param null $id_shop
      * @param null $id_shop_group
+     * @param null $id_lang
      * @return \Wienkit\BeslistShopitemClient\BeslistShopitemClient
      */
-    public static function getShopitemClient($id_lang = null, $id_shop = null, $id_shop_group = null)
+    public static function getShopitemClient($id_shop = null, $id_shop_group = null, $id_lang = null)
     {
         $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY', $id_lang, $id_shop_group, $id_shop);
 
