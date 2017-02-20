@@ -273,7 +273,8 @@ class AdminBeslistCartOrdersController extends AdminController
             $data = array(array(
                 'number_ordered' => 2,
                 'bvb_code' => $testReference,
-                'item_shipping' => $shippingTaxIncl
+                'item_shipping' => $shippingTaxIncl,
+                'item_price' => $price
             ));
         }
 
