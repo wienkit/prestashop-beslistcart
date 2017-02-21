@@ -55,6 +55,8 @@ $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CA
 $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
 $carrier_nl_tax = $carrier_nl->getTaxesRate($address_nl);
 $carrier_be_tax = $carrier_be->getTaxesRate($address_be);
+$shippingFreePrice = Configuration::get('PS_SHIPPING_FREE_PRICE');
+$shippingHandling = Configuration::get('PS_SHIPPING_HANDLING');
 
 header("Content-Type:text/xml; charset=utf-8");
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
@@ -151,15 +153,21 @@ foreach ($products as $product) {
         echo "</shop_category>\n";
     }
 
+    $priceExtra = 0;
+    if ($price < $shippingFreePrice) {
+        $priceExtra = $shippingHandling;
+    }
+
     if ($enabled_nl) {
         $prod_deliveryperiod_nl =
             $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
         echo "\t\t<deliveryperiod_nl>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
             "</deliveryperiod_nl>\n";
+        $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;
         echo "\t\t<shippingcost_nl>" .
             Tools::ps_round(
-                $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) * (1 + ($carrier_nl_tax / 100)),
+                $shippingTotal * (1 + ($carrier_nl_tax / 100)),
                 2
             ) .
             "</shippingcost_nl>\n";
@@ -170,9 +178,10 @@ foreach ($products as $product) {
         echo "\t\t<deliveryperiod_be>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
             "</deliveryperiod_be>\n";
+        $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
         echo "\t\t<shippingcost_be>" .
             Tools::ps_round(
-                $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) * (1 + ($carrier_be_tax / 100)),
+                $shippingTotal * (1 + ($carrier_be_tax / 100)),
                 2
             ) . "</shippingcost_be>\n";
     }
