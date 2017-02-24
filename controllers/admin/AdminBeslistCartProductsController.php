@@ -42,7 +42,7 @@ class AdminBeslistCartProductsController extends AdminController
         $this->addRowAction('delete');
 
         $cookie = Context::getContext()->cookie->getAll();
-        $shopId = (int)substr($cookie['shopContext'], 2);
+        $shopId = (int)Tools::substr($cookie['shopContext'], 2);
 
         $this->_join .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
                             ON (pl.`id_product` = a.`id_product` AND pl.`id_shop` = ' . (int)$shopId . ')
