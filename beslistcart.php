@@ -28,7 +28,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.1';
+        $this->version = '1.3.2';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -59,7 +59,6 @@ class BeslistCart extends Module
                 && $this->registerHook('actionAdminControllerSetMedia')
                 && $this->registerHook('actionProductUpdate')
                 && $this->registerHook('actionUpdateQuantity')
-                && $this->registerHook('actionObjectBeslistProductAddAfter')
                 && $this->registerHook('actionObjectBeslistProductDeleteAfter')
                 && $this->registerHook('actionObjectBeslistProductUpdateAfter')
                 && $this->registerHook('displayAdminProductsExtra')
@@ -81,7 +80,6 @@ class BeslistCart extends Module
             && $this->unregisterHook('actionAdminControllerSetMedia')
             && $this->unregisterHook('actionProductUpdate')
             && $this->unregisterHook('actionUpdateQuantity')
-            && $this->unregisterHook('actionObjectBeslistProductAddAfter')
             && $this->unregisterHook('actionObjectBeslistProductDeleteAfter')
             && $this->unregisterHook('actionObjectBeslistProductUpdateAfter')
             && $this->unregisterHook('displayAdminProductsExtra')
@@ -299,7 +297,7 @@ class BeslistCart extends Module
 
         if (Tools::isSubmit('submit' . $this->name)) {
 
-            $enabled = (bool)Tools::getValue('beslist_cart_enabled');
+            $cartEnabled = (bool)Tools::getValue('beslist_cart_enabled');
             $testmode = (bool)Tools::getValue('beslist_cart_testmode');
             $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
             $shopid = (int)Tools::getValue('beslist_cart_shopid');
@@ -330,25 +328,25 @@ class BeslistCart extends Module
             $add_products = (bool)Tools::getValue('beslist_cart_add_all_products');
             $category = (int)Tools::getValue('beslist_cart_category');
 
-            if (!$personalkey
+            if ($cartEnabled && (!$personalkey
                 || $shopid == 0
                 || $clientid == 0
                 || $matcher == 0
                 || empty($personalkey)
                 || empty($startDate)
                 || empty($shopitemKey)
-                || ($testmode && empty($test_reference))
+//                || ($testmode && empty($test_reference))
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
                 || ($enabled_be && empty($carrier_be))
                 || ($enabled_be && empty($deliveryperiod_be))
                 || ($enabled_be && empty($deliveryperiod_nostock_be))
-                || empty($category)
+                || empty($category))
             ) {
                 $output .= $this->displayError($this->l('Invalid Configuration value'));
             } else {
-                Configuration::updateValue('BESLIST_CART_ENABLED', $enabled);
+                Configuration::updateValue('BESLIST_CART_ENABLED', $cartEnabled);
                 Configuration::updateValue('BESLIST_CART_TESTMODE', $testmode);
                 Configuration::updateValue('BESLIST_CART_PERSONALKEY', $personalkey);
                 Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
@@ -410,80 +408,11 @@ class BeslistCart extends Module
 
         // Init Fields form array
         $fields_form = array();
-        $fields_form[0]['form'] = array(
+        $fields_form[]['form'] = array(
             'legend' => array(
-                'title' => $this->l('Beslist Shopping Cart Settings'),
+                'title' => $this->l('Beslist Productfeed Settings'),
             ),
             'input' => array(
-                array(
-                    'type' => 'switch',
-                    'label' => $this->l('Enable Beslist Shopping Cart integration'),
-                    'name' => 'beslist_cart_enabled',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'beslist_cart_enabled_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'beslist_cart_enabled_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'hint' => $this->l('You can enable the connector per shop.')
-                ),
-                array(
-                    'type' => 'switch',
-                    'label' => $this->l('Use test connection'),
-                    'name' => 'beslist_cart_testmode',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'beslist_cart_testmode_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'beslist_cart_testmode_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'hint' => $this->l('Enables the testing connection.')
-                ),
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Shop ID'),
-                    'desc' => $this->l('Beslist.nl Order API Shop ID'),
-                    'name' => 'beslist_cart_shopid',
-                    'required' => true,
-                    'size' => 20
-                ),
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Client ID'),
-                    'desc' => $this->l('Beslist.nl Order API Client ID'),
-                    'required' => true,
-                    'name' => 'beslist_cart_clientid'
-                ),
-                array(
-                    'type' => 'textarea',
-                    'label' => $this->l('Personal key'),
-                    'desc' => $this->l('Beslist.nl Order API Personal key'),
-                    'name' => 'beslist_cart_personalkey',
-                    'required' => true,
-                    'size' => 20
-                ),
-                array(
-                    'type' => 'textarea',
-                    'label' => $this->l('Shopitem API key'),
-                    'desc' => $this->l('Beslist.nl ShopItem API key'),
-                    'name' => 'beslist_cart_shopitem_apikey',
-                    'required' => true,
-                    'size' => 20
-                ),
                 array(
                     'type' => 'select',
                     'label' => $this->l('Default size attribute (optional)'),
@@ -535,20 +464,6 @@ class BeslistCart extends Module
                     )
                 ),
                 array(
-                    'type' => 'text',
-                    'label' => $this->l('Test product reference #'),
-                    'desc' => $this->l('This product reference will be used for the testing connection'),
-                    'name' => 'beslist_cart_test_reference'
-                ),
-                array(
-                    'type' => 'text',
-                    'label' => $this->l('Order from date'),
-                    'desc' => $this->l('Use this field to override the from date (format: 2016-12-31).'),
-                    'name' => 'beslist_cart_startdate',
-                    'required' => true,
-                    'size' => 20
-                ),
-                array(
                     'type' => 'switch',
                     'label' => $this->l('Filter products without stock from feed'),
                     'name' => 'beslist_cart_filter_no_stock',
@@ -567,14 +482,6 @@ class BeslistCart extends Module
                     ),
                     'hint' => $this->l('Removes the items without stock from your productfeed.')
                 ),
-            )
-        );
-
-        $fields_form[1]['form'] = array(
-            'legend' => array(
-                'title' => $this->l('Beslist.nl settings'),
-            ),
-            'input' => array(
                 array(
                     'type' => 'switch',
                     'label' => $this->l('Enable Beslist.nl integration'),
@@ -632,15 +539,7 @@ class BeslistCart extends Module
                         . $this->l('Pre-order'),
                     'name' => 'beslist_cart_deliveryperiod_nostock_nl',
                     'size' => 20
-                )
-            )
-        );
-
-        $fields_form[2]['form'] = array(
-            'legend' => array(
-                'title' => $this->l('Beslist.be settings'),
-            ),
-            'input' => array(
+                ),
                 array(
                     'type' => 'switch',
                     'label' => $this->l('Enable Beslist.be integration'),
@@ -699,10 +598,101 @@ class BeslistCart extends Module
                     'name' => 'beslist_cart_deliveryperiod_nostock_be',
                     'size' => 20
                 )
+            ),
+        );
+        $fields_form[]['form'] = array(
+            'legend' => array(
+                'title' => $this->l('Beslist Shopping Cart Settings'),
+            ),
+            'input' => array(
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Enable Beslist Shopping Cart integration'),
+                    'name' => 'beslist_cart_enabled',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_enabled_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_enabled_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('You can enable the connector per shop.')
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Shop ID'),
+                    'desc' => $this->l('Beslist.nl Order API Shop ID'),
+                    'name' => 'beslist_cart_shopid',
+                    'required' => true,
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Client ID'),
+                    'desc' => $this->l('Beslist.nl Order API Client ID'),
+                    'required' => true,
+                    'name' => 'beslist_cart_clientid'
+                ),
+                array(
+                    'type' => 'textarea',
+                    'label' => $this->l('Personal key'),
+                    'desc' => $this->l('Beslist.nl Order API Personal key'),
+                    'name' => 'beslist_cart_personalkey',
+                    'required' => true,
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'textarea',
+                    'label' => $this->l('Shopitem API key'),
+                    'desc' => $this->l('Beslist.nl ShopItem API key'),
+                    'name' => 'beslist_cart_shopitem_apikey',
+                    'required' => true,
+                    'size' => 20
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Use test connection'),
+                    'name' => 'beslist_cart_testmode',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_testmode_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_testmode_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Enables the testing connection.')
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Test product reference #'),
+                    'desc' => $this->l('This product reference will be used for the testing connection'),
+                    'name' => 'beslist_cart_test_reference'
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Order from date'),
+                    'desc' => $this->l('Use this field to override the from date (format: 2016-12-31).'),
+                    'name' => 'beslist_cart_startdate',
+                    'required' => true,
+                    'size' => 20
+                ),
+
             )
         );
 
-        $fields_form[3]['form'] = array(
+        $fields_form[]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Bulk operations')
             ),
@@ -797,7 +787,7 @@ class BeslistCart extends Module
             )
         );
 
-        $fields_form[4]['form'] = array(
+        $fields_form[]['form'] = array(
             'legend' => array(
                 'title' => $this->l('Categories')
             ),
@@ -1090,6 +1080,9 @@ class BeslistCart extends Module
      */
     public function hookActionUpdateQuantity($param)
     {
+        if (!Configuration::get('BESLIST_CART_ENABLED')) {
+            return;
+        }
         $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
             $param['id_product'],
             $param['id_product_attribute']
@@ -1142,25 +1135,13 @@ class BeslistCart extends Module
     }
 
     /**
-     * Send a creation request to Beslist
-     * Executes hook: actionObjectBeslistProductAddAfter
-     * @param array $param
-     */
-    public function hookActionObjectBeslistProductAddAfter($param)
-    {
-        if (!empty($param['object'])) {
-            AdminBeslistCartProductsController::processBeslistProductUpdate($param['object'], $this->context);
-        }
-    }
-
-    /**
      * Send an update request to Beslist
      * Executes hook: actionObjectBeslistProductUpdateAfter
      * @param array $param
      */
     public function hookActionObjectBeslistProductUpdateAfter($param)
     {
-        if (!empty($param['object'])) {
+        if (!empty($param['object']) && Configuration::get('BESLIST_CART_ENABLED')) {
             AdminBeslistCartProductsController::setProductStatus(
                 $param['object'],
                 (int)BeslistProduct::STATUS_INFO_UPDATE
@@ -1176,7 +1157,7 @@ class BeslistCart extends Module
      */
     public function hookActionObjectBeslistProductDeleteAfter($param)
     {
-        if (!empty($param['object'])) {
+        if (!empty($param['object']) && Configuration::get('BESLIST_CART_ENABLED')) {
             AdminBeslistCartProductsController::processBeslistProductDelete($param['object'], $this->context);
         }
     }
