@@ -71,7 +71,8 @@ class AdminBeslistCartProductsController extends AdminController
             'id_product' => array(
                 'title' => $this->l('Product ID'),
                 'align' => 'text-left',
-                'class' => 'fixed-width-xs'
+                'class' => 'fixed-width-xs',
+                'filter_key' => 'a!id_product'
             ),
             'product_name' => array(
                 'title' => $this->l('Product'),
