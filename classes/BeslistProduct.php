@@ -213,15 +213,16 @@ class BeslistProduct extends ObjectModel
 
     /**
      * Retrieve the product reference for the Beslist product
-     * @return false|null|string the reference
+     * @param int $matcher
+     * @return int|string
      */
-    public function getReference()
+    public function getReference($matcher = BeslistCart::BESLIST_MATCH_DEFAULT)
     {
         $isAttribute = isset($this->id_product_attribute)
             && !empty($this->id_product_attribute)
             && $this->id_product_attribute != 0;
 
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch((int)$matcher) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 if ($isAttribute) {
                     $query = new DbQuery();

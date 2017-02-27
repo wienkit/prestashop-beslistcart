@@ -249,8 +249,10 @@ class AdminBeslistCartProductsController extends AdminController
             }
 
             $client = BeslistCart::getShopitemClient($shopId);
-            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
-            $productRef = $beslistProduct->getReference();
+            $beslistShopId = (int)Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
+            $matcher = (int)Configuration::get('BESLIST_CART_MATCHER', null, null, $shopId);
+
+            $productRef = $beslistProduct->getReference($matcher);
 
             $options = array(
                 'stock' => $quantity
@@ -330,9 +332,10 @@ class AdminBeslistCartProductsController extends AdminController
 
             $client = BeslistCart::getShopitemClient($shopId);
 
-            $beslistShopId = Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
+            $beslistShopId = (int) Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
+            $matcher = (int) Configuration::get('BESLIST_CART_MATCHER', null, null, $shopId);
 
-            $productRef = $beslistProduct->getReference();
+            $productRef = $beslistProduct->getReference($matcher);
             $options = array(
                 'price' => $price,
                 'stock' => $quantity
