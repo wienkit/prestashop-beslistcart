@@ -255,13 +255,6 @@ class BeslistProduct extends ObjectModel
                     return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
                 }
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                if ($isAttribute) {
-                    return $this->id_product_attribute . '-' . $this->id_product;
-                } else {
-                    return $this->id_product;
-                }
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 if ($isAttribute) {
                     return $this->id_product . '_' . $this->id_product_attribute;
@@ -269,8 +262,14 @@ class BeslistProduct extends ObjectModel
                     return $this->id_product;
                 }
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                if ($isAttribute) {
+                    return $this->id_product_attribute . '-' . $this->id_product;
+                } else {
+                    return $this->id_product;
+                }
+                break;
         }
     }
 

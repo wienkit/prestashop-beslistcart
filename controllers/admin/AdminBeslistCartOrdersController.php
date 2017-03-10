@@ -514,14 +514,13 @@ class AdminBeslistCartOrdersController extends AdminController
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $attributes = self::getAttributeByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                $attributes = self::getAttributeByDefaultCode($bvbCode);
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 $attributes = self::getAttributeByStorecommanderCode($bvbCode);
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                $attributes = self::getAttributeByDefaultCode($bvbCode);
+                break;
         }
         if (is_array($attributes) && count($attributes) == 1) {
             return $attributes[0];
@@ -534,14 +533,13 @@ class AdminBeslistCartOrdersController extends AdminController
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $id = self::getProductByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                $id = self::getProductByDefaultCode($bvbCode);
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 $id = self::getProductByStorecommanderCode($bvbCode);
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                $id = self::getProductByDefaultCode($bvbCode);
+                break;
         }
 
         if ($id) {
