@@ -9,7 +9,7 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  * @author    Mark Wienk
- * @copyright 2013-2016 Wienk IT
+ * @copyright 2013-2017 Wienk IT
  * @license   LICENSE.txt
  */
 
@@ -35,9 +35,6 @@ class BeslistProduct extends ObjectModel
     /** @var bool */
     public $published = false;
 
-    /** @var float */
-    public $price;
-
     /** @var int */
     public $status = self::STATUS_NEW;
 
@@ -53,7 +50,6 @@ class BeslistProduct extends ObjectModel
     public static $definition = array(
         'table' => 'beslist_product',
         'primary' => 'id_beslist_product',
-        'multishop' => true,
         'fields' => array(
             'id_product' => array(
                 'type' => self::TYPE_INT,
@@ -73,11 +69,6 @@ class BeslistProduct extends ObjectModel
                 'type' => self::TYPE_BOOL,
                 'shop' => true,
                 'validate' => 'isBool'
-            ),
-            'price' => array(
-                'type' => self::TYPE_FLOAT,
-                'shop' => true,
-                'validate' => 'isPrice'
             ),
             'status' => array(
                 'type' => self::TYPE_INT,
@@ -172,12 +163,12 @@ class BeslistProduct extends ObjectModel
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*, b.price AS override_price,
+        $sql = 'SELECT b.*,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 
-            color.`id_attribute` AS variant
+            color.`id_attribute` AS variant, attrimg.id_image AS attribute_image
     				FROM `' . _DB_PREFIX_ . 'beslist_product` b
             LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
     				' . Shop::addSqlAssociation('product', 'p') . '
@@ -195,6 +186,9 @@ class BeslistProduct extends ObjectModel
             LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_combination` com ON (
               b.`id_product_attribute` = com.`id_product_attribute`
             )
+            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_image` attrimg ON (
+              b.`id_product_attribute` = attrimg.`id_product_attribute`
+            )
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrsize ON (
               com.`id_attribute` = attrsize.`id_attribute` AND
               attrsize.`id_attribute_group` = ' . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . '
@@ -211,6 +205,7 @@ class BeslistProduct extends ObjectModel
             )
             WHERE pl.`id_lang` = ' . (int)$id_lang . '
               AND product_shop.`active` = 1
+              ' . ((bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK') ? 'AND st.`quantity` > 0' : '') . '
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
     				ORDER BY p.id_product';
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
@@ -218,15 +213,16 @@ class BeslistProduct extends ObjectModel
 
     /**
      * Retrieve the product reference for the Beslist product
-     * @return false|null|string the reference
+     * @param int $matcher
+     * @return int|string
      */
-    public function getReference()
+    public function getReference($matcher = BeslistCart::BESLIST_MATCH_DEFAULT)
     {
         $isAttribute = isset($this->id_product_attribute)
             && !empty($this->id_product_attribute)
             && $this->id_product_attribute != 0;
 
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch((int)$matcher) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 if ($isAttribute) {
                     $query = new DbQuery();
@@ -276,6 +272,21 @@ class BeslistProduct extends ObjectModel
             default:
                 die(Tools::displayError("No Beslist matcher selected."));
         }
+    }
+
+    /**
+     * Get the shop ids for a Beslist product
+     *
+     * @param BeslistProduct $beslistProduct
+     * @return array|false|mysqli_result|null|PDOStatement|resource
+     */
+    public static function getShops($beslistProduct)
+    {
+        $sql = new DbQuery();
+        $sql->select('ps.id_shop');
+        $sql->from('product_shop', 'ps');
+        $sql->where('ps.id_product = ' . (int) $beslistProduct->id_product);
+        return Db::getInstance()->executeS($sql);
     }
 
     /**

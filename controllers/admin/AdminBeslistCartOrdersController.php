@@ -9,7 +9,7 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  * @author    Mark Wienk
- * @copyright 2013-2016 Wienk IT
+ * @copyright 2013-2017 Wienk IT
  * @license   LICENSE.txt
  */
 
@@ -273,7 +273,8 @@ class AdminBeslistCartOrdersController extends AdminController
             $data = array(array(
                 'number_ordered' => 2,
                 'bvb_code' => $testReference,
-                'item_shipping' => $shippingTaxIncl
+                'item_shipping' => $shippingTaxIncl,
+                'item_price' => $price
             ));
         }
 
@@ -479,14 +480,6 @@ class AdminBeslistCartOrdersController extends AdminController
                     continue;
                 }
                 $hasProducts = true;
-                self::addSpecificPrice(
-                    $cart,
-                    $customer,
-                    $product,
-                    $productIds['id_product_attribute'],
-                    $shipping->id_country,
-                    round(self::getTaxExclusive($product, $item->price), 6)
-                );
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
                 if (!$cartResult) {
                     $context->controller->errors[] = Tools::displayError(
@@ -505,56 +498,6 @@ class AdminBeslistCartOrdersController extends AdminController
             return false;
         }
         return $cart;
-    }
-
-    /**
-     * Adds a specific price for a product
-     * @param Cart $cart
-     * @param Customer $customer
-     * @param Product $product
-     * @param string $id_product_attribute
-     * @param int $id_country
-     * @param float $price
-     */
-    private static function addSpecificPrice(
-        Cart $cart,
-        Customer $customer,
-        Product $product,
-        $id_product_attribute,
-        $id_country,
-        $price
-    ) {
-        $specific_price = new SpecificPrice();
-        $specific_price->id_cart = (int)$cart->id;
-        $specific_price->id_shop = $cart->id_shop;
-        $specific_price->id_shop_group = $cart->id_shop_group;
-        $specific_price->id_currency = $cart->id_currency;
-        $specific_price->id_country = $id_country;
-        $specific_price->id_group = (int)$customer->id_default_group;
-        $specific_price->id_customer = (int)$customer->id;
-        $specific_price->id_product = $product->id;
-        $specific_price->id_product_attribute = $id_product_attribute;
-        $specific_price->price = $price;
-        $specific_price->from_quantity = 1;
-        $specific_price->reduction = 0;
-        $specific_price->reduction_type = 'amount';
-        $specific_price->from = '0000-00-00 00:00:00';
-        $specific_price->to = '0000-00-00 00:00:00';
-        $specific_price->add();
-    }
-
-    /**
-     * Return the tax exclusive price
-     * @param Product $product
-     * @param float $price
-     * @return float the price excluding taxes
-     */
-    public static function getTaxExclusive(Product $product, $price)
-    {
-        $address = Address::initialize();
-        $tax_manager = TaxManagerFactory::getManager($address, $product->id_tax_rules_group);
-        $tax_calculator = $tax_manager->getTaxCalculator();
-        return $tax_calculator->removeTaxes($price);
     }
 
     /**

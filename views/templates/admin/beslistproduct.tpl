@@ -8,10 +8,35 @@
 * You must not modify, adapt or create derivative works of this source code
 *
 *  @author    Mark Wienk
-*  @copyright 2013-2016 Wienk IT
+*  @copyright 2013-2017 Wienk IT
 *  @license   LICENSE.txt
 *
 *}
+<style>
+    span.twitter-typeahead {
+        width: 100%;
+    }
+    span.tt-dropdown-menu {
+        width: 100%;
+    }
+    div.tt-suggestion {
+        font-size: 13px;
+        padding: 7px;
+    }
+    .bootstrap .table tbody>tr>td.bc-padded {
+        padding: 11px 8px;
+    }
+    .bootstrap span.tt-suggestions {
+        padding: 0;
+    }
+    .bootstrap .tt-suggestion p {
+        border-bottom: 0;
+    }
+    div.tt-suggestion.tt-is-under-cursor,
+    div.tt-suggestion:hover {
+        background: #DCF4F9;
+    }
+</style>
 <input type="hidden" name="beslistcart_loaded" value="1">
 {if isset($product->id)}
     <div class="panel product-tab" id="product-ModuleBeslistcart">
@@ -25,24 +50,53 @@
         </div>
         <div class="row">
             <div class="form-group">
-                <div class="col-lg-1">
-                    <span class="pull-right"></span>
+                <label class="control-label col-lg-3" for="beslist_category">
+                    {l s='Beslist category ID' mod='beslistcart'}
+                </label>
+                <div class="col-lg-6">
+                    <div class="form-group">
+                        {assign var=beslist_category_name value=''}
+                        <script>
+                            $(document).ready(function() {
+                                $('.typeahead').typeahead({
+                                    name: 'categories',
+                                    local: [
+                                        {foreach $beslist_categories as $category}
+                                            {if $category.id_beslist_category == $beslist_category}
+                                                {assign var=beslist_category_name value=$category.name}
+                                            {/if}
+                                            {ldelim}
+                                                value: '{$category.id_beslist_category|escape:'htmlall':'UTF-8'}',
+                                                name: '[{$category.id_beslist_category|escape:'htmlall':'UTF-8'}] {$category.name|escape:'html':'UTF-8'}',
+                                                tokens: [{foreach " "|explode:$category.name as $token}'{$token|escape:'html':'UTF-8'}',{/foreach}
+                                                    '{$category.id_beslist_category|escape:'htmlall':'UTF-8'}'
+                                                ]
+                                            {rdelim},
+                                        {/foreach}
+                                    ],
+                                    engine: Hogan,
+                                    template: "<p>{literal}{{{name}}}{/literal}</p>"
+                                });
+                                $(document).on({
+                                    'blur': function(e) {
+                                        if(e.currentTarget.value != '{$beslist_category|escape:'html':'UTF-8'}') {
+                                            $("#currently_selected").val('{l s='Category changed, save the product first.' mod='beslistcart'}');
+                                        }
+                                    }
+                                }, '.typeahead');
+                            });
+                        </script>
+                        <input type="text" value="{$beslist_category|escape:'html':'UTF-8'}" class="form-control typeahead" autocomplete="off" name="beslistcart_category" id="beslistcart_category">
+                        <div class="help-block">{l s='For a complete overview, look at: ' mod='beslistcart'} <a href="https://www.beslist.nl/categories/">https://www.beslist.nl/categories/</a></div>
+                    </div>
                 </div>
+            </div>
+            <div class="form-group">
                 <label class="control-label col-lg-3" for="beslist_category">
                     {l s='Beslist category' mod='beslistcart'}
                 </label>
                 <div class="col-lg-6">
-                    <div class="form-group">
-                        <select class="selectpicker form-control" data-live-search="true" name="beslistcart_category" id="beslistcart_category">
-                            <option value="default" {if !$beslist_category}selected="selected"{/if}>{l s='--- Use category / configuration setting ---' mod='beslistcart'}</option>
-                            {foreach $beslist_categories as $category}
-                                <option value="{$category.id_beslist_category|escape:'htmlall':'UTF-8'}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name|escape:'html':'UTF-8'}</option>
-                            {/foreach}
-                        </select>
-                        <script>
-                            $('.selectpicker').selectpicker('render');
-                        </script>
-                    </div>
+                    <input type="text" disabled id="currently_selected" value="{$beslist_category_name|escape:'html':'UTF-8'}"/>
                 </div>
             </div>
         </div>
@@ -56,28 +110,20 @@
                     <tr>
                         <th class="width: 10%; min-width: 50px;" align="center"><span class="title_box">{l s='Published' mod='beslistcart'}</span></th>
                         <th style="width: 40%"><span class="title_box">{l s='Product' mod='beslistcart'}</span></th>
-                        <th style="width: 10%"><span class="title_box">{l s='Calculated price' mod='beslistcart'}</span></th>
-                        <th style="width: 40%"><span class="title_box">{l s='Custom price (optional)' mod='beslistcart'}</span></th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
                         <td class="fixed-width-xs" align="center"><input type="checkbox" id="toggle_beslistcart_check" /></td>
-                        <td colspan="2">-- {l s='All products' mod='beslistcart'} -- </td>
-                        <td>
-                            <div class="input-group">
-                                <span class="input-group-addon"> &euro;</span>
-                                <input id="toggle_beslistcart_price" type="text" onchange="noComma('toggle_beslistcart_price');" maxlength="27">
-                            </div>
-                        </td>
+                        <td class="bc-padded">-- {l s='All products' mod='beslistcart'} -- </td>
+                        <td></td>
                     </tr>
                     {foreach $attributes AS $index => $attribute}
-                        {assign var=price value=''}
                         {assign var=selected value=''}
                         {assign var=delivery_code_nl value=''}
                         {assign var=delivery_code_be value=''}
                         {if array_key_exists($attribute['id_product_attribute'], $beslist_products)}
-                            {assign var=price value=$beslist_products[$attribute['id_product_attribute']]['price']}
                             {assign var=selected value=$beslist_products[$attribute['id_product_attribute']]['published']}
                             {assign var=delivery_code_nl value=$beslist_products[$attribute['id_product_attribute']]['delivery_code_nl']}
                             {assign var=delivery_code_be value=$beslist_products[$attribute['id_product_attribute']]['delivery_code_be']}
@@ -88,34 +134,22 @@
                                                                              {if $selected == true}checked="checked"{/if}
                                                                              value="1" />
                             </td>
-                            <td class="clickable collapsed" data-toggle="collapse" data-target=".{$index|escape:'htmlall':'UTF-8'}collapsed">
+                            <td class="clickable collapsed bc-padded" data-toggle="collapse" data-target=".{$index|escape:'htmlall':'UTF-8'}collapsed">
                                 {$product_designation[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'}
                                 <i class="icon-caret-up pull-right"></i>
                             </td>
-                            <td>
-                                <a class="use_calculated_price" data-val="{$calculated_price[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'|string_format:"%.2f"}">&euro; {$calculated_price[$attribute['id_product_attribute']]|escape:'htmlall':'UTF-8'|string_format:"%.2f"}</a>
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-addon"> &euro;</span>
-                                    <input name="beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$price|escape:'html':'UTF-8'}" onchange="noComma('beslistcart_price_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}');" maxlength="27">
-                                </div>
-                            </td>
+                            <td></td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
-                            <td>&nbsp;</td>
-                            <td colspan="2">
-                                {l s='Custom Delivery time NL (optional)' mod='beslistcart'}
-                            </td>
+                            <td></td>
+                            <td>{l s='Custom Delivery time NL (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_nl_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_nl|escape:'html':'UTF-8'}">
                             </td>
                         </tr>
                         <tr class="collapse out {$index|escape:'htmlall':'UTF-8'}collapsed{if $index is odd} alt_row{/if}">
-                            <td>&nbsp;</td>
-                            <td colspan="2">
-                                {l s='Custom Delivery time BE (optional)' mod='beslistcart'}
-                            </td>
+                            <td></td>
+                            <td>{l s='Custom Delivery time BE (optional)' mod='beslistcart'}</td>
                             <td>
                                 <input name="beslistcart_delivery_code_be_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" id="beslistcart_delivery_code_{$attribute['id_product']|escape:'htmlall':'UTF-8'}_{$attribute['id_product_attribute']|escape:'htmlall':'UTF-8'}" type="text" value="{$delivery_code_be|escape:'html':'UTF-8'}">
                             </td>
@@ -136,16 +170,6 @@
             var value = $('#toggle_beslistcart_check').prop('checked');
             var checkBoxes = $("input[name^=beslistcart_published_]");
             checkBoxes.prop("checked", value);
-        });
-        $('#toggle_beslistcart_price').change(function() {
-            var value = $(this).val();
-            var prices = $("input[name^=beslistcart_price_]");
-            prices.val(value);
-        });
-        $('.use_calculated_price').click(function(e) {
-            var value = $(this).data('val');
-            var prices = $("input[name^=beslistcart_price_]");
-            prices.val(value);
         });
     </script>
 {/if}

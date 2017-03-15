@@ -17,14 +17,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_2_0($object)
+function upgrade_module_1_3_2($object)
 {
-    return (
-        Db::getInstance()->execute(
-            'ALTER TABLE `'._DB_PREFIX_.'beslist_product` ADD `delivery_code_nl` VARCHAR(255) AFTER `status`'
-        ) &&
-        Db::getInstance()->execute(
-            'ALTER TABLE `'._DB_PREFIX_.'beslist_product` ADD `delivery_code_be` VARCHAR(255) AFTER `delivery_code_nl`'
-        )
-    );
+    return $object->unregisterHook('actionObjectBeslistProductAddAfter');
 }
