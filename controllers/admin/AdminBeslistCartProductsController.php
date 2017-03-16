@@ -133,6 +133,16 @@ class AdminBeslistCartProductsController extends AdminController
         );
     }
 
+    public function initProcess()
+    {
+        if (Tools::getIsset('published'.$this->table)) {
+            $this->action = 'published';
+        }
+        if (!$this->action) {
+            parent::initProcess();
+        }
+    }
+
     /**
      * Processes the request
      */
@@ -149,6 +159,15 @@ class AdminBeslistCartProductsController extends AdminController
             $this->confirmations[] = $this->l('Beslist products fully synchronized.');
         }
         return parent::postProcess();
+    }
+
+    public function processPublished()
+    {
+        /** @var BeslistProduct $beslistProduct */
+        if (Validate::isLoadedObject($beslistProduct = $this->loadObject())) {
+            $beslistProduct->published = $beslistProduct->published ? 0 : 1;
+            $beslistProduct->save();
+        }
     }
 
     /**
@@ -339,7 +358,7 @@ class AdminBeslistCartProductsController extends AdminController
             $productRef = $beslistProduct->getReference($matcher);
             $options = array(
                 'price' => $price,
-                'stock' => $quantity
+                'stock' => $beslistProduct->published ? $quantity : 0
             );
 
             if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
