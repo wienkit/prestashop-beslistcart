@@ -336,7 +336,6 @@ class BeslistCart extends Module
                 || empty($personalkey)
                 || empty($startDate)
                 || empty($shopitemKey)
-//                || ($testmode && empty($test_reference))
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
@@ -1050,7 +1049,9 @@ class BeslistCart extends Module
                 ) {
                     continue;
                 }
-                $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
+                if ($product->active) {
+                    $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
+                }
             } elseif (!$published && $delivery_code_nl == '' && $delivery_code_be == '') {
                 continue;
             } else {
@@ -1084,21 +1085,24 @@ class BeslistCart extends Module
         if (!Configuration::get('BESLIST_CART_ENABLED')) {
             return;
         }
-        $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
-            $param['id_product'],
-            $param['id_product_attribute']
-        );
-        if (!empty($beslistProductId)) {
-            $beslistProduct = new BeslistProduct($beslistProductId);
-            AdminBeslistCartProductsController::setProductStatus(
-                $beslistProduct,
-                (int)BeslistProduct::STATUS_STOCK_UPDATE
+        $product = new Product($param['id_product']);
+        if ($product->active) {
+            $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
+                $param['id_product'],
+                $param['id_product_attribute']
             );
-            AdminBeslistCartProductsController::processBeslistQuantityUpdate(
-                $beslistProduct,
-                $param['quantity'],
-                $this->context
-            );
+            if (!empty($beslistProductId)) {
+                $beslistProduct = new BeslistProduct($beslistProductId);
+                AdminBeslistCartProductsController::setProductStatus(
+                    $beslistProduct,
+                    (int)BeslistProduct::STATUS_STOCK_UPDATE
+                );
+                AdminBeslistCartProductsController::processBeslistQuantityUpdate(
+                    $beslistProduct,
+                    $param['quantity'],
+                    $this->context
+                );
+            }
         }
     }
 
