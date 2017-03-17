@@ -299,6 +299,12 @@ class AdminBeslistCartProductsController extends AdminController
             }
 
             try {
+                $client->getShopItem($beslistShopId, $productRef);
+            } catch (Exception $e) {
+                continue;
+            }
+
+            try {
                 $client->updateShopItem($beslistShopId, $productRef, $options);
             } catch (Exception $e) {
                 $message = $e->getMessage();
@@ -341,7 +347,10 @@ class AdminBeslistCartProductsController extends AdminController
         );
 
         $shopIds = array();
-        $shopIds = BeslistProduct::getShops($beslistProduct);
+        if ($quantity > 0 || !(bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK')) {
+            $shopIds = BeslistProduct::getShops($beslistProduct);
+        }
+
         $errors = array();
 
         foreach ($shopIds as $shopIdRow) {
@@ -379,6 +388,12 @@ class AdminBeslistCartProductsController extends AdminController
                     );
                 }
                 $options['delivery_time_be'] = $delivery_time_be;
+            }
+
+            try {
+                $client->getShopItem($beslistShopId, $productRef);
+            } catch (Exception $e) {
+                continue;
             }
 
             try {
