@@ -279,8 +279,12 @@ class AdminBeslistCartOrdersController extends AdminController
         }
 
         $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
+
         $success = true;
         foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
+            if (Configuration::get('BESLIST_CART_TESTMODE')) {
+                $shopOrder->orderNumber = $shopOrder->orderNumber . '-' . Context::getContext()->shop->id;
+            }
             if (!self::getTransactionExists($shopOrder->orderNumber)) {
                 $cart = self::parse($shopOrder);
 

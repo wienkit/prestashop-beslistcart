@@ -28,7 +28,8 @@
             </a></p>
             <div class="collapse" id="collapseAdvanced">
                 <div class="well">
-                    <strong>Cron URL:</strong> {$cron_url|escape:'htmlall':'UTF-8'}
+                    <p><strong>Cron URL:</strong> {$cron_url|escape:'htmlall':'UTF-8'}</p>
+                    <p><strong>{l s='Note:' mod='beslistcart'}</strong> {l s='If you use multistore, setup a cron task for each shop (look at the module settings page for each shop, because the secret key differs per shop)'  mod='beslistcart'}</p>
                 </div>
             </div>
         </div>

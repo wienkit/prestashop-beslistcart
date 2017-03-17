@@ -102,5 +102,7 @@ $_MODULE['<{beslistcart}prestashop>configure_85ad22ec97aeed5b93e0dad3327a1454'] 
 $_MODULE['<{beslistcart}prestashop>configure_5f6b855a54a108753bc9c131834fe43b'] = 'Voor hulp en info, bekijk ';
 $_MODULE['<{beslistcart}prestashop>configure_ae8781fd339cd15ccc34851adabc7302'] = 'de online documentatie';
 $_MODULE['<{beslistcart}prestashop>configure_39074f6e402daf268c5d26c30950d5cc'] = 'Bekijk geavanceerde opties';
+$_MODULE['<{beslistcart}prestashop>configure_fc9d3df613063ee57906c461320744e2'] = 'Opmerking:';
+$_MODULE['<{beslistcart}prestashop>configure_60d25b2c93907f8d2f6753433f539b43'] = 'Als u de multistore functionaliteit gebruikt, dient u voor elke shop een crontaak in te stellen. Kijk voor de juiste url op de module instellingspagina van elke shop.';
 $_MODULE['<{beslistcart}prestashop>disabled_8f8b18e6deef4eacaba08aeedee4f83a'] = 'Beslist.nl instellingen';
 $_MODULE['<{beslistcart}prestashop>disabled_ae5a42725aaa060748d47143eae75d86'] = 'U hebt de Beslist Winkelwagen module niet geactiveerd voor de huidige shop.';
