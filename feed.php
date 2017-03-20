@@ -58,6 +58,37 @@ $carrier_be_tax = $carrier_be->getTaxesRate($address_be);
 $shippingFreePrice = Configuration::get('PS_SHIPPING_FREE_PRICE');
 $shippingHandling = Configuration::get('PS_SHIPPING_HANDLING');
 
+$featureValuesIndexed = array();
+$featuresIndexed = array();
+$features = Feature::getFeatures($context->language->id);
+foreach ($features as $feature) {
+    $id_feature = $feature['id_feature'];
+    $featureValuesIndexed[$id_feature] = array();
+    $featureValues = FeatureValue::getFeatureValuesWithLang($context->language->id, $id_feature);
+    foreach ($featureValues as $featureValue) {
+        $featureValuesIndexed[$id_feature][$featureValue['id_feature_value']] = $featureValue;
+    }
+    $featuresIndexed[$id_feature] = $feature;
+}
+unset($features);
+unset($featureValues);
+
+$attributesIndexed = array();
+$attributeGroupsIndexed = array();
+$attributeGroups = AttributeGroup::getAttributesGroups($context->language->id);
+
+foreach ($attributeGroups as $attributeGroup) {
+    $id_attribute_group = $attributeGroup['id_attribute_group'];
+    $attributesIndexed[$id_attribute_group] = array();
+    $attributeValues = AttributeGroup::getAttributes($context->language->id, $id_attribute_group);
+    foreach ($attributeValues as $attributeValue) {
+        $attributesIndexed[$id_attribute_group][$attributeValue['id_attribute']] = $attributeValue;
+    }
+    $attributeGroupsIndexed[$id_attribute_group] = $attributeGroup;
+}
+unset($attributeGroups);
+unset($attributeValues);
+
 header("Content-Type:text/xml; charset=utf-8");
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 ?>
@@ -208,8 +239,29 @@ foreach ($products as $product) {
     if (isset($product['manufacturer_name'])) {
         echo "\t\t<brand><![CDATA[" . $product['manufacturer_name'] . "]]></brand>\n";
     }
-    // echo "\t\t<gender> (man/vrouw/ jongen/meisje/baby/unisex) </gender>\n";
-    // echo "\t\t<material>?</material>\n";
+
+    $productFeatures = Product::getFeaturesStatic($product['id_product']);
+    foreach ($productFeatures as $productFeature) {
+        $name = strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
+        $name = preg_replace("/[^a-z0-9]/", '', $name);
+        echo "\t\t<" . $name . ">";
+        echo "<![CDATA[" .
+            $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
+            "]]>";
+        echo "</" . $name . ">\n";
+    }
+
+    $productAttributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
+    foreach ($productAttributes as $productAttribute) {
+        $name = strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
+        $name = preg_replace("/[^a-z0-9]/", '', $name);
+        echo "\t\t<" . $name . ">";
+        echo "<![CDATA[" .
+            $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
+            "]]>";
+        echo "</" . $name . ">\n";
+    }
+
     echo "\t\t<condition>";
     switch($product['condition']) {
         case 'refurbished':
