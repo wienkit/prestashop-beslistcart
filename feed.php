@@ -244,22 +244,26 @@ foreach ($products as $product) {
     foreach ($productFeatures as $productFeature) {
         $name = strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
-        echo "\t\t<" . $name . ">";
-        echo "<![CDATA[" .
-            $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
-            "]]>";
-        echo "</" . $name . ">\n";
+        if ($name != "" && $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != "") {
+            echo "\t\t<" . $name . ">";
+            echo "<![CDATA[" .
+                $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
+                "]]>";
+            echo "</" . $name . ">\n";
+        }
     }
 
     $productAttributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
     foreach ($productAttributes as $productAttribute) {
         $name = strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
-        echo "\t\t<" . $name . ">";
-        echo "<![CDATA[" .
-            $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
-            "]]>";
-        echo "</" . $name . ">\n";
+        if ($name != "" && $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != "") {
+            echo "\t\t<" . $name . ">";
+            echo "<![CDATA[" .
+                $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
+                "]]>";
+            echo "</" . $name . ">\n";
+        }
     }
 
     echo "\t\t<condition>";
