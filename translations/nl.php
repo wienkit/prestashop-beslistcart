@@ -7,6 +7,7 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_876f23178c29dc2552c0b48bf23cd9bd'
 $_MODULE['<{beslistcart}prestashop>beslistcart_fe5d926454b6a8144efce13a44d019ba'] = 'Ongeldige configuratiewaarde';
 $_MODULE['<{beslistcart}prestashop>beslistcart_c888438d14855d7d96a2724ee9c306bd'] = 'Instellingen bijgewerkt';
 $_MODULE['<{beslistcart}prestashop>beslistcart_254c025e293a58b4f541570faaf54a09'] = '--- Geen ---';
+$_MODULE['<{beslistcart}prestashop>beslistcart_cca3f63c80a55e36c41205ab8e96c26c'] = 'Beslist productfeed instellingen';
 $_MODULE['<{beslistcart}prestashop>beslistcart_95a6d2797e6e8c6471302f6fe3f5a681'] = 'Standaard maatattribuut (optioneel)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_fdf9661e8f2447d86bb33912ae8b0637'] = 'Indien u maten gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_d7a4fb145b2dc96dccf27f24387587c4'] = 'Standaard kleurattribuut (optioneel)';
