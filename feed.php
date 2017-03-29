@@ -41,6 +41,7 @@ $deliveryperiod_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_BE');
 $deliveryperiod_nostock_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 $enabled_nl = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
 $enabled_be = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
+$use_long_description = (bool) Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
 $country_nl = new Country(Country::getByIso('NL'));
 $country_be = new Country(Country::getByIso('BE'));
 $address_nl = new Address();
@@ -221,7 +222,7 @@ foreach ($products as $product) {
     } else {
         echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
     }
-    echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";
+    echo "\t\t<description><![CDATA[" . $use_long_description ? $product['description'] : $product['description_short'] . "]]></description>\n";
 
     $display = 1;
     if ($product['published'] == 0) {

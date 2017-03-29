@@ -320,6 +320,8 @@ class BeslistCart extends Module
 
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
+            $use_long_descriptions = (bool)Tools::getValue('beslist_cart_use_long_description');
+
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
             $startDate = (string)Tools::getValue('beslist_cart_startdate');
@@ -367,9 +369,12 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_FILTER_NO_STOCK', $filterNoStock);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
+                Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', $use_long_descriptions);
+
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
+
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
                 Configuration::updateValue('BESLIST_CART_CARRIER_NL', $carrier_nl);
@@ -446,6 +451,25 @@ class BeslistCart extends Module
                         'id' => 'id_attribute_group',
                         'name' => 'name'
                     )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Use long descriptions in feed.'),
+                    'name' => 'beslist_cart_use_long_description',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_use_long_description_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_use_long_description_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Uses long descriptions in the feed. Note that you shouldn\'t be using HTML markup in the content.')
                 ),
                 array(
                     'type' => 'select',
@@ -881,6 +905,8 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
+        $helper->fields_value['beslist_cart_use_long_description'] = Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
