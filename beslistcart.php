@@ -469,7 +469,7 @@ class BeslistCart extends Module
                             'label' => $this->l('No')
                         )
                     ),
-                    'hint' => $this->l('Uses long descriptions in the feed. Note that you shouldn\'t be using HTML markup in the content.')
+                    'hint' => $this->l('Uses long descriptions in the feed. Note that you should not be using HTML markup in the content.')
                 ),
                 array(
                     'type' => 'select',
