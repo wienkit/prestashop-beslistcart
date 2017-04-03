@@ -19,8 +19,10 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_1_3_3()
 {
-    return Db::getInstance()->execute(
-        'UPDATE `'._DB_PREFIX_.'configuration` 
-        SET `id_shop_group` = NULL, `id_shop` = NULL WHERE name = \'BESLIST_CART_ORDERS_INITIALSTATE\''
-    ) && Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', false);
+    return Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', false)
+            && Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', false)
+            && Db::getInstance()->execute(
+                'UPDATE `'._DB_PREFIX_.'configuration` 
+                SET `id_shop_group` = NULL, `id_shop` = NULL WHERE name = \'BESLIST_CART_ORDERS_INITIALSTATE\''
+        );
 }

@@ -414,12 +414,20 @@ class AdminBeslistCartOrdersController extends AdminController
         $address = new Address();
         $address->id_customer = $customer->id;
         $address->firstname = str_replace(range(0, 9), '', $details->firstName);
-        $address->lastname = str_replace(range(0, 9), '', trim($details->lastNameInsertion . ' ' . $details->lastName));
+        $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
+        $address->lastname = str_replace(range(0, 9), '', $lastname);
         $address->address1 = $details->address;
-        $address->address1 .= ' ' . $details->addressNumber;
+
+        $houseNumber = $details->addressNumber;
         if ($details->addressNumberAdditional != '') {
-            $address->address1 .= ' ' . $details->addressNumberAdditional;
+            $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
+        if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
+            $address->address2 = $houseNumber;
+        } else {
+            $address->address1 .= trim(' ' . $houseNumber);
+        }
+
         $address->postcode = $details->zip;
         $address->city = $details->city;
         $address->id_country = Country::getByIso($details->country);

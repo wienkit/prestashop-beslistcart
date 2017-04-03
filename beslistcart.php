@@ -321,6 +321,7 @@ class BeslistCart extends Module
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
             $use_long_descriptions = (bool)Tools::getValue('beslist_cart_use_long_description');
+            $useAddress2 = (bool) Tools::getValue('beslist_cart_use_address2');
 
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
@@ -370,6 +371,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', $use_long_descriptions);
+                Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', $useAddress2);
 
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
@@ -470,6 +472,25 @@ class BeslistCart extends Module
                         )
                     ),
                     'hint' => $this->l('Uses long descriptions in the feed. Note that you should not be using HTML markup in the content.')
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Housenumber in address2'),
+                    'name' => 'beslist_cart_use_address2',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_use_address2_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_use_address2_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'desc' => $this->l('Won\'t append housenumber to street but uses separate field for housenumber')
                 ),
                 array(
                     'type' => 'select',
@@ -906,6 +927,7 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
         $helper->fields_value['beslist_cart_use_long_description'] = Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+        $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
 
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
