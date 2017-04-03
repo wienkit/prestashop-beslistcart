@@ -12,13 +12,13 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_95a6d2797e6e8c6471302f6fe3f5a681'
 $_MODULE['<{beslistcart}prestashop>beslistcart_fdf9661e8f2447d86bb33912ae8b0637'] = 'Indien u maten gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_d7a4fb145b2dc96dccf27f24387587c4'] = 'Standaard kleurattribuut (optioneel)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_dfc191bb77a6bf41f2a83b3eae0eb330'] = 'Indien u kleuren gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
+$_MODULE['<{beslistcart}prestashop>beslistcart_93cba07454f06a4a960172bbd6e2a435'] = 'Ja';
+$_MODULE['<{beslistcart}prestashop>beslistcart_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Nee';
 $_MODULE['<{beslistcart}prestashop>beslistcart_8762338c21f6b3100dee910d51a9e2a6'] = 'Beslist productreferentie veld';
 $_MODULE['<{beslistcart}prestashop>beslistcart_40f0096d0d3d31a562d4e8e214af4609'] = 'Selecteer het veld welke u bij Beslist hebt aangegeven als uw unieke waarde per product';
 $_MODULE['<{beslistcart}prestashop>beslistcart_6fbc7452df75902da75c28b4d80a42fa'] = 'Standaard';
 $_MODULE['<{beslistcart}prestashop>beslistcart_75ed578ac3cb02b0ba40002a25bc0403'] = 'Product referentie';
 $_MODULE['<{beslistcart}prestashop>beslistcart_bb61dd5976a693e2e817f136a2f1afd6'] = 'Filter producten zonder voorraad';
-$_MODULE['<{beslistcart}prestashop>beslistcart_93cba07454f06a4a960172bbd6e2a435'] = 'Ja';
-$_MODULE['<{beslistcart}prestashop>beslistcart_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Nee';
 $_MODULE['<{beslistcart}prestashop>beslistcart_00b452d413ecf97bdbfe35569d587c34'] = 'Filter producten zonder voorraad uit de feed';
 $_MODULE['<{beslistcart}prestashop>beslistcart_7ee6a2f79e039ccfef104894af7bd534'] = 'Gebruik Beslist.nl';
 $_MODULE['<{beslistcart}prestashop>beslistcart_bdf6f48947b31b9f196d8d00ec670b3f'] = 'Publiceer uw producten op Beslist.nl';
