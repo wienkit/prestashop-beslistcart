@@ -24,10 +24,6 @@ function upgrade_module_1_3_1($object)
         Configuration::deleteByName('BESLIST_CART_PRICE_ADDITION') &&
         Configuration::deleteByName('BESLIST_CART_PRICE_ROUNDUP') &&
         Configuration::updateValue('BESLIST_CART_FILTER_NOSTOCK', false) &&
-        Db::getInstance()->execute(
-            'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `price`'
-        );
-        Db::getInstance()->execute(
-            'ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `id_shop`'
-        );
+        Db::getInstance()->execute('ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `price`') &&
+        Db::getInstance()->execute('ALTER TABLE `'._DB_PREFIX_.'beslist_product` DROP `id_shop`');
 }

@@ -117,7 +117,7 @@ class AdminBeslistCartOrdersController extends AdminController
             )
         ));
 
-        if (Country::isCurrentlyUsed('country', true)) {
+        if (ObjectModel::isCurrentlyUsed('country', true)) {
             $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 			SELECT DISTINCT c.id_country, cl.`name`
 			FROM `' . _DB_PREFIX_ . 'orders` o
@@ -519,7 +519,7 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch ((int)Configuration::get('BESLIST_CART_MATCHER')) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 $attributes = self::getAttributeByEan($bvbCode);
                 break;
@@ -538,7 +538,7 @@ class AdminBeslistCartOrdersController extends AdminController
             return $attributes[0];
         }
 
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch ((int)Configuration::get('BESLIST_CART_MATCHER')) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 $id = Product::getIdByEan13($bvbCode);
                 break;

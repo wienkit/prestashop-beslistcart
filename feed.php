@@ -166,20 +166,18 @@ foreach ($products as $product) {
     echo "\t\t<category>";
     if (array_key_exists('id_beslist_category', $product) && $product['id_beslist_category']) {
         echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
-    } elseif (
-        $product['id_category_default']
-        && array_key_exists($product['id_category_default'], $mapped_categories)
-    ) {
-        echo htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8');
+    } elseif ($product['id_category_default'] && array_key_exists($product['id_category_default'], $mapped_categories)) {
+        echo htmlspecialchars(
+                $categories[$mapped_categories[$product['id_category_default']]],
+                ENT_XML1,
+                'UTF-8'
+        );
     } else {
         echo htmlspecialchars($default_category, ENT_XML1, 'UTF-8');
     }
     echo "</category>\n";
 
-    if (
-        $product['id_category_default']
-        && array_key_exists($product['id_category_default'], $shop_categories)
-    ) {
+    if ($product['id_category_default'] && array_key_exists($product['id_category_default'], $shop_categories)) {
         echo "\t\t<shop_category>";
         echo htmlspecialchars($shop_categories[$product['id_category_default']], ENT_XML1, 'UTF-8');
         echo "</shop_category>\n";
@@ -245,9 +243,11 @@ foreach ($products as $product) {
 
     $productFeatures = Product::getFeaturesStatic($product['id_product']);
     foreach ($productFeatures as $productFeature) {
-        $name = strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
+        $name = Tools::strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
-        if ($name != "" && $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != "") {
+        if ($name != "" &&
+            $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != ""
+        ) {
             echo "\t\t<" . $name . ">";
             echo "<![CDATA[" .
                 $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
@@ -258,9 +258,11 @@ foreach ($products as $product) {
 
     $productAttributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
     foreach ($productAttributes as $productAttribute) {
-        $name = strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
+        $name = Tools::strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
-        if ($name != "" && $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != "") {
+        if ($name != "" &&
+            $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != ""
+        ) {
             echo "\t\t<" . $name . ">";
             echo "<![CDATA[" .
                 $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
@@ -270,7 +272,7 @@ foreach ($products as $product) {
     }
 
     echo "\t\t<condition>";
-    switch($product['condition']) {
+    switch ($product['condition']) {
         case 'refurbished':
             echo 'Refurbished';
             break;

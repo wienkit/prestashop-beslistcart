@@ -224,7 +224,7 @@ class BeslistProduct extends ObjectModel
             && !empty($this->id_product_attribute)
             && $this->id_product_attribute != 0;
 
-        switch((int)$matcher) {
+        switch ((int)$matcher) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 if ($isAttribute) {
                     $query = new DbQuery();

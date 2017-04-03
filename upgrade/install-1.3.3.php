@@ -24,5 +24,5 @@ function upgrade_module_1_3_3()
             && Db::getInstance()->execute(
                 'UPDATE `'._DB_PREFIX_.'configuration` 
                 SET `id_shop_group` = NULL, `id_shop` = NULL WHERE name = \'BESLIST_CART_ORDERS_INITIALSTATE\''
-        );
+            );
 }

@@ -102,7 +102,6 @@ class BeslistCart extends Module
             $return &= Db::getInstance()->execute($s);
         }
         return $return;
-
     }
 
     /**
@@ -309,7 +308,6 @@ class BeslistCart extends Module
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
         if (Tools::isSubmit('submit' . $this->name)) {
-
             $cartEnabled = (bool)Tools::getValue('beslist_cart_enabled');
             $testmode = (bool)Tools::getValue('beslist_cart_testmode');
             $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
@@ -471,7 +469,10 @@ class BeslistCart extends Module
                             'label' => $this->l('No')
                         )
                     ),
-                    'hint' => $this->l('Uses long descriptions in the feed. Note that you should not be using HTML markup in the content.')
+                    'hint' => $this->l(
+                        'Uses long descriptions in the feed. Note that 
+                        you should not be using HTML markup in the content.'
+                    )
                 ),
                 array(
                     'type' => 'switch',
@@ -1233,8 +1234,7 @@ class BeslistCart extends Module
      */
     public function hookActionAdminControllerSetMedia($params)
     {
-        if (
-            $this->context->controller->controller_name == 'AdminProducts' ||
+        if ($this->context->controller->controller_name == 'AdminProducts' ||
             $this->context->controller->controller_name == 'AdminCategories'
         ) {
             $admin_webpath = str_ireplace(_PS_CORE_DIR_, '', _PS_ADMIN_DIR_);
