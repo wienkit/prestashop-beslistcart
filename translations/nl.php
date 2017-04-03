@@ -12,8 +12,12 @@ $_MODULE['<{beslistcart}prestashop>beslistcart_95a6d2797e6e8c6471302f6fe3f5a681'
 $_MODULE['<{beslistcart}prestashop>beslistcart_fdf9661e8f2447d86bb33912ae8b0637'] = 'Indien u maten gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
 $_MODULE['<{beslistcart}prestashop>beslistcart_d7a4fb145b2dc96dccf27f24387587c4'] = 'Standaard kleurattribuut (optioneel)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_dfc191bb77a6bf41f2a83b3eae0eb330'] = 'Indien u kleuren gebruikt, kunt u hier aangeven welk attribuut er gebruikt dient te worden.';
+$_MODULE['<{beslistcart}prestashop>beslistcart_c99bf53ba64148e61c84d560b42b40bb'] = 'Gebruik lange omschrijving veld in de feed';
 $_MODULE['<{beslistcart}prestashop>beslistcart_93cba07454f06a4a960172bbd6e2a435'] = 'Ja';
 $_MODULE['<{beslistcart}prestashop>beslistcart_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Nee';
+$_MODULE['<{beslistcart}prestashop>beslistcart_6b0455270e98ba33d62cea760f91f446'] = 'Gebruikt het lange omschrijving veld in de feed, let op dat HTML eruit gefilterd wordt.';
+$_MODULE['<{beslistcart}prestashop>beslistcart_e8e1cb44347770c823c330d33405ccb4'] = 'Huisnummer in adres2';
+$_MODULE['<{beslistcart}prestashop>beslistcart_b70d132fafa65e5fc63cadbfc9e5ce94'] = 'Gebruik het adres2 veld voor het huisnummer (slaat huisnummer apart op)';
 $_MODULE['<{beslistcart}prestashop>beslistcart_8762338c21f6b3100dee910d51a9e2a6'] = 'Beslist productreferentie veld';
 $_MODULE['<{beslistcart}prestashop>beslistcart_40f0096d0d3d31a562d4e8e214af4609'] = 'Selecteer het veld welke u bij Beslist hebt aangegeven als uw unieke waarde per product';
 $_MODULE['<{beslistcart}prestashop>beslistcart_6fbc7452df75902da75c28b4d80a42fa'] = 'Standaard';
