@@ -222,7 +222,9 @@ foreach ($products as $product) {
     } else {
         echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
     }
-    echo "\t\t<description><![CDATA[" . ($use_long_description ? $product['description'] : $product['description_short']) . "]]></description>\n";
+    $description = $use_long_description ? $product['description'] : $product['description_short'];
+    $description = str_replace(array('<br>', '<br />'), '\\\\n', $description);
+    echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
 
     $display = 1;
     if ($product['published'] == 0) {
