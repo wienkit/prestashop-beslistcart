@@ -163,51 +163,53 @@ class BeslistProduct extends ObjectModel
      */
     public static function getLoadedBeslistProducts($id_lang = null)
     {
-        $sql = 'SELECT b.*,
+        $filter_stock = (bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
+
+        $sql = "SELECT b.*,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
-            st.`quantity` as stock, st.`out_of_stock` AS out_of_stock_behaviour,
+            SUM(st.`quantity`) as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 
             color.`id_attribute` AS variant, attrimg.id_image AS attribute_image
-    				FROM `' . _DB_PREFIX_ . 'beslist_product` b
-            LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON (b.`id_product` = p.`id_product`)
-    				' . Shop::addSqlAssociation('product', 'p') . '
-    				LEFT JOIN `' . _DB_PREFIX_ . 'product_lang` pl ON (p.`id_product` = pl.`id_product`
-            ' . Shop::addSqlRestrictionOnLang('pl') . ')
-    				LEFT JOIN `' . _DB_PREFIX_ . 'manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
-    				LEFT JOIN `' . _DB_PREFIX_ . 'supplier` s ON (s.`id_supplier` = p.`id_supplier`)
-            LEFT JOIN `' . _DB_PREFIX_ . 'stock_available` st ON (
+    				FROM `" . _DB_PREFIX_ . "beslist_product` b
+            LEFT JOIN `" . _DB_PREFIX_ . "product` p ON (b.`id_product` = p.`id_product`)" .
+                Shop::addSqlAssociation('product', 'p') . "
+            LEFT JOIN `" . _DB_PREFIX_ . "product_lang` pl ON (p.`id_product` = pl.`id_product`" .
+                Shop::addSqlRestrictionOnLang('pl') . ")
+            LEFT JOIN `" . _DB_PREFIX_ . "manufacturer` m ON (m.`id_manufacturer` = p.`id_manufacturer`)
+            LEFT JOIN `" . _DB_PREFIX_ . "supplier` s ON (s.`id_supplier` = p.`id_supplier`)
+            LEFT JOIN `" . _DB_PREFIX_ . "stock_available` st ON (
               b.`id_product` = st.`id_product` AND
               b.`id_product_attribute` = st.`id_product_attribute`
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute` prattr ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "product_attribute` prattr ON (
               b.`id_product_attribute` = prattr.`id_product_attribute`
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_combination` com ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_combination` com ON (
               b.`id_product_attribute` = com.`id_product_attribute`
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'product_attribute_image` attrimg ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_image` attrimg ON (
               b.`id_product_attribute` = attrimg.`id_product_attribute`
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrsize ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrsize ON (
               com.`id_attribute` = attrsize.`id_attribute` AND
-              attrsize.`id_attribute_group` = ' . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . '
+              attrsize.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . "
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` size ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` size ON (
               attrsize.`id_attribute` = size.`id_attribute`
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` attrcolor ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrcolor ON (
               com.`id_attribute` = attrcolor.`id_attribute` AND
-              attrcolor.`id_attribute_group` = ' . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . '
+              attrcolor.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . "
             )
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` color ON (
+            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` color ON (
               attrcolor.`id_attribute` = color.`id_attribute`
             )
-            WHERE pl.`id_lang` = ' . (int)$id_lang . '
+            WHERE pl.`id_lang` = " . (int)$id_lang . "
               AND product_shop.`active` = 1
-              ' . ((bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK') ? 'AND st.`quantity` > 0' : '') . '
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
-    				ORDER BY p.id_product';
+                " . ($filter_stock? "HAVING SUM(st.`quantity`) > 0" : "") . "
+            ORDER BY p.id_product";
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 
@@ -222,7 +224,7 @@ class BeslistProduct extends ObjectModel
             && !empty($this->id_product_attribute)
             && $this->id_product_attribute != 0;
 
-        switch((int)$matcher) {
+        switch ((int)$matcher) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 if ($isAttribute) {
                     $query = new DbQuery();
@@ -255,13 +257,6 @@ class BeslistProduct extends ObjectModel
                     return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
                 }
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                if ($isAttribute) {
-                    return $this->id_product_attribute . '-' . $this->id_product;
-                } else {
-                    return $this->id_product;
-                }
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 if ($isAttribute) {
                     return $this->id_product . '_' . $this->id_product_attribute;
@@ -269,8 +264,14 @@ class BeslistProduct extends ObjectModel
                     return $this->id_product;
                 }
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                if ($isAttribute) {
+                    return $this->id_product_attribute . '-' . $this->id_product;
+                } else {
+                    return $this->id_product;
+                }
+                break;
         }
     }
 

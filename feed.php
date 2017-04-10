@@ -41,6 +41,7 @@ $deliveryperiod_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_BE');
 $deliveryperiod_nostock_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 $enabled_nl = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
 $enabled_be = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
+$use_long_description = (bool) Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
 $country_nl = new Country(Country::getByIso('NL'));
 $country_be = new Country(Country::getByIso('BE'));
 $address_nl = new Address();
@@ -57,6 +58,37 @@ $carrier_nl_tax = $carrier_nl->getTaxesRate($address_nl);
 $carrier_be_tax = $carrier_be->getTaxesRate($address_be);
 $shippingFreePrice = Configuration::get('PS_SHIPPING_FREE_PRICE');
 $shippingHandling = Configuration::get('PS_SHIPPING_HANDLING');
+
+$featureValuesIndexed = array();
+$featuresIndexed = array();
+$features = Feature::getFeatures($context->language->id);
+foreach ($features as $feature) {
+    $id_feature = $feature['id_feature'];
+    $featureValuesIndexed[$id_feature] = array();
+    $featureValues = FeatureValue::getFeatureValuesWithLang($context->language->id, $id_feature);
+    foreach ($featureValues as $featureValue) {
+        $featureValuesIndexed[$id_feature][$featureValue['id_feature_value']] = $featureValue;
+    }
+    $featuresIndexed[$id_feature] = $feature;
+}
+unset($features);
+unset($featureValues);
+
+$attributesIndexed = array();
+$attributeGroupsIndexed = array();
+$attributeGroups = AttributeGroup::getAttributesGroups($context->language->id);
+
+foreach ($attributeGroups as $attributeGroup) {
+    $id_attribute_group = $attributeGroup['id_attribute_group'];
+    $attributesIndexed[$id_attribute_group] = array();
+    $attributeValues = AttributeGroup::getAttributes($context->language->id, $id_attribute_group);
+    foreach ($attributeValues as $attributeValue) {
+        $attributesIndexed[$id_attribute_group][$attributeValue['id_attribute']] = $attributeValue;
+    }
+    $attributeGroupsIndexed[$id_attribute_group] = $attributeGroup;
+}
+unset($attributeGroups);
+unset($attributeValues);
 
 header("Content-Type:text/xml; charset=utf-8");
 echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
@@ -134,20 +166,20 @@ foreach ($products as $product) {
     echo "\t\t<category>";
     if (array_key_exists('id_beslist_category', $product) && $product['id_beslist_category']) {
         echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
-    } elseif (
-        $product['id_category_default']
+    } elseif ($product['id_category_default']
         && array_key_exists($product['id_category_default'], $mapped_categories)
     ) {
-        echo htmlspecialchars($categories[$mapped_categories[$product['id_category_default']]], ENT_XML1, 'UTF-8');
+        echo htmlspecialchars(
+            $categories[$mapped_categories[$product['id_category_default']]],
+            ENT_XML1,
+            'UTF-8'
+        );
     } else {
         echo htmlspecialchars($default_category, ENT_XML1, 'UTF-8');
     }
     echo "</category>\n";
 
-    if (
-        $product['id_category_default']
-        && array_key_exists($product['id_category_default'], $shop_categories)
-    ) {
+    if ($product['id_category_default'] && array_key_exists($product['id_category_default'], $shop_categories)) {
         echo "\t\t<shop_category>";
         echo htmlspecialchars($shop_categories[$product['id_category_default']], ENT_XML1, 'UTF-8');
         echo "</shop_category>\n";
@@ -190,7 +222,9 @@ foreach ($products as $product) {
     } else {
         echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
     }
-    echo "\t\t<description><![CDATA[" . $product['description_short'] . "]]></description>\n";
+    $description = $use_long_description ? $product['description'] : $product['description_short'];
+    $description = str_replace(array('<br>', '<br />'), '\\\\n', $description);
+    echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
 
     $display = 1;
     if ($product['published'] == 0) {
@@ -208,10 +242,39 @@ foreach ($products as $product) {
     if (isset($product['manufacturer_name'])) {
         echo "\t\t<brand><![CDATA[" . $product['manufacturer_name'] . "]]></brand>\n";
     }
-    // echo "\t\t<gender> (man/vrouw/ jongen/meisje/baby/unisex) </gender>\n";
-    // echo "\t\t<material>?</material>\n";
+
+    $productFeatures = Product::getFeaturesStatic($product['id_product']);
+    foreach ($productFeatures as $productFeature) {
+        $name = Tools::strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
+        $name = preg_replace("/[^a-z0-9]/", '', $name);
+        if ($name != "" &&
+            $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != ""
+        ) {
+            echo "\t\t<" . $name . ">";
+            echo "<![CDATA[" .
+                $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
+                "]]>";
+            echo "</" . $name . ">\n";
+        }
+    }
+
+    $productAttributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
+    foreach ($productAttributes as $productAttribute) {
+        $name = Tools::strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
+        $name = preg_replace("/[^a-z0-9]/", '', $name);
+        if ($name != "" &&
+            $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != ""
+        ) {
+            echo "\t\t<" . $name . ">";
+            echo "<![CDATA[" .
+                $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
+                "]]>";
+            echo "</" . $name . ">\n";
+        }
+    }
+
     echo "\t\t<condition>";
-    switch($product['condition']) {
+    switch ($product['condition']) {
         case 'refurbished':
             echo 'Refurbished';
             break;

@@ -117,7 +117,7 @@ class AdminBeslistCartOrdersController extends AdminController
             )
         ));
 
-        if (Country::isCurrentlyUsed('country', true)) {
+        if (ObjectModel::isCurrentlyUsed('country', true)) {
             $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 			SELECT DISTINCT c.id_country, cl.`name`
 			FROM `' . _DB_PREFIX_ . 'orders` o
@@ -279,8 +279,12 @@ class AdminBeslistCartOrdersController extends AdminController
         }
 
         $beslistShoppingCart = $Beslist->getShoppingCartData($startDate, $endDate, $data);
+
         $success = true;
         foreach ($beslistShoppingCart->shopOrders as $shopOrder) {
+            if (Configuration::get('BESLIST_CART_TESTMODE')) {
+                $shopOrder->orderNumber = $shopOrder->orderNumber . '-' . Context::getContext()->shop->id;
+            }
             if (!self::getTransactionExists($shopOrder->orderNumber)) {
                 $cart = self::parse($shopOrder);
 
@@ -410,12 +414,20 @@ class AdminBeslistCartOrdersController extends AdminController
         $address = new Address();
         $address->id_customer = $customer->id;
         $address->firstname = str_replace(range(0, 9), '', $details->firstName);
-        $address->lastname = str_replace(range(0, 9), '', trim($details->lastNameInsertion . ' ' . $details->lastName));
+        $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
+        $address->lastname = str_replace(range(0, 9), '', $lastname);
         $address->address1 = $details->address;
-        $address->address1 .= ' ' . $details->addressNumber;
+
+        $houseNumber = $details->addressNumber;
         if ($details->addressNumberAdditional != '') {
-            $address->address1 .= ' ' . $details->addressNumberAdditional;
+            $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
+        if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
+            $address->address2 = $houseNumber;
+        } else {
+            $address->address1 .= trim(' ' . $houseNumber);
+        }
+
         $address->postcode = $details->zip;
         $address->city = $details->city;
         $address->id_country = Country::getByIso($details->country);
@@ -507,41 +519,39 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     public static function getProductIdByBvbCode($bvbCode)
     {
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch ((int)Configuration::get('BESLIST_CART_MATCHER')) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 $attributes = self::getAttributeByEan($bvbCode);
                 break;
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $attributes = self::getAttributeByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                $attributes = self::getAttributeByDefaultCode($bvbCode);
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 $attributes = self::getAttributeByStorecommanderCode($bvbCode);
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                $attributes = self::getAttributeByDefaultCode($bvbCode);
+                break;
         }
         if (is_array($attributes) && count($attributes) == 1) {
             return $attributes[0];
         }
 
-        switch((int)Configuration::get('BESLIST_CART_MATCHER')) {
+        switch ((int)Configuration::get('BESLIST_CART_MATCHER')) {
             case BeslistCart::BESLIST_MATCH_EAN13:
                 $id = Product::getIdByEan13($bvbCode);
                 break;
             case BeslistCart::BESLIST_MATCH_REFERENCE:
                 $id = self::getProductByReference($bvbCode);
                 break;
-            case BeslistCart::BESLIST_MATCH_DEFAULT:
-                $id = self::getProductByDefaultCode($bvbCode);
-                break;
             case BeslistCart::BESLIST_MATCH_STORECOMMANDER:
                 $id = self::getProductByStorecommanderCode($bvbCode);
                 break;
+            case BeslistCart::BESLIST_MATCH_DEFAULT:
             default:
-                die(Tools::displayError("No Beslist matcher selected."));
+                $id = self::getProductByDefaultCode($bvbCode);
+                break;
         }
 
         if ($id) {

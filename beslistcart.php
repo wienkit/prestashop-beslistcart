@@ -28,7 +28,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.2';
+        $this->version = '1.3.3';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -102,7 +102,6 @@ class BeslistCart extends Module
             $return &= Db::getInstance()->execute($s);
         }
         return $return;
-
     }
 
     /**
@@ -197,7 +196,13 @@ class BeslistCart extends Module
                     $order_state = new OrderState($state['id_order_state']);
                     $order_state->hidden = false;
                     $order_state->save();
-                    Configuration::updateValue('BESLIST_CART_ORDERS_INITIALSTATE', $state['id_order_state']);
+                    Configuration::updateValue(
+                        'BESLIST_CART_ORDERS_INITIALSTATE',
+                        $state['id_order_state'],
+                        false,
+                        null,
+                        null
+                    );
                     return true;
                 }
             }
@@ -223,7 +228,13 @@ class BeslistCart extends Module
         $order_state->hidden = false;
         $order_state->deleted = false;
         $order_state->add();
-        Configuration::updateValue('BESLIST_CART_ORDERS_INITIALSTATE', $order_state->id);
+        Configuration::updateValue(
+            'BESLIST_CART_ORDERS_INITIALSTATE',
+            $order_state->id,
+            false,
+            null,
+            null
+        );
         return true;
     }
 
@@ -284,8 +295,9 @@ class BeslistCart extends Module
      */
     public function getContent()
     {
-        $cron_url = Tools::getShopDomain(true, true).__PS_BASE_URI__.basename(_PS_MODULE_DIR_);
-        $cron_url.= '/beslistcart/cron.php?secure_key=' .
+        $cron_url = "http://" . ShopUrl::getMainShopDomain(Context::getContext()->shop->id);
+        $cron_url .= __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
+        $cron_url .= '/beslistcart/cron.php?secure_key=' .
             md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
 
         $this->context->smarty->assign(array(
@@ -296,7 +308,6 @@ class BeslistCart extends Module
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
         if (Tools::isSubmit('submit' . $this->name)) {
-
             $cartEnabled = (bool)Tools::getValue('beslist_cart_enabled');
             $testmode = (bool)Tools::getValue('beslist_cart_testmode');
             $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
@@ -307,6 +318,9 @@ class BeslistCart extends Module
 
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
+            $use_long_descriptions = (bool)Tools::getValue('beslist_cart_use_long_description');
+            $useAddress2 = (bool) Tools::getValue('beslist_cart_use_address2');
+
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
             $startDate = (string)Tools::getValue('beslist_cart_startdate');
@@ -335,7 +349,6 @@ class BeslistCart extends Module
                 || empty($personalkey)
                 || empty($startDate)
                 || empty($shopitemKey)
-//                || ($testmode && empty($test_reference))
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
@@ -355,9 +368,13 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_FILTER_NO_STOCK', $filterNoStock);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
+                Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', $use_long_descriptions);
+                Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', $useAddress2);
+
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
+
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
                 Configuration::updateValue('BESLIST_CART_CARRIER_NL', $carrier_nl);
@@ -434,6 +451,47 @@ class BeslistCart extends Module
                         'id' => 'id_attribute_group',
                         'name' => 'name'
                     )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Use long descriptions in feed.'),
+                    'name' => 'beslist_cart_use_long_description',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_use_long_description_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_use_long_description_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l(
+                        'Uses long descriptions in the feed. Note that 
+                        you should not be using HTML markup in the content.'
+                    )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Housenumber in address2'),
+                    'name' => 'beslist_cart_use_address2',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_use_address2_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_use_address2_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'desc' => $this->l('Won\'t append housenumber to street but uses separate field for housenumber')
                 ),
                 array(
                     'type' => 'select',
@@ -869,6 +927,10 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
+        $helper->fields_value['beslist_cart_use_long_description'] =
+            Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+        $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
+
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
@@ -1049,7 +1111,9 @@ class BeslistCart extends Module
                 ) {
                     continue;
                 }
-                $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
+                if ($product->active) {
+                    $beslistProduct->status = BeslistProduct::STATUS_INFO_UPDATE;
+                }
             } elseif (!$published && $delivery_code_nl == '' && $delivery_code_be == '') {
                 continue;
             } else {
@@ -1083,21 +1147,24 @@ class BeslistCart extends Module
         if (!Configuration::get('BESLIST_CART_ENABLED')) {
             return;
         }
-        $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
-            $param['id_product'],
-            $param['id_product_attribute']
-        );
-        if (!empty($beslistProductId)) {
-            $beslistProduct = new BeslistProduct($beslistProductId);
-            AdminBeslistCartProductsController::setProductStatus(
-                $beslistProduct,
-                (int)BeslistProduct::STATUS_STOCK_UPDATE
+        $product = new Product($param['id_product']);
+        if ($product->active) {
+            $beslistProductId = BeslistProduct::getIdByProductAndAttributeId(
+                $param['id_product'],
+                $param['id_product_attribute']
             );
-            AdminBeslistCartProductsController::processBeslistQuantityUpdate(
-                $beslistProduct,
-                $param['quantity'],
-                $this->context
-            );
+            if (!empty($beslistProductId)) {
+                $beslistProduct = new BeslistProduct($beslistProductId);
+                AdminBeslistCartProductsController::setProductStatus(
+                    $beslistProduct,
+                    (int)BeslistProduct::STATUS_STOCK_UPDATE
+                );
+                AdminBeslistCartProductsController::processBeslistQuantityUpdate(
+                    $beslistProduct,
+                    $param['quantity'],
+                    $this->context
+                );
+            }
         }
     }
 
@@ -1168,8 +1235,7 @@ class BeslistCart extends Module
      */
     public function hookActionAdminControllerSetMedia($params)
     {
-        if (
-            $this->context->controller->controller_name == 'AdminProducts' ||
+        if ($this->context->controller->controller_name == 'AdminProducts' ||
             $this->context->controller->controller_name == 'AdminCategories'
         ) {
             $admin_webpath = str_ireplace(_PS_CORE_DIR_, '', _PS_ADMIN_DIR_);

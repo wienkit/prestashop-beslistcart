@@ -133,6 +133,16 @@ class AdminBeslistCartProductsController extends AdminController
         );
     }
 
+    public function initProcess()
+    {
+        if (Tools::getIsset('published'.$this->table)) {
+            $this->action = 'published';
+        }
+        if (!$this->action) {
+            parent::initProcess();
+        }
+    }
+
     /**
      * Processes the request
      */
@@ -149,6 +159,15 @@ class AdminBeslistCartProductsController extends AdminController
             $this->confirmations[] = $this->l('Beslist products fully synchronized.');
         }
         return parent::postProcess();
+    }
+
+    public function processPublished()
+    {
+        /** @var BeslistProduct $beslistProduct */
+        if (Validate::isLoadedObject($beslistProduct = $this->loadObject())) {
+            $beslistProduct->published = $beslistProduct->published ? 0 : 1;
+            $beslistProduct->save();
+        }
     }
 
     /**
@@ -280,6 +299,12 @@ class AdminBeslistCartProductsController extends AdminController
             }
 
             try {
+                $client->getShopItem($beslistShopId, $productRef);
+            } catch (Exception $e) {
+                continue;
+            }
+
+            try {
                 $client->updateShopItem($beslistShopId, $productRef, $options);
             } catch (Exception $e) {
                 $message = $e->getMessage();
@@ -322,7 +347,10 @@ class AdminBeslistCartProductsController extends AdminController
         );
 
         $shopIds = array();
-        $shopIds = BeslistProduct::getShops($beslistProduct);
+        if ($quantity > 0 || !(bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK')) {
+            $shopIds = BeslistProduct::getShops($beslistProduct);
+        }
+
         $errors = array();
 
         foreach ($shopIds as $shopIdRow) {
@@ -339,7 +367,7 @@ class AdminBeslistCartProductsController extends AdminController
             $productRef = $beslistProduct->getReference($matcher);
             $options = array(
                 'price' => $price,
-                'stock' => $quantity
+                'stock' => $beslistProduct->published ? $quantity : 0
             );
 
             if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
@@ -360,6 +388,12 @@ class AdminBeslistCartProductsController extends AdminController
                     );
                 }
                 $options['delivery_time_be'] = $delivery_time_be;
+            }
+
+            try {
+                $client->getShopItem($beslistShopId, $productRef);
+            } catch (Exception $e) {
+                continue;
             }
 
             try {
