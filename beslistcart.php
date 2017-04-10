@@ -927,7 +927,8 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
-        $helper->fields_value['beslist_cart_use_long_description'] = Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+        $helper->fields_value['beslist_cart_use_long_description'] =
+            Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
         $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
 
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
