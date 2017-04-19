@@ -210,7 +210,7 @@ foreach ($products as $product) {
         echo "\t\t<deliveryperiod_be>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
             "</deliveryperiod_be>\n";
-        $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
+        $shippingTotal = $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
         echo "\t\t<shippingcost_be>" .
             Tools::ps_round(
                 $shippingTotal * (1 + ($carrier_be_tax / 100)),
