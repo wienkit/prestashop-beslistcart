@@ -190,6 +190,10 @@ foreach ($products as $product) {
         $priceExtra = $shippingHandling;
     }
 
+    if ($product['additional_shipping_cost'] > 0) {
+        $priceExtra += $product['additional_shipping_cost'];
+    }
+
     if ($enabled_nl) {
         $prod_deliveryperiod_nl =
             $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
