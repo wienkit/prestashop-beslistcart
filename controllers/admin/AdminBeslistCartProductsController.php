@@ -55,6 +55,8 @@ class AdminBeslistCartProductsController extends AdminController
                             IF(status = 0, 1, 0) as badge_success,
                             IF(status > 0, 1, 0) as badge_danger ';
 
+        parent::__construct();
+
         $this->statuses_array = array(
             BeslistProduct::STATUS_OK => $this->l('OK'),
             BeslistProduct::STATUS_STOCK_UPDATE => $this->l('Stock updated'),
@@ -103,8 +105,6 @@ class AdminBeslistCartProductsController extends AdminController
                 'filter_type' => 'int'
             )
         );
-
-        parent::__construct();
     }
 
     /**

@@ -992,11 +992,11 @@ class BeslistCart extends Module
      */
     public function hookDisplayAdminProductsExtra($params)
     {
-        if (!Configuration::get('BESLIST_CART_ENABLED')) {
+        if (!Configuration::get('BESLIST_CART_ENABLED_NL') && !Configuration::get('BESLIST_CART_ENABLED_BE')) {
             return $this->display(__FILE__, 'views/templates/admin/disabled.tpl');
         }
         $product = null;
-        if ($id_product = (int)Tools::getValue('id_product')) {
+        if ($id_product = (int)Tools::getValue('id_product', $params['id_product'])) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
         }
         if ($product == null || !Validate::isLoadedObject($product)) {
@@ -1009,17 +1009,14 @@ class BeslistCart extends Module
             $attributes[] = array(
                 'id_product' => $product->id,
                 'id_product_attribute' => 0,
-                'attribute_designation' => ''
+                'attribute_designation' => $product->name
             );
         }
 
         $product_designation = array();
 
         foreach ($attributes as $attribute) {
-            $product_designation[$attribute['id_product_attribute']] = rtrim(
-                $product->name . ' - ' . $attribute['attribute_designation'],
-                ' - '
-            );
+            $product_designation[$attribute['id_product_attribute']] = $attribute['attribute_designation'];
         }
 
         $beslistProducts = BeslistProduct::getByProductId($id_product);
@@ -1049,7 +1046,10 @@ class BeslistCart extends Module
             'beslist_categories' => $beslistCategories
         ));
 
-        return $this->display(__FILE__, 'views/templates/admin/beslistproduct.tpl');
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            return $this->display(__FILE__, 'views/templates/admin/beslistproduct-panel.tpl');
+        }
+        return $this->display(__FILE__, 'views/templates/admin/beslistproduct-tab.tpl');
     }
 
     /**
@@ -1060,7 +1060,7 @@ class BeslistCart extends Module
     public function hookActionProductUpdate($params)
     {
         if ((int)Tools::getValue('beslistcart_loaded') === 1
-            && Configuration::get('BESLIST_CART_ENABLED')
+            && (Configuration::get('BESLIST_CART_ENABLED_NL') || Configuration::get('BESLIST_CART_ENABLED_BE'))
             && Validate::isLoadedObject($product = new Product((int)$params['id_product']))
         ) {
             $this->processBeslistProductEntities($product);
@@ -1238,6 +1238,10 @@ class BeslistCart extends Module
         if ($this->context->controller->controller_name == 'AdminProducts' ||
             $this->context->controller->controller_name == 'AdminCategories'
         ) {
+            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+                return;
+            }
+
             $admin_webpath = str_ireplace(_PS_CORE_DIR_, '', _PS_ADMIN_DIR_);
             $admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
             $bo_theme = ((Validate::isLoadedObject(Context::getContext()->employee)
