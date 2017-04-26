@@ -398,12 +398,20 @@ class AdminBeslistCartOrdersController extends AdminController
             return new Customer($customer['id_customer']);
         }
         $customer = new Customer();
-        $customer->firstname = str_replace(range(0, 9), '', $shopOrder->addresses->invoice->firstName);
-        $customer->lastname = str_replace(range(0, 9), '', trim(
-            $shopOrder->addresses->invoice->lastNameInsertion .
-            ' ' .
-            $shopOrder->addresses->invoice->lastName
-        ));
+        $customer->firstname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $shopOrder->addresses->invoice->firstName
+        );
+        $customer->lastname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            trim(
+                $shopOrder->addresses->invoice->lastNameInsertion .
+                ' ' .
+                $shopOrder->addresses->invoice->lastName
+            )
+        );
         $customer->email = $shopOrder->customer->email;
         $customer->passwd = Tools::passwdGen(8, 'RANDOM');
         $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
@@ -426,9 +434,17 @@ class AdminBeslistCartOrdersController extends AdminController
     ) {
         $address = new Address();
         $address->id_customer = $customer->id;
-        $address->firstname = str_replace(range(0, 9), '', $details->firstName);
+        $address->firstname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $details->firstName
+        );
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
-        $address->lastname = str_replace(range(0, 9), '', $lastname);
+        $address->lastname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $lastname
+        );
         $address->address1 = $details->address;
 
         $houseNumber = $details->addressNumber;
