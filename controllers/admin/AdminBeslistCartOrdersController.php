@@ -421,9 +421,17 @@ class AdminBeslistCartOrdersController extends AdminController
     ) {
         $address = new Address();
         $address->id_customer = $customer->id;
-        $address->firstname = str_replace(range(0, 9), '', $details->firstName);
+        $address->firstname = preg_replace(
+            "[0-9!<>,;?=+()@#\"°{}_$%:]*",
+            '',
+            $details->firstName
+        );
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
-        $address->lastname = str_replace(range(0, 9), '', $lastname);
+        $address->lastname = preg_replace(
+            "[0-9!<>,;?=+()@#\"°{}_$%:]*",
+            '',
+            $lastname
+        );
         $address->address1 = $details->address;
 
         $houseNumber = $details->addressNumber;
