@@ -27,11 +27,21 @@ class AdminBeslistCartProductsController extends AdminController
         if (Tools::getIsset('viewbeslist_product') && $id_beslist_product = Tools::getValue('id_beslist_product')) {
             $beslistProduct =  new BeslistProduct($id_beslist_product);
             $id_product = $beslistProduct->id_product;
-            Tools::redirectAdmin(
-                Context::getContext()
+            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+                $link = Context::getContext()
                     ->link
-                    ->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id_product
-            );
+                    ->getAdminLink(
+                        'AdminProducts',
+                        true,
+                        ['id_product' => $id_product],
+                        ['updateproduct' => '1']
+                    );
+            } else {
+                $link = Context::getContext()
+                        ->link
+                        ->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id_product;
+            }
+            Tools::redirectAdmin($link);
         }
 
         $this->bootstrap = true;
