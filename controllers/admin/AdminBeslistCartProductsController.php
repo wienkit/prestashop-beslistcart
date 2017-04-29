@@ -27,11 +27,21 @@ class AdminBeslistCartProductsController extends AdminController
         if (Tools::getIsset('viewbeslist_product') && $id_beslist_product = Tools::getValue('id_beslist_product')) {
             $beslistProduct =  new BeslistProduct($id_beslist_product);
             $id_product = $beslistProduct->id_product;
-            Tools::redirectAdmin(
-                Context::getContext()
+            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+                $link = Context::getContext()
                     ->link
-                    ->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id_product
-            );
+                    ->getAdminLink(
+                        'AdminProducts',
+                        true,
+                        array('id_product' => $id_product),
+                        array('updateproduct' => '1')
+                    );
+            } else {
+                $link = Context::getContext()
+                        ->link
+                        ->getAdminLink('AdminProducts') . '&updateproduct&id_product=' . (int)$id_product;
+            }
+            Tools::redirectAdmin($link);
         }
 
         $this->bootstrap = true;
@@ -54,6 +64,8 @@ class AdminBeslistCartProductsController extends AdminController
         $this->_select .= ' pl.`name` as `product_name`,
                             IF(status = 0, 1, 0) as badge_success,
                             IF(status > 0, 1, 0) as badge_danger ';
+
+        parent::__construct();
 
         $this->statuses_array = array(
             BeslistProduct::STATUS_OK => $this->l('OK'),
@@ -103,8 +115,6 @@ class AdminBeslistCartProductsController extends AdminController
                 'filter_type' => 'int'
             )
         );
-
-        parent::__construct();
     }
 
     /**

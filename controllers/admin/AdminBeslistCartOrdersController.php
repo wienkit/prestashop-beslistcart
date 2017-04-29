@@ -68,6 +68,8 @@ class AdminBeslistCartOrdersController extends AdminController
             $this->statuses_array[$status['id_order_state']] = $status['name'];
         }
 
+        parent::__construct();
+
         $this->fields_list = array(
             'id_order' => array(
                 'title' => $this->l('ID'),
@@ -151,8 +153,6 @@ class AdminBeslistCartOrdersController extends AdminController
 
         $this->shopLinkType = 'shop';
         $this->shopShareDatas = Shop::SHARE_ORDER;
-
-        parent::__construct();
     }
 
     /**
@@ -257,6 +257,7 @@ class AdminBeslistCartOrdersController extends AdminController
         if (Configuration::get('BESLIST_CART_TESTMODE')) {
             $testReference = (string) Configuration::get('BESLIST_CART_TEST_REFERENCE');
             $productId = self::getProductIdByBvbCode($testReference);
+            $product = new Product($productId['id_product']);
             $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
             // Shipping cost
@@ -267,11 +268,23 @@ class AdminBeslistCartOrdersController extends AdminController
             $address->id_state = 0;
             $address->postcode = 0;
             $tax_rate = $carrier->getTaxesRate($address);
-            $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone);
+
+            $priceExtra = 0;
+            $quantity = 2;
+
+            if ($price < Configuration::get('PS_SHIPPING_FREE_PRICE')) {
+                $priceExtra = Configuration::get('PS_SHIPPING_HANDLING');
+            }
+
+            if ($product->additional_shipping_cost > 0) {
+                $priceExtra += $quantity * $product->additional_shipping_cost;
+            }
+
+            $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;
             $shippingTaxIncl = $shippingTaxExcl * (1 + ($tax_rate / 100));
 
             $data = array(array(
-                'number_ordered' => 2,
+                'number_ordered' => $quantity,
                 'bvb_code' => $testReference,
                 'item_shipping' => $shippingTaxIncl,
                 'item_price' => $price
@@ -385,12 +398,20 @@ class AdminBeslistCartOrdersController extends AdminController
             return new Customer($customer['id_customer']);
         }
         $customer = new Customer();
-        $customer->firstname = str_replace(range(0, 9), '', $shopOrder->addresses->invoice->firstName);
-        $customer->lastname = str_replace(range(0, 9), '', trim(
-            $shopOrder->addresses->invoice->lastNameInsertion .
-            ' ' .
-            $shopOrder->addresses->invoice->lastName
-        ));
+        $customer->firstname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $shopOrder->addresses->invoice->firstName
+        );
+        $customer->lastname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            trim(
+                $shopOrder->addresses->invoice->lastNameInsertion .
+                ' ' .
+                $shopOrder->addresses->invoice->lastName
+            )
+        );
         $customer->email = $shopOrder->customer->email;
         $customer->passwd = Tools::passwdGen(8, 'RANDOM');
         $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
@@ -413,9 +434,17 @@ class AdminBeslistCartOrdersController extends AdminController
     ) {
         $address = new Address();
         $address->id_customer = $customer->id;
-        $address->firstname = str_replace(range(0, 9), '', $details->firstName);
+        $address->firstname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $details->firstName
+        );
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
-        $address->lastname = str_replace(range(0, 9), '', $lastname);
+        $address->lastname = preg_replace(
+            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            '',
+            $lastname
+        );
         $address->address1 = $details->address;
 
         $houseNumber = $details->addressNumber;
@@ -460,13 +489,6 @@ class AdminBeslistCartOrdersController extends AdminController
         $cart->id_lang = (int)$context->language->id;
         $cart->id_currency = (int)Currency::getIdByIsoCode('EUR');
         $country = new Country($shipping->id_country);
-        if ($country->iso_code == 'NL') {
-            $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
-            $cart->id_carrier = $carrier_nl->id;
-        } else {
-            $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
-            $cart->id_carrier = $carrier_be->id;
-        }
         $cart->recyclable = 0;
         $cart->gift = 0;
         $cart->secure_key = md5(uniqid(rand(), true));
@@ -505,6 +527,14 @@ class AdminBeslistCartOrdersController extends AdminController
             }
         }
 
+        if ($country->iso_code == 'NL') {
+            $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+            $id_carrier = $carrier_nl->id;
+        } else {
+            $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
+            $id_carrier = $carrier_be->id;
+        }
+        $cart->setDeliveryOption(array($shipping->id => $id_carrier . ","));
         $cart->update();
         if (!$hasProducts) {
             return false;

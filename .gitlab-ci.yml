@@ -5,11 +5,12 @@ build:
   image: mwienk/docker-bolt-builder
   stage: build
   script:
-     - composer install --no-dev
-     - rm -rf .git*
-     - mkdir ../beslistcart
-     - mv * ../beslistcart
-     - mv ../beslistcart .
+  - composer install --no-dev
+  - echo $CI_COMMIT_SHA > VERSION
+  - rm -rf .git*
+  - mkdir ../beslistcart
+  - mv * ../beslistcart
+  - mv ../beslistcart .
   artifacts:
     paths:
-      - .
+    - .
