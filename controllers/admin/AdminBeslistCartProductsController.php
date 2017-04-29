@@ -33,8 +33,8 @@ class AdminBeslistCartProductsController extends AdminController
                     ->getAdminLink(
                         'AdminProducts',
                         true,
-                        ['id_product' => $id_product],
-                        ['updateproduct' => '1']
+                        array('id_product' => $id_product),
+                        array('updateproduct' => '1')
                     );
             } else {
                 $link = Context::getContext()
