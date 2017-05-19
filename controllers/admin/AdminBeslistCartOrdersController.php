@@ -454,7 +454,7 @@ class AdminBeslistCartOrdersController extends AdminController
         if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
             $address->address2 = $houseNumber;
         } else {
-            $address->address1 .= trim(' ' . $houseNumber);
+            $address->address1 .= ' ' . trim($houseNumber);
         }
 
         $address->postcode = $details->zip;
