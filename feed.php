@@ -54,6 +54,8 @@ $address_be->id_state = 0;
 $address_be->postcode = 0;
 $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
+$shipping_method_nl = $carrier_nl->getShippingMethod();
+$shipping_method_be = $carrier_be->getShippingMethod();
 $carrier_nl_tax = $carrier_nl->getTaxesRate($address_nl);
 $carrier_be_tax = $carrier_be->getTaxesRate($address_be);
 $shippingFreePrice = Configuration::get('PS_SHIPPING_FREE_PRICE');
@@ -196,7 +198,17 @@ foreach ($products as $product) {
         echo "\t\t<deliveryperiod_nl>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
             "</deliveryperiod_nl>\n";
-        $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;
+
+        if ($shipping_method_nl == Carrier::SHIPPING_METHOD_WEIGHT) {
+            if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
+                $shippingTotal = $carrier_nl->getDeliveryPriceByWeight($product['weight'], $country_nl->id_zone);
+            } else {
+                $shippingTotal = $carrier_nl->getDeliveryPriceByWeight($product['weight_attribute'], $country_nl->id_zone);
+            }
+        } else {
+            $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;
+        }
+
         echo "\t\t<shippingcost_nl>" .
             Tools::ps_round(
                 $shippingTotal * (1 + ($carrier_nl_tax / 100)),
@@ -210,7 +222,16 @@ foreach ($products as $product) {
         echo "\t\t<deliveryperiod_be>" .
             ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
             "</deliveryperiod_be>\n";
-        $shippingTotal = $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
+
+        if ($shipping_method_be == Carrier::SHIPPING_METHOD_WEIGHT) {
+            if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
+                $shippingTotal = $carrier_be->getDeliveryPriceByWeight($product['weight'], $country_be->id_zone);
+            } else {
+                $shippingTotal = $carrier_be->getDeliveryPriceByWeight($product['weight_attribute'], $country_be->id_zone);
+            }
+        } else {
+            $shippingTotal = $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
+        }
         echo "\t\t<shippingcost_be>" .
             Tools::ps_round(
                 $shippingTotal * (1 + ($carrier_be_tax / 100)),
