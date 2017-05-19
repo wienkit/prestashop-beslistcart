@@ -452,7 +452,7 @@ class AdminBeslistCartOrdersController extends AdminController
             $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
         if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
-            $address->address2 = $houseNumber;
+            $address->address2 = trim($houseNumber);
         } else {
             $address->address1 .= ' ' . trim($houseNumber);
         }
