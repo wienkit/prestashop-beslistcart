@@ -98,7 +98,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 <productfeed type="beslist" date="<?php echo date('Y-m-d H:i:s'); ?>">
 <?php
 foreach ($products as $product) {
-    $price = (float)Product::getPriceStatic($product['id_product']);
+    $price = (float)Product::getPriceStatic($product['id_product'], true, $product['id_product_attribute']);
     echo "\t<product>\n";
     echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
     echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
