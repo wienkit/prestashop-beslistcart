@@ -269,6 +269,8 @@ foreach ($products as $product) {
         $name = Tools::strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
         if ($name != "" &&
+            array_key_exists($productFeature['id_feature'], $featuresIndexed) &&
+            array_key_exists($productFeature['id_feature_value'], $featureValuesIndexed[$productFeature['id_feature']]) &&
             $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != ""
         ) {
             echo "\t\t<" . $name . ">";
@@ -284,6 +286,8 @@ foreach ($products as $product) {
         $name = Tools::strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
         $name = preg_replace("/[^a-z0-9]/", '', $name);
         if ($name != "" &&
+            array_key_exists($productAttribute['id_attribute_group'], $attributesIndexed) &&
+            array_key_exists($productAttribute['id_attribute'], $attributesIndexed[$productAttribute['id_attribute_group']]) &&
             $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != ""
         ) {
             echo "\t\t<" . $name . ">";
