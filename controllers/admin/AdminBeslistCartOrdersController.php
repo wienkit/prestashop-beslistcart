@@ -177,6 +177,12 @@ class AdminBeslistCartOrdersController extends AdminController
         }
     }
 
+    public function initToolbar() {
+        $this->allow_export = true;
+        parent::initToolbar();
+        unset($this->toolbar_btn['new']);
+    }
+
     /**
      * Prints Yes if a new customer was found
      *
