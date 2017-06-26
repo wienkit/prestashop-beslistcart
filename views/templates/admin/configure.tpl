@@ -24,12 +24,43 @@
                 {l s='Find help online at ' mod='beslistcart'}<a href="http://werkaandewebshop-beslistcart.readthedocs.io/">{l s='the online documentation (dutch)' mod='beslistcart'}</a>.
             </p>
             <p><a data-toggle="collapse" href="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
-                {l s='Show advanced options' mod='beslistcart'}
-            </a></p>
+                    {l s='Show advanced options' mod='beslistcart'}
+                </a></p>
             <div class="collapse" id="collapseAdvanced">
                 <div class="well">
-                    <p><strong>Cron URL:</strong> {$cron_url|escape:'htmlall':'UTF-8'}</p>
-                    <p><strong>{l s='Note:' mod='beslistcart'}</strong> {l s='If you use multistore, setup a cron task for each shop (look at the module settings page for each shop, because the secret key differs per shop)'  mod='beslistcart'}</p>
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label for="cron_url" class="col-md-2 control-label"><strong>Cron URL</strong></label>
+                            <div class="col-md-10">
+                                <input id="cron_url" readonly class="form-control" type="text" value="{$cron_url|escape:'htmlall':'UTF-8'}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cron_cmd" class="col-md-2 control-label"><strong>Cron command</strong></label>
+                            <div class="col-md-10">
+                                <input id="cron_cmd" readonly class="form-control" type="text" value="*/10 * * * * curl --silent {$cron_url|escape:'htmlall':'UTF-8'} &>/dev/null" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="feed_url" class="col-md-2 control-label"><strong>Live feed</strong></label>
+                            <div class="col-md-10">
+                                <input id="feed_url" readonly class="form-control" type="text" value="{$feed_url|escape:'htmlall':'UTF-8'}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="feed_cmd" class="col-md-2 control-label"><strong>Feed generator</strong></label>
+                            <div class="col-md-10">
+                                <input id="feed_cmd" readonly class="form-control" type="text" value="0 1 * * * curl {$feed_url|escape:'htmlall':'UTF-8'} > {$feed_loc}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="feed_web" class="col-md-2 control-label"><strong>Generated feed</strong></label>
+                            <div class="col-md-10">
+                                <input id="feed_web" readonly class="form-control" type="text" value="{$feed_web|escape:'htmlall':'UTF-8'}" />
+                            </div>
+                        </div>
+                    </div>
+                    <p><strong>{l s='Note:' mod='beslistcart'}</strong> {l s='If you use multistore, setup a cron task for each shop (look at the module settings page for each shop, because the secret key differs per shop)'  mod='beslistcart'}
                 </div>
             </div>
         </div>
