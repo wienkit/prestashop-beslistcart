@@ -60,7 +60,7 @@ class AdminBeslistCartOrdersController extends AdminController
 		    AND osl.`id_lang` = ' . (int)$this->context->language->id . ')';
         $this->_orderBy = 'id_order';
         $this->_orderWay = 'DESC';
-        $this->_where = 'AND a.module IN (\'beslistcart\', \'beslistcarttest\')';
+        $this->_where = 'AND a.module IN (\'beslistcart_payment\', \'beslistcarttest\')';
         $this->_use_found_rows = true;
 
         $statuses = OrderState::getOrderStates((int)$this->context->language->id);

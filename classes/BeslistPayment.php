@@ -16,7 +16,7 @@
 class BeslistPayment extends PaymentModule
 {
     public $active = 1;
-    public $name = 'beslistcart';
+    public $name = 'beslistcart_payment';
 
     const CARTRULE_CODE_PREFIX = 'BESLIST_';
 
