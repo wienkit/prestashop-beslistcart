@@ -211,7 +211,7 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function setProductStatus($beslistProduct, $status)
     {
-        DB::getInstance()->update('beslist_product', array(
+        Db::getInstance()->update('beslist_product', array(
             'status' => (int)$status
         ), 'id_beslist_product = ' . (int)$beslistProduct->id);
     }
@@ -238,7 +238,7 @@ class AdminBeslistCartProductsController extends AdminController
                        WHERE ps.`id_shop` = '. (int) $id_shop .'
                    ) LIMIT 1000';
 
-        DB::getInstance()->execute($update);
+        Db::getInstance()->execute($update);
     }
 
     /**
