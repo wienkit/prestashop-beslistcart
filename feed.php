@@ -236,9 +236,15 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 
             if ($shipping_method_be == Carrier::SHIPPING_METHOD_WEIGHT) {
                 if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
-                    $shippingTotal = $carrier_be->getDeliveryPriceByWeight($product['weight'], $country_be->id_zone);
+                    $shippingTotal = $carrier_be->getDeliveryPriceByWeight(
+                        $product['weight'],
+                        $country_be->id_zone
+                    );
                 } else {
-                    $shippingTotal = $carrier_be->getDeliveryPriceByWeight($product['weight_attribute'], $country_be->id_zone);
+                    $shippingTotal = $carrier_be->getDeliveryPriceByWeight(
+                        $product['weight_attribute'],
+                        $country_be->id_zone
+                    );
                 }
             } else {
                 $shippingTotal = $carrier_be->getDeliveryPriceByPrice($price, $country_be->id_zone) + $priceExtra;
@@ -275,35 +281,35 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             echo "\t\t<brand><![CDATA[" . $product['manufacturer_name'] . "]]></brand>\n";
         }
 
-        $productFeatures = Product::getFeaturesStatic($product['id_product']);
-        foreach ($productFeatures as $productFeature) {
-            $name = Tools::strtolower($featuresIndexed[$productFeature['id_feature']]['name']);
+        $prFeatures = Product::getFeaturesStatic($product['id_product']);
+        foreach ($prFeatures as $prFeature) {
+            $name = Tools::strtolower($featuresIndexed[$prFeature['id_feature']]['name']);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
-                array_key_exists($productFeature['id_feature'], $featuresIndexed) &&
-                array_key_exists($productFeature['id_feature_value'], $featureValuesIndexed[$productFeature['id_feature']]) &&
-                $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] != ""
+                array_key_exists($prFeature['id_feature'], $featuresIndexed) &&
+                array_key_exists($prFeature['id_feature_value'], $featureValuesIndexed[$prFeature['id_feature']]) &&
+                $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] != ""
             ) {
                 echo "\t\t<" . $name . ">";
                 echo "<![CDATA[" .
-                    $featureValuesIndexed[$productFeature['id_feature']][$productFeature['id_feature_value']]['value'] .
+                    $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] .
                     "]]>";
                 echo "</" . $name . ">\n";
             }
         }
 
-        $productAttributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
-        foreach ($productAttributes as $productAttribute) {
-            $name = Tools::strtolower($attributeGroupsIndexed[$productAttribute['id_attribute_group']]['name']);
+        $attributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
+        foreach ($attributes as $attribute) {
+            $name = Tools::strtolower($attributeGroupsIndexed[$attribute['id_attribute_group']]['name']);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
-                array_key_exists($productAttribute['id_attribute_group'], $attributesIndexed) &&
-                array_key_exists($productAttribute['id_attribute'], $attributesIndexed[$productAttribute['id_attribute_group']]) &&
-                $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] != ""
+                array_key_exists($attribute['id_attribute_group'], $attributesIndexed) &&
+                array_key_exists($attribute['id_attribute'], $attributesIndexed[$attribute['id_attribute_group']]) &&
+                $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] != ""
             ) {
                 echo "\t\t<" . $name . ">";
                 echo "<![CDATA[" .
-                    $attributesIndexed[$productAttribute['id_attribute_group']][$productAttribute['id_attribute']]['name'] .
+                    $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] .
                     "]]>";
                 echo "</" . $name . ">\n";
             }
