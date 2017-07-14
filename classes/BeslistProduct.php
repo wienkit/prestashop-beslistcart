@@ -167,6 +167,7 @@ class BeslistProduct extends ObjectModel
 
         $sql = "SELECT b.*,
             p.*, prattr.`id_product_attribute`, prattr.`reference` AS attribute_reference, 
+            prattr.`weight` AS attribute_weight,
             product_shop.*, pl.* , m.`name` AS manufacturer_name, s.`name` AS supplier_name,
             SUM(st.`quantity`) as stock, st.`out_of_stock` AS out_of_stock_behaviour,
             prattr.ean13 as attrean, size.`name` AS size, color.`name` AS color, 

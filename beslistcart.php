@@ -28,7 +28,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.4';
+        $this->version = '1.3.5';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -295,13 +295,22 @@ class BeslistCart extends Module
      */
     public function getContent()
     {
-        $cron_url = "http://" . ShopUrl::getMainShopDomain(Context::getContext()->shop->id);
-        $cron_url .= __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
-        $cron_url .= '/beslistcart/cron.php?secure_key=' .
+        $base_url = "http://" . ShopUrl::getMainShopDomain(Context::getContext()->shop->id);
+        $module_url = $base_url . __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
+        $cron_url = $module_url . '/beslistcart/cron.php?secure_key=' .
             md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
+        $feed_url = $module_url . '/beslistcart/feed.php';
+
+        $shop = new Shop(Context::getContext()->shop->id);
+        $feedfile = 'beslist-' . Tools::strtolower(rawurlencode($shop->name)) . '.xml';
+        $feed_loc = dirname(__FILE__, 3) . '/' . $feedfile;
+        $feed_web = $base_url . '/' . $feedfile;
 
         $this->context->smarty->assign(array(
             'cron_url' => $cron_url,
+            'feed_url' => $feed_url,
+            'feed_loc' => $feed_loc,
+            'feed_web' => $feed_web,
             'module_dir' => $this->_path,
             'module_local_dir' => $this->local_path,
         ));

@@ -60,7 +60,7 @@ class AdminBeslistCartOrdersController extends AdminController
 		    AND osl.`id_lang` = ' . (int)$this->context->language->id . ')';
         $this->_orderBy = 'id_order';
         $this->_orderWay = 'DESC';
-        $this->_where = 'AND a.module IN (\'beslistcart\', \'beslistcarttest\')';
+        $this->_where = 'AND a.module IN (\'beslistcart_payment\', \'beslistcarttest\')';
         $this->_use_found_rows = true;
 
         $statuses = OrderState::getOrderStates((int)$this->context->language->id);
@@ -175,6 +175,13 @@ class AdminBeslistCartOrdersController extends AdminController
                 'icon' => 'process-icon-eraser'
             );
         }
+    }
+
+    public function initToolbar()
+    {
+        $this->allow_export = true;
+        parent::initToolbar();
+        unset($this->toolbar_btn['new']);
     }
 
     /**
@@ -452,9 +459,9 @@ class AdminBeslistCartOrdersController extends AdminController
             $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
         if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
-            $address->address2 = $houseNumber;
+            $address->address2 = trim($houseNumber);
         } else {
-            $address->address1 .= trim(' ' . $houseNumber);
+            $address->address1 .= ' ' . trim($houseNumber);
         }
 
         $address->postcode = $details->zip;
