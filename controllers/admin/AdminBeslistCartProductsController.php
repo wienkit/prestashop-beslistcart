@@ -143,7 +143,8 @@ class AdminBeslistCartProductsController extends AdminController
         );
     }
 
-    public function initToolbar() {
+    public function initToolbar()
+    {
         $this->allow_export = true;
         parent::initToolbar();
         unset($this->toolbar_btn['new']);

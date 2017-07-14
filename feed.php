@@ -129,27 +129,27 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
 
         echo "\t\t<productlink><![CDATA[" . str_replace(
-                '&amp;',
-                '&',
-                htmlspecialchars(
-                    $link->getProductLink(
-                        $product['id_product'],
-                        $product['link_rewrite'],
-                        Category::getLinkRewrite(
-                            (int)($product['id_category_default']),
-                            $cookie->id_lang
-                        ),
-                        null,
-                        null,
-                        null,
-                        $product['id_product_attribute'],
-                        false,
-                        false,
-                        false,
-                        ['ac' => 'beslist']
-                    )
+            '&amp;',
+            '&',
+            htmlspecialchars(
+                $link->getProductLink(
+                    $product['id_product'],
+                    $product['link_rewrite'],
+                    Category::getLinkRewrite(
+                        (int)($product['id_category_default']),
+                        $cookie->id_lang
+                    ),
+                    null,
+                    null,
+                    null,
+                    $product['id_product_attribute'],
+                    false,
+                    false,
+                    false,
+                    array('ac' => 'beslist')
                 )
-            ) . "]]></productlink>\n";
+            )
+        ) . "]]></productlink>\n";
         $hasAttributeImage = array_key_exists('attribute_image', $product) && $product['attribute_image'];
         $images = Image::getImages((int)$context->language->id, $product['id_product']);
         if (is_array($images) and sizeof($images)) {
@@ -164,10 +164,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 $imageObj = new Image($image['id_image']);
                 $suffix = $isPrimary ? "" : "_" . $extraImageCounter++;
                 echo "\t\t<imagelink" . $suffix . "><![CDATA[" . $link->getImageLink(
-                        $product['link_rewrite'],
-                        $image['id_image']
-                    )
-                    . "]]></imagelink" . $suffix . ">\n";
+                    $product['link_rewrite'],
+                    $image['id_image']
+                ) . "]]></imagelink" . $suffix . ">\n";
             }
         }
 
@@ -207,9 +206,15 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 
             if ($shipping_method_nl == Carrier::SHIPPING_METHOD_WEIGHT) {
                 if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
-                    $shippingTotal = $carrier_nl->getDeliveryPriceByWeight($product['weight'], $country_nl->id_zone);
+                    $shippingTotal = $carrier_nl->getDeliveryPriceByWeight(
+                        $product['weight'],
+                        $country_nl->id_zone
+                    );
                 } else {
-                    $shippingTotal = $carrier_nl->getDeliveryPriceByWeight($product['weight_attribute'], $country_nl->id_zone);
+                    $shippingTotal = $carrier_nl->getDeliveryPriceByWeight(
+                        $product['weight_attribute'],
+                        $country_nl->id_zone
+                    );
                 }
             } else {
                 $shippingTotal = $carrier_nl->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;

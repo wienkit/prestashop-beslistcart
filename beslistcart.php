@@ -302,7 +302,7 @@ class BeslistCart extends Module
         $feed_url = $module_url . '/beslistcart/feed.php';
 
         $shop = new Shop(Context::getContext()->shop->id);
-        $feedfile = 'beslist-' . strtolower(rawurlencode($shop->name)) . '.xml';
+        $feedfile = 'beslist-' . Tools::strtolower(rawurlencode($shop->name)) . '.xml';
         $feed_loc = dirname(__FILE__, 3) . '/' . $feedfile;
         $feed_web = $base_url . '/' . $feedfile;
 
