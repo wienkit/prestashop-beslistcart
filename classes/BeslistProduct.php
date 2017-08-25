@@ -186,25 +186,28 @@ class BeslistProduct extends ObjectModel
             LEFT JOIN `" . _DB_PREFIX_ . "product_attribute` prattr ON (
               b.`id_product_attribute` = prattr.`id_product_attribute`
             )
-            LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_combination` com ON (
-              b.`id_product_attribute` = com.`id_product_attribute`
-            )
+            LEFT JOIN (
+                SELECT pac.`id_product_attribute`, pa.`id_attribute`, pal.`name`
+                FROM `" . _DB_PREFIX_ . "product_attribute_combination` pac 
+                INNER JOIN `" . _DB_PREFIX_ . "attribute` pa 
+                    ON pac.`id_attribute` = pa.`id_attribute`
+                INNER JOIN `" . _DB_PREFIX_ . "attribute_lang` pal
+                    ON pal.`id_attribute` = pa.`id_attribute`
+                WHERE pa.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . "
+            ) as size
+              ON ( b.`id_product_attribute` = size.`id_product_attribute` ) 
+            LEFT JOIN (
+                SELECT pac.`id_product_attribute`, pa.`id_attribute`, pal.`name`
+                FROM `" . _DB_PREFIX_ . "product_attribute_combination` pac 
+                INNER JOIN `" . _DB_PREFIX_ . "attribute` pa 
+                    ON pac.`id_attribute` = pa.`id_attribute`
+                INNER JOIN `" . _DB_PREFIX_ . "attribute_lang` pal
+                    ON pal.`id_attribute` = pa.`id_attribute`
+                WHERE pa.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . "
+            ) as color
+              ON ( b.`id_product_attribute` = color.`id_product_attribute` )
             LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_image` attrimg ON (
               b.`id_product_attribute` = attrimg.`id_product_attribute`
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrsize ON (
-              com.`id_attribute` = attrsize.`id_attribute` AND
-              attrsize.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . "
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` size ON (
-              attrsize.`id_attribute` = size.`id_attribute`
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrcolor ON (
-              com.`id_attribute` = attrcolor.`id_attribute` AND
-              attrcolor.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . "
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` color ON (
-              attrcolor.`id_attribute` = color.`id_attribute`
             )
             WHERE pl.`id_lang` = " . (int)$id_lang . "
               AND product_shop.`active` = 1
