@@ -242,7 +242,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                     );
                 } else {
                     $shippingTotal = $carrier_be->getDeliveryPriceByWeight(
-                        $product['weight_attribute'],
+                        $product['weight'] + $product['attribute_weight'],
                         $country_be->id_zone
                     );
                 }
