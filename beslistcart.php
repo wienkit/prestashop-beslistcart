@@ -484,25 +484,6 @@ class BeslistCart extends Module
                     )
                 ),
                 array(
-                    'type' => 'switch',
-                    'label' => $this->l('Housenumber in address2'),
-                    'name' => 'beslist_cart_use_address2',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'beslist_cart_use_address2_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'beslist_cart_use_address2_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'desc' => $this->l('Won\'t append housenumber to street but uses separate field for housenumber')
-                ),
-                array(
                     'type' => 'select',
                     'label' => $this->l('Beslist product matcher field'),
                     'desc' => $this->l('Select the unique field you want to use to match your products.'),
@@ -755,7 +736,25 @@ class BeslistCart extends Module
                     'required' => true,
                     'size' => 20
                 ),
-
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Housenumber in address2'),
+                    'name' => 'beslist_cart_use_address2',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_use_address2_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_use_address2_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'desc' => $this->l('Won\'t append housenumber to street but uses separate field for housenumber')
+                )
             )
         );
 
