@@ -29,7 +29,9 @@
         $input.name == 'beslist_cart_deliveryperiod_nostock_nl' ||
         $input.name == 'beslist_cart_carrier_be' ||
         $input.name == 'beslist_cart_deliveryperiod_be' ||
-        $input.name == 'beslist_cart_deliveryperiod_nostock_be'}
+        $input.name == 'beslist_cart_deliveryperiod_nostock_be' ||
+        $input.name == 'beslist_cart_update_bulk_status' ||
+        $input.name == 'beslist_cart_use_address2'}
         {assign var=hasWrapper value=true}
         <div id="{$input.name|escape:'htmlall':'UTF-8'}_wrapper" style="display:none">
     {/if}
@@ -54,6 +56,7 @@
             $('#beslist_cart_shopitem_apikey_wrapper').css('display', (value == 1) ? 'block' : 'none');
             $('#beslist_cart_test_reference_wrapper').css('display', (value == 1) ? 'block' : 'none');
             $('#beslist_cart_startdate_wrapper').css('display', (value == 1) ? 'block' : 'none');
+            $('#beslist_cart_use_address2_wrapper').css('display', (value == 1) ? 'block' : 'none');
             showTestmodeFields(value && $('input[name="beslist_cart_testmode"]:checked').val());
         }
         var showTestmodeFields = function(value) {
