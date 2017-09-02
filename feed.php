@@ -213,8 +213,13 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
 
         if ($enabled_nl) {
-            $prod_deliveryperiod_nl =
-                $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
+            if(isset($product['delivery_code_nl']) && $product['delivery_code_nl'] != '') {
+                $prod_deliveryperiod_nl = $product['delivery_code_nl'];
+            } elseif (isset($product['available_now']) && $product['available_now'] != '') {
+                $prod_deliveryperiod_nl = $product['available_now'];
+            } else {
+                $prod_deliveryperiod_nl = $deliveryperiod_nl;
+            }
             echo "\t\t<deliveryperiod_nl>" .
                 ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
                 "</deliveryperiod_nl>\n";
@@ -243,8 +248,14 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 "</shippingcost_nl>\n";
         }
         if ($enabled_be) {
-            $prod_deliveryperiod_be =
-                $product['delivery_code_be'] == '' ? $deliveryperiod_be : $product['delivery_code_be'];
+            if(isset($product['delivery_code_be']) && $product['delivery_code_be'] != '') {
+                $prod_deliveryperiod_be = $product['delivery_code_be'];
+            } elseif (isset($product['available_now']) && $product['available_now'] != '') {
+                $prod_deliveryperiod_be = $product['available_now'];
+            } else {
+                $prod_deliveryperiod_be = $deliveryperiod_be;
+            }
+
             echo "\t\t<deliveryperiod_be>" .
                 ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
                 "</deliveryperiod_be>\n";
