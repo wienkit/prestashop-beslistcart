@@ -97,10 +97,25 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 <productfeed type="beslist" date="<?php echo date('Y-m-d H:i:s'); ?>">
     <?php
     foreach ($products as $product) {
-        $price = (float)Product::getPriceStatic($product['id_product'], true, $product['id_product_attribute']);
         echo "\t<product>\n";
         echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
+        $price = (float)Product::getPriceStatic($product['id_product'], true, $product['id_product_attribute']);
         echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
+
+        $price_old = (float)Product::getPriceStatic(
+            $product['id_product'],
+            true,
+            $product['id_product_attribute'],
+            6,
+            null,
+            false,
+            false
+        );
+        if ($price_old != $price) {
+            echo "\t\t<price_old>" .
+                number_format($price_old, 2, ',', '') .
+                "</price_old>\n";
+        }
 
         if ($product['id_product_attribute']) {
             echo "\t\t<code>" . $product['id_product_attribute'] . "-" . $product['id_product'] . "</code>\n";
@@ -261,7 +276,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
         }
         $description = $use_long_description ? $product['description'] : $product['description_short'];
-        $description = str_replace(array('<br>', '<br />'), '\\\\n', $description);
+        $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
         echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
 
         $display = 1;
