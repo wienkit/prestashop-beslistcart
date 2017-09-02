@@ -54,10 +54,18 @@
             $('#beslist_cart_shopitem_apikey_wrapper').css('display', (value == 1) ? 'block' : 'none');
             $('#beslist_cart_test_reference_wrapper').css('display', (value == 1) ? 'block' : 'none');
             $('#beslist_cart_startdate_wrapper').css('display', (value == 1) ? 'block' : 'none');
+            showTestmodeFields(value && $('input[name="beslist_cart_testmode"]:checked').val());
+        }
+        var showTestmodeFields = function(value) {
+            $('#beslist_cart_test_reference_wrapper').css('display', (value == 1) ? 'block' : 'none');
+            $('#beslist_cart_update_bulk_status_wrapper').css('display', (value == 1) ? 'block' : 'none');
         }
 		$('input[name="beslist_cart_add_default_categories"]').change(function() {
 			$('#beslist_cart_overwrite_categories_wrapper').css('display', ($(this).val() == 1) ? 'block' : 'none');
 		});
+        $('input[name="beslist_cart_testmode"]').change(function() {
+            showTestmodeFields($(this).val());
+        });
         $('input[name="beslist_cart_enabled"]').change(function() {
             showCartSection($(this).val());
         });
