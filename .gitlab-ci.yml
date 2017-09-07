@@ -12,5 +12,7 @@ build:
   - mv * ../beslistcart
   - mv ../beslistcart .
   artifacts:
+    expire_in: 2 weeks
+    name: "beslistcart-$CI_COMMIT_REF_SLUG-$CI_JOB_ID"
     paths:
     - .
