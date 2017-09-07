@@ -295,7 +295,7 @@ class BeslistCart extends Module
      */
     public function getContent()
     {
-        $base_url = "http://" . ShopUrl::getMainShopDomain(Context::getContext()->shop->id);
+        $base_url = Tools::getShopDomainSsl(true, true);
         $module_url = $base_url . __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
         $cron_url = $module_url . '/beslistcart/cron.php?secure_key=' .
             md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
@@ -303,7 +303,7 @@ class BeslistCart extends Module
 
         $shop = new Shop(Context::getContext()->shop->id);
         $feedfile = 'beslist-' . Tools::strtolower(rawurlencode($shop->name)) . '.xml';
-        $feed_loc = dirname(__FILE__, 3) . '/' . $feedfile;
+        $feed_loc = dirname(dirname(dirname(__FILE__))) . '/' . $feedfile;
         $feed_web = $base_url . '/' . $feedfile;
 
         $this->context->smarty->assign(array(
