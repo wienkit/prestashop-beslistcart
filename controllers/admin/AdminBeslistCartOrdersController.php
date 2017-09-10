@@ -313,11 +313,10 @@ class AdminBeslistCartOrdersController extends AdminController
             $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
             // Shipping cost
-            $price = (float)Product::getPriceStatic(
-                (int)$productId['id_product'],
-                true, (int)
+            $price = (float)BeslistProduct::getPriceStatic(
                 $productId['id_product'],
-                2
+                $productId['id_product_attribute'],
+                $context
             );
 
             $country_nl = new Country(Country::getByIso('NL'));
@@ -477,7 +476,7 @@ class AdminBeslistCartOrdersController extends AdminController
         );
         $customer->email = $shopOrder->customer->email;
         $customer->passwd = Tools::passwdGen(8, 'RANDOM');
-        $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
+        $customer->id_default_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
         $customer->newsletter = false;
         $customer->add();
         return $customer;

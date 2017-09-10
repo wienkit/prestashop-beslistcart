@@ -350,8 +350,10 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistProductUpdate($beslistProduct, $context)
     {
-        $product = new Product($beslistProduct->id_product);
-        $price = $product->getPrice(true, $beslistProduct->id_product_attribute);
+        $price = BeslistProduct::getPriceStatic(
+            $beslistProduct->id_product,
+            $beslistProduct->id_product_attribute
+        );
         $quantity = StockAvailable::getQuantityAvailableByProduct(
             $beslistProduct->id_product,
             $beslistProduct->id_product_attribute

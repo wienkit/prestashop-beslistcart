@@ -99,18 +99,19 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
     foreach ($products as $product) {
         echo "\t<product>\n";
         echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
-        $price = (float)Product::getPriceStatic($product['id_product'], true, $product['id_product_attribute']);
-        echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
-
-        $price_old = (float)Product::getPriceStatic(
+        $price = (float)BeslistProduct::getPriceStatic(
             $product['id_product'],
-            true,
             $product['id_product_attribute'],
-            6,
-            null,
-            false,
+            $context
+        );
+        echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
+        $price = (float)BeslistProduct::getPriceStatic(
+            $product['id_product'],
+            $product['id_product_attribute'],
+            $context,
             false
         );
+
         if ($price_old != $price) {
             echo "\t\t<price_old>" .
                 number_format($price_old, 2, ',', '') .

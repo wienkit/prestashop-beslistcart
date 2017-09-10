@@ -333,6 +333,7 @@ class BeslistCart extends Module
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
             $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
             $startDate = (string)Tools::getValue('beslist_cart_startdate');
+            $customerGroup = (int) Tools::getValue('beslist_cart_customer_group');
 
             $enabled_nl = (bool)Tools::getValue('beslist_cart_enabled_nl');
             $carrier_nl = (int)Tools::getValue('beslist_cart_carrier_nl');
@@ -358,6 +359,7 @@ class BeslistCart extends Module
                 || empty($personalkey)
                 || empty($startDate)
                 || empty($shopitemKey)
+                || empty($customerGroup)
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
@@ -383,7 +385,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
                 Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
-
+                Configuration::updateValue('BESLIST_CART_CUSTOMER_GROUP', $customerGroup);
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
                 Configuration::updateValue('BESLIST_CART_CARRIER_NL', $carrier_nl);
@@ -427,6 +429,8 @@ class BeslistCart extends Module
         $carriers = Carrier::getCarriers(Context::getContext()->language->id);
         $categories = BeslistProduct::getBeslistCategories();
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
+        $customer_groups = Group::getGroups(Context::getContext()->language->id);
+
         array_unshift($attributes, array(
             'id_attribute_group' => 0,
             'name' => $this->l('--- None ---')
@@ -704,6 +708,17 @@ class BeslistCart extends Module
                     'size' => 20
                 ),
                 array(
+                    'type' => 'select',
+                    'label' => $this->l('Customer group'),
+                    'desc' => $this->l('Choose a customer group for your Beslist customers'),
+                    'name' => 'beslist_cart_customer_group',
+                    'options' => array(
+                        'query' => $customer_groups,
+                        'id' => 'id_group',
+                        'name' => 'name'
+                    )
+                ),
+                array(
                     'type' => 'switch',
                     'label' => $this->l('Use test connection'),
                     'name' => 'beslist_cart_testmode',
@@ -942,6 +957,11 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
         $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
+        $customerGroup = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
+        if (empty($customerGroup)) {
+            $customerGroup = Configuration::get('PS_CUSTOMER_GROUP');
+        }
+        $helper->fields_value['beslist_cart_customer_group'] = $customerGroup;
 
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
         $helper->fields_value['beslist_cart_carrier_nl'] = Configuration::get('BESLIST_CART_CARRIER_NL');

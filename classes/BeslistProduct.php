@@ -337,4 +337,38 @@ class BeslistProduct extends ObjectModel
                 LIMIT 1000')
         );
     }
+
+    public static function getPriceStatic($id_product, $id_product_attribute, Context $context = null,
+        $usereduc = true, &$specific_price_output = null)
+    {
+        if (!$context) {
+            $context = Context::getContext();
+        }
+
+        $id_currency = Validate::isLoadedObject($context->currency) ? (int)$context->currency->id : (int)Configuration::get('PS_CURRENCY_DEFAULT');
+        $id_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
+
+        return Product::priceCalculation(
+            $context->shop->id,
+            $id_product,
+            $id_product_attribute,
+            $context->country->id,
+            0,
+            0,
+            $id_currency,
+            $id_group,
+            1,
+            true,
+            2,
+            false,
+            $usereduc,
+            true,
+            $specific_price_output,
+            true,
+            null,
+            false,
+            null,
+            0
+        );
+    }
 }
