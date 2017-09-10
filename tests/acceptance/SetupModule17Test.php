@@ -58,6 +58,12 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         );
         $text = $this->driver->findElement(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-configure"]'))->getText();
         $this->assertContains("CONFIGUREER", $text);
+
+        $this->goToMenu(['International', 'Locations']);
+        $this->driver->findElement(\WebDriverBy::name('countryFilter_b!name'))->sendKeys("Belgi");
+        $this->driver->findElement(\WebDriverBy::id('submitFilterButtoncountry'))->click();
+        $this->driver->findElement(\WebDriverBy::cssSelector('#form-country a.list-action-enable'))->click();
+        $this->assertContains("De status is bijgewerkt", $this->getStatusMessageText());
     }
 
     /**
