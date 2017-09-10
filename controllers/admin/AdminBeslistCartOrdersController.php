@@ -279,7 +279,10 @@ class AdminBeslistCartOrdersController extends AdminController
             $priceExtra = 0;
             $quantity = 2;
 
-            if ($price < Configuration::get('PS_SHIPPING_FREE_PRICE')) {
+            if (
+                $price < Configuration::get('PS_SHIPPING_FREE_PRICE') ||
+                Configuration::get('PS_SHIPPING_FREE_PRICE') == 0
+            ) {
                 $priceExtra = Configuration::get('PS_SHIPPING_HANDLING');
             }
 

@@ -73,6 +73,29 @@ class SetupModuleTest extends BaseTest
         $this->goToPath('index.php?controller=AdminBeslistCartOrders');
         $this->driver->findElement(\WebDriverBy::id('page-header-desc-order-sync_orders'))->click();
         $this->assertContains('Beslist.nl Shopping cart sync completed', $this->getStatusMessageText());
-        $this->assertContains('T. van TestAchternaam', $this->driver->findElement(\WebDriverBy::id('form-order'))->getText());
+        $tableText = $this->driver->findElement(\WebDriverBy::id('form-order'))->getText();
+        $this->assertContains('T. van TestAchternaam', $tableText);
+        $this->assertContains('Beslist order imported', $tableText);
+    }
+
+    /**
+     * @group 16
+     * @depends testSyncOrders
+     */
+    public function testOrderContents()
+    {
+        $this->doAdminLogin();
+        $this->goToPath('index.php?controller=AdminOrders');
+        $this->driver->findElement(\WebDriverBy::cssSelector(".table.order td.pointer"))->click();
+        $mail = $this->driver->findElement(\WebDriverBy::partialLinkText("tester0@testmail.com"));
+        $this->assertContains("tester0@testmail.com", $mail->getText());
+        $product = $this->driver->findElement(\WebDriverBy::className("product-line-row"));
+        $this->assertContains("Gebleekte T-Shirts", $product->getText());
+        $qty = $this->driver->findElement(\WebDriverBy::className('product_quantity_show'));
+        $this->assertEquals("2", $qty->getText());
+        $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
+        $this->assertEquals("39,95 €", trim($total->getText()));
+        $shipping = $this->driver->findElement(\WebDriverBy::cssSelector(".total_shipping td.amount"));
+        $this->assertEquals("8,47 €", trim($shipping->getText()));
     }
 }
