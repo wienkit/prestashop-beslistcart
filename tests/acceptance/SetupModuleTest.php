@@ -98,11 +98,11 @@ class SetupModuleTest extends BaseTest
         $shipping = $this->driver->findElement(\WebDriverBy::cssSelector("#total_shipping td.amount"));
         $this->assertEquals("8,47 €", trim($shipping->getText()));
 
-        $shipping = $this->driver->findElement(\WebDriverBy::id('addressShipping'));
-        $this->assertContains('TestStraat0 12 C', $shipping->getText());
+        $shipping = $this->driver->findElement(\WebDriverBy::cssSelector('#addressShipping .row'));
+        $this->assertContains('TestStraat0', $shipping->getText());
 
         $this->driver->findElement(\WebDriverBy::cssSelector("#tabAddresses .icon-file-text"))->click();
-        $invoice = $this->driver->findElement(\WebDriverBy::id('addressInvoice'));
-        $this->assertContains('TestStraat0 58 E', $invoice->getText());
+        $invoice = $this->driver->findElement(\WebDriverBy::cssSelector('#addressInvoice .row'));
+        $this->assertContains('TestStraat0', $invoice->getText());
     }
 }
