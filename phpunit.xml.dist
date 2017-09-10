@@ -1,0 +1,15 @@
+<phpunit colors="true" strict="true" bootstrap="tests/autoload.php">
+    <php>
+        <env name="SITE_HOST" value="localhost"/>
+        <env name="SELENIUM_HOST" value="http://selenium-standalone-chrome:4444/wd/hub"/>
+        <env name="SHOP_ID" value="565156"/>
+        <env name="CLIENT_ID" value="19025"/>
+        <env name="ORDER_XML_KEY" value="8ea059672ed294383f35af8dc354c3b1"/>
+        <env name="SHOPITEM_API_KEY" value="9e13632d5d3c03c27d5d35218bb95096c5dd7d0c4a4dcd65f8bd5be2a42c2cf4749c7f7e"/>
+    </php>
+    <testsuites>
+        <testsuite name="The project's test suite">
+            <directory>./tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
