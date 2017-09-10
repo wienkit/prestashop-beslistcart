@@ -95,7 +95,7 @@ class SetupModuleTest extends BaseTest
         $this->assertEquals("2", $qty->getText());
         $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
         $this->assertEquals("39,95 €", trim($total->getText()));
-        $shipping = $this->driver->findElement(\WebDriverBy::cssSelector(".total_shipping td.amount"));
+        $shipping = $this->driver->findElement(\WebDriverBy::cssSelector("#total_shipping td.amount"));
         $this->assertEquals("8,47 €", trim($shipping->getText()));
 
         $shipping = $this->driver->findElement(\WebDriverBy::id('addressShipping'));
