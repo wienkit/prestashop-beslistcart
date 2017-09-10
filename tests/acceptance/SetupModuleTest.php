@@ -90,7 +90,7 @@ class SetupModuleTest extends BaseTest
         $mail = $this->driver->findElement(\WebDriverBy::partialLinkText("tester0@testmail.com"));
         $this->assertContains("tester0@testmail.com", $mail->getText());
         $product = $this->driver->findElement(\WebDriverBy::className("product-line-row"));
-        $this->assertContains("Gebleekte T-Shirts", $product->getText());
+        $this->assertContains("Gebleekte T-shirts", $product->getText());
         $qty = $this->driver->findElement(\WebDriverBy::className('product_quantity_show'));
         $this->assertEquals("2", $qty->getText());
         $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
