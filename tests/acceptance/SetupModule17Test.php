@@ -34,6 +34,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         $this->driver->findElement(\WebDriverBy::linkText('Gebleekte T-shirts met Korte Mouwen'))->click();
         $this->driver->findElement(\WebDriverBy::linkText('Tarieven'))->click();
         $this->driver->findElement(\WebDriverBy::id('form_step2_price'))->clear()->sendKeys('20');
+        sleep(5);
         $this->driver->findElement(\WebDriverBy::name('form'))->submit();
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::visibilityOfElementLocated(\WebDriverBy::className('growl-message'))
