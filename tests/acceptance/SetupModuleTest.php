@@ -55,6 +55,6 @@ class SetupModuleTest extends BaseTest
         $this->driver->findElement(\WebDriverBy::cssSelector("label[for='beslist_cart_testmode_on']"))->click();
         $this->driver->findElement(\WebDriverBy::id('configuration_form'))->submit();
 
-        $this->assertContains("Instellingen opgeslagen", $this->getStatusMessageText());
+        $this->assertContains("Instellingen bijgewerkt", $this->getStatusMessageText());
     }
 }
