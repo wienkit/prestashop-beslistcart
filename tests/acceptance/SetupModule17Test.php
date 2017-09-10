@@ -1,6 +1,7 @@
 <?php
 namespace Wienkit\Prestashop\Beslistcart;
 
+use PHPUnit\Runner\Exception;
 use Wienkit\Prestashop\Beslistcart\Base\AbstractAdmin17TestBase;
 
 /**
@@ -23,13 +24,16 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     {
         $this->doAdminLogin();
         $this->goToMenu(['Catalog', 'Products']);
+        $this->driver->wait()->until(
+            \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::cssSelector('[title="Close Toolbar"]'))
+        );
         $this->driver->findElement(\WebDriverBy::cssSelector('[title="Close Toolbar"]'))->click();
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::linkText('Gebleekte T-shirts met Korte Mouwen'))
         );
         $this->driver->findElement(\WebDriverBy::linkText('Gebleekte T-shirts met Korte Mouwen'))->click();
         $this->driver->findElement(\WebDriverBy::linkText('Tarieven'))->click();
-        $this->driver->findElement(\WebDriverBy::id('form_step2_price_ttc'))->clear()->sendKeys('19.98');
+        $this->driver->findElement(\WebDriverBy::id('form_step2_price'))->clear()->sendKeys('20');
         $this->driver->findElement(\WebDriverBy::name('form'))->submit();
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::visibilityOfElementLocated(\WebDriverBy::className('growl-message'))
@@ -120,7 +124,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         $qty = $this->driver->findElement(\WebDriverBy::className('product_quantity_show'));
         $this->assertEquals("2", $qty->getText());
         $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
-        $this->assertEquals("€ 39,96", trim($total->getText()));
+        $this->assertEquals("€ 48,40", trim($total->getText()));
         $shipping = $this->driver->findElement(\WebDriverBy::cssSelector("#total_shipping td.amount"));
         $this->assertEquals("€ 8,47", trim($shipping->getText()));
 

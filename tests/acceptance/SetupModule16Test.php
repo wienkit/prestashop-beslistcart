@@ -19,6 +19,22 @@ class SetupModule16Test extends ATestBase
         $this->assertEquals('Dashboard', trim($title));
     }
 
+    public function testSetProductPrice()
+    {
+        $this->doAdminLogin();
+        $this->goToPath('index.php?controller=AdminProducts&id_product=1&updateproduct');
+
+        $this->driver->wait()->until(
+            \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::id('link-Prices'))
+        );
+        $this->driver->findElement(\WebDriverBy::id('link-Prices'))->click();
+        $this->driver->findElement(\WebDriverBy::name('price_displayed'))->clear()->sendKeys('20');
+        $button = $this->driver->findElement(\WebDriverBy::cssSelector('#product-tab-content-Prices [name="submitAddproduct"]'));
+        $button->getLocationOnScreenOnceScrolledIntoView();
+        $button->click();
+        $this->assertContains('Succesvolle wijziging', $this->getStatusMessageText());
+    }
+
     public function testEnableModule()
     {
         $this->doAdminLogin();
@@ -41,22 +57,22 @@ class SetupModule16Test extends ATestBase
         $this->selectOption('beslist_cart_attribute_color', '3');
 
         $this->driver->findElement(\WebDriverBy::cssSelector("label[for='beslist_cart_enabled_nl_on']"))->click();
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nl'))->sendKeys("Op werkdagen voor 15:00 uur besteld, volgende dag in huis!");
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nostock_nl'))->sendKeys("Niet op voorraad");
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nl'))->clear()->sendKeys("Op werkdagen voor 15:00 uur besteld, volgende dag in huis!");
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nostock_nl'))->clear()->sendKeys("Niet op voorraad");
         $this->selectOption('beslist_cart_carrier_nl', '2');
 
         $this->driver->findElement(\WebDriverBy::cssSelector("label[for='beslist_cart_enabled_be_on']"))->click();
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_be'))->sendKeys("Op werkdagen voor 15:00 uur besteld, volgende dag in huis!");
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nostock_be'))->sendKeys("Niet op voorraad");
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_be'))->clear()->sendKeys("Op werkdagen voor 15:00 uur besteld, volgende dag in huis!");
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_deliveryperiod_nostock_be'))->clear()->sendKeys("Niet op voorraad");
         $this->selectOption('beslist_cart_carrier_be', '2');
 
         $this->driver->findElement(\WebDriverBy::cssSelector("label[for='beslist_cart_enabled_on']"))->click();
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_shopid'))->sendKeys(getenv('SHOP_ID'));
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_clientid'))->sendKeys(getenv('CLIENT_ID'));
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_personalkey'))->sendKeys(getenv('ORDER_XML_KEY'));
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_shopitem_apikey'))->sendKeys(getenv('SHOPITEM_API_KEY'));
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_shopid'))->clear()->sendKeys(getenv('SHOP_ID'));
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_clientid'))->clear()->sendKeys(getenv('CLIENT_ID'));
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_personalkey'))->clear()->sendKeys(getenv('ORDER_XML_KEY'));
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_shopitem_apikey'))->clear()->sendKeys(getenv('SHOPITEM_API_KEY'));
         $this->driver->findElement(\WebDriverBy::cssSelector("label[for='beslist_cart_testmode_on']"))->click();
-        $this->driver->findElement(\WebDriverBy::id('beslist_cart_test_reference'))->sendKeys('2-1');
+        $this->driver->findElement(\WebDriverBy::id('beslist_cart_test_reference'))->clear()->sendKeys('2-1');
         $this->driver->findElement(\WebDriverBy::id('configuration_form'))->submit();
 
         $this->assertContains("Instellingen bijgewerkt", $this->getStatusMessageText());
@@ -91,7 +107,7 @@ class SetupModule16Test extends ATestBase
         $qty = $this->driver->findElement(\WebDriverBy::className('product_quantity_show'));
         $this->assertEquals("2", $qty->getText());
         $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
-        $this->assertEquals("39,95 €", trim($total->getText()));
+        $this->assertEquals("48,40 €", trim($total->getText()));
         $shipping = $this->driver->findElement(\WebDriverBy::cssSelector("#total_shipping td.amount"));
         $this->assertEquals("8,47 €", trim($shipping->getText()));
 
