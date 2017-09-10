@@ -23,10 +23,7 @@ class SetupModule16Test extends ATestBase
     {
         $this->doAdminLogin();
         $this->goToPath('index.php?controller=AdminProducts&id_product=1&updateproduct');
-
-        $this->driver->wait()->until(
-            \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::id('link-Prices'))
-        );
+        sleep(10);
         $this->driver->findElement(\WebDriverBy::id('link-Prices'))->click();
         $this->driver->findElement(\WebDriverBy::name('price_displayed'))->clear()->sendKeys('20');
         $button = $this->driver->findElement(\WebDriverBy::cssSelector('#product-tab-content-Prices [name="submitAddproduct"]'));
