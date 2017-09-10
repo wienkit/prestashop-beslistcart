@@ -1,15 +1,14 @@
 <?php
-namespace Wienkit\Prestashop\Beslistcart;
+namespace Wienkit\Prestashop\Beslistcart\Base;
 
 use PHPUnit\Framework\TestCase;
 
-abstract class BaseTest extends TestCase
+abstract class ATestBase extends TestCase
 {
     /** @var \RemoteWebDriver */
     protected $driver;
 
     /** @var string */
-    private $token;
     private $host;
 
     public function setUp()
@@ -39,10 +38,11 @@ abstract class BaseTest extends TestCase
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::titleContains('Dashboard')
         );
-        $url = $this->driver->getCurrentURL();
-        $parts = parse_url($url);
-        parse_str($parts['query'], $query);
-        $this->token = $query['token'];
+
+        try {
+            $this->driver->findElement(\WebDriverBy::className('onboarding-button-shut-down'))->click();
+        } catch (\Exception $e) {
+        }
     }
 
     public function getStatusMessageText()

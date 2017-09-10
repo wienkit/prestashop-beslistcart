@@ -1,24 +1,24 @@
 <?php
 namespace Wienkit\Prestashop\Beslistcart;
 
+use Wienkit\Prestashop\Beslistcart\Base\ATestBase;
+
 /**
- * Class SetupModuleTest
+ * Class SetupModuleTest16
  *
  * @package Wienkit\Prestashop\Beslistcart
+ * @group 16
  */
-class SetupModuleTest extends BaseTest
+class SetupModule16Test extends ATestBase
 {
 
     public function testAdminLogin()
     {
         $this->doAdminLogin();
         $title = $this->driver->findElement(\WebDriverBy::tagName('h2'))->getText();
-        $this->assertEquals('Dashboard', $title);
+        $this->assertEquals('Dashboard', trim($title));
     }
 
-    /**
-     * @group 16
-     */
     public function testEnableModule()
     {
         $this->doAdminLogin();
@@ -31,7 +31,6 @@ class SetupModuleTest extends BaseTest
     }
 
     /**
-     * @group 16
      * @depends testEnableModule
      */
     public function testConfigureModule()
@@ -64,7 +63,6 @@ class SetupModuleTest extends BaseTest
     }
 
     /**
-     * @group 16
      * @depends testConfigureModule
      */
     public function testSyncOrders()
@@ -79,7 +77,6 @@ class SetupModuleTest extends BaseTest
     }
 
     /**
-     * @group 16
      * @depends testSyncOrders
      */
     public function testOrderContents()
