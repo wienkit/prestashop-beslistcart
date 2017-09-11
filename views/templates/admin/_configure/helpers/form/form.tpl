@@ -16,8 +16,7 @@
 
 {block name="input_row"}
     {assign var=hasWrapper value=false}
-    {if $input.name == 'beslist_cart_overwrite_categories' ||
-        $input.name == 'beslist_cart_testmode' ||
+    {if $input.name == 'beslist_cart_testmode' ||
         $input.name == 'beslist_cart_shopid' ||
         $input.name == 'beslist_cart_clientid' ||
         $input.name == 'beslist_cart_personalkey' ||
@@ -63,9 +62,6 @@
             $('#beslist_cart_test_reference_wrapper').css('display', (value == 1) ? 'block' : 'none');
             $('#beslist_cart_update_bulk_status_wrapper').css('display', (value == 1) ? 'block' : 'none');
         }
-		$('input[name="beslist_cart_add_default_categories"]').change(function() {
-			$('#beslist_cart_overwrite_categories_wrapper').css('display', ($(this).val() == 1) ? 'block' : 'none');
-		});
         $('input[name="beslist_cart_testmode"]').change(function() {
             showTestmodeFields($(this).val());
         });

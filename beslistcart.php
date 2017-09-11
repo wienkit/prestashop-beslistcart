@@ -55,7 +55,6 @@ class BeslistCart extends Module
                 && $this->installOrderState()
                 && $this->installOrdersTab()
                 && $this->installProductsTab()
-                && $this->importCategories()
                 && $this->registerHook('actionAdminControllerSetMedia')
                 && $this->registerHook('actionProductUpdate')
                 && $this->registerHook('actionUpdateQuantity')
