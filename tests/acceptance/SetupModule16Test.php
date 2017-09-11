@@ -35,7 +35,6 @@ class SetupModule16Test extends ATestBase
     public function testEnableModule()
     {
         $this->doAdminLogin();
-        $this->goToPath('index.php?controller=AdminModules');
         $this->goToPath('index.php?controller=AdminModules&install=beslistcart&tab_module=market_place&module_name=beslistcart');
         $this->assertContains("Installatie module(s) geslaagd", $this->getStatusMessageText());
 
