@@ -211,6 +211,7 @@ class BeslistProduct extends ObjectModel
             )
             WHERE pl.`id_lang` = " . (int)$id_lang . "
               AND product_shop.`active` = 1
+              AND p.`minimal_quantity` = 1
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
                 " . ($filter_stock? "HAVING SUM(st.`quantity`) > 0" : "") . "
             ORDER BY p.id_product";
