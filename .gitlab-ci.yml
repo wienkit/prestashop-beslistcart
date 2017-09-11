@@ -1,16 +1,75 @@
-stages:
-- build
+services:
+  - percona:5.6.26
+  - selenium/standalone-chrome:3.4
 
-build:
-  image: mwienk/docker-bolt-builder
-  stage: build
+variables:
+  MYSQL_ROOT_PASSWORD: admin
+  MYSQL_DATABASE: prestashop
+  PS_DEV_MODE: 1
+  DB_SERVER: percona
+  DB_NAME: prestashop
+  PS_INSTALL_AUTO: 1
+  PS_ERASE_DB: 1
+  PS_LANGUAGE: nl
+  PS_COUNTRY: nl
+  PS_FOLDER_ADMIN: admin-dev
+  PS_FOLDER_INSTALL: install-dev
+  ADMIN_MAIL: admin@example.com
+  ADMIN_PASSWD: password
+
+stages:
+  - test
+  - release
+
+test:web16:
+  image: prestashop/prestashop:1.6
+  before_script:
+  - sed -i "s/exec apache2-foreground/service apache2 start/g" /tmp/docker_run.sh
+  - apt-get update && apt-get install -y git
+  - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+  - export SITE_HOST=$(getent hosts $HOSTNAME | awk '{ print $1 }')
+  script:
+  - /tmp/docker_run.sh
+  - composer install
+  - ln -s $PWD /var/www/html/modules/beslistcart
+  - ./libraries/bin/phpunit --exclude-group=17
+  artifacts:
+    when: on_failure
+    paths:
+      - results/*
+    expire_in: 1 week
+
+
+test:web17:
+  image: prestashop/prestashop:1.7-7.0
+  before_script:
+  - sed -i "s/exec apache2-foreground/service apache2 start/g" /tmp/docker_run.sh
+  - apt-get update && apt-get install -y git
+  - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+  - export SITE_HOST=$(getent hosts $HOSTNAME | awk '{ print $1 }')
+  script:
+  - /tmp/docker_run.sh
+  - composer install
+  - ln -s $PWD /var/www/html/modules/beslistcart
+  - ./libraries/bin/phpunit --exclude-group=16
+  artifacts:
+    when: on_failure
+    paths:
+      - results/*
+    expire_in: 1 week
+
+package:
+  image: mwienk/gitlab-ci-magento2
+  stage: release
   script:
   - composer install --no-dev
   - echo $CI_COMMIT_SHA > VERSION
-  - rm -rf .git*
+  - rm -rf .git* results tests
   - mkdir ../beslistcart
   - mv * ../beslistcart
   - mv ../beslistcart .
   artifacts:
+    expire_in: 2 weeks
+    name: "beslistcart-$CI_COMMIT_REF_SLUG-$CI_JOB_ID"
     paths:
     - .

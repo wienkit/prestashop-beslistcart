@@ -156,6 +156,51 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
+     * Saves the address if it is new, returns the existing address if it is known already
+     *
+     * @param Address $address
+     * @param Address|null $otherAddress
+     * @return Address
+     */
+    private static function saveAndRetrieve(Address $address, Address $otherAddress = null)
+    {
+        if ($otherAddress != null) {
+            if (
+                $otherAddress->firstname == $address->firstname &&
+                $otherAddress->lastname == $address->lastname &&
+                $otherAddress->address1 == $address->address1 &&
+                $otherAddress->address2 == $address->address2 &&
+                $otherAddress->postcode == $address->postcode &&
+                $otherAddress->city == $address->city &&
+                $otherAddress->id_country == $address->id_country
+            ) {
+                return $address;
+            } else {
+                return self::saveAndRetrieve($otherAddress);
+            }
+        }
+        $id_address = Db::getInstance()->getValue('
+            SELECT id_address
+            FROM `' . _DB_PREFIX_ . 'address`
+            WHERE `id_customer` = '. (int) $address->id_customer . '
+            AND `active` = 1
+            AND `firstname` = \''. (string) pSQL($address->firstname) . '\'
+            AND `lastname` = \''. (string) pSQL($address->lastname) . '\'
+            AND `address1` = \''. (string) pSQL($address->address1) .'\'
+            AND `address2` = \''. (string) pSQL($address->address2) .'\'
+            AND `postcode` = \''. (string) pSQL($address->postcode) .'\'
+            AND `city` = \''. (string) pSQL($address->city) .'\' 
+            AND `id_country` = '. (int) $address->id_country);
+
+        if ($id_address !== false && $id_address > 0) {
+            return new Address($id_address);
+        } else {
+            $address->save();
+            return $address;
+        }
+    }
+
+    /**
      * Overrides parent::initPageHeaderToolbar
      */
     public function initPageHeaderToolbar()
@@ -268,7 +313,12 @@ class AdminBeslistCartOrdersController extends AdminController
             $carrier = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
 
             // Shipping cost
-            $price = (float)Product::getPriceStatic((int)$productId['id_product']);
+            $price = (float)BeslistProduct::getPriceStatic(
+                $productId['id_product'],
+                $productId['id_product_attribute'],
+                $context
+            );
+
             $country_nl = new Country(Country::getByIso('NL'));
             $address = new Address();
             $address->id_country = $country_nl->id;
@@ -279,7 +329,10 @@ class AdminBeslistCartOrdersController extends AdminController
             $priceExtra = 0;
             $quantity = 2;
 
-            if ($price < Configuration::get('PS_SHIPPING_FREE_PRICE')) {
+            if (
+                $price < Configuration::get('PS_SHIPPING_FREE_PRICE') ||
+                Configuration::get('PS_SHIPPING_FREE_PRICE') == 0
+            ) {
                 $priceExtra = Configuration::get('PS_SHIPPING_HANDLING');
             }
 
@@ -387,7 +440,9 @@ class AdminBeslistCartOrdersController extends AdminController
         $customer = self::parseCustomer($shopOrder);
         Context::getContext()->customer = $customer;
         $shipping = self::parseAddress($shopOrder->addresses->shipping, $customer, 'Shipping');
+        $shipping = self::saveAndRetrieve($shipping);
         $billing = self::parseAddress($shopOrder->addresses->invoice, $customer, 'Billing');
+        $billing = self::saveAndRetrieve($shipping, $billing);
         $cart = self::parseCart($shopOrder, $customer, $billing, $shipping);
         return $cart;
     }
@@ -421,7 +476,7 @@ class AdminBeslistCartOrdersController extends AdminController
         );
         $customer->email = $shopOrder->customer->email;
         $customer->passwd = Tools::passwdGen(8, 'RANDOM');
-        $customer->id_default_group = Configuration::get('PS_CUSTOMER_GROUP');
+        $customer->id_default_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
         $customer->newsletter = false;
         $customer->add();
         return $customer;
@@ -468,7 +523,6 @@ class AdminBeslistCartOrdersController extends AdminController
         $address->city = $details->city;
         $address->id_country = Country::getByIso($details->country);
         $address->alias = $alias;
-        $address->add();
         return $address;
     }
 

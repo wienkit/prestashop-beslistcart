@@ -29,9 +29,6 @@ class BeslistProduct extends ObjectModel
     /** @var int */
     public $id_product_attribute;
 
-    /** @var int */
-    public $id_beslist_category;
-
     /** @var bool */
     public $published = false;
 
@@ -61,10 +58,6 @@ class BeslistProduct extends ObjectModel
                 'validate' => 'isUnsignedId',
                 'required' => true
             ),
-            'id_beslist_category' => array(
-                'type' => self::TYPE_INT,
-                'validate' => 'isUnsignedId'
-            ),
             'published' => array(
                 'type' => self::TYPE_BOOL,
                 'shop' => true,
@@ -87,50 +80,6 @@ class BeslistProduct extends ObjectModel
             )
         )
     );
-
-    /**
-     * Return the categories in an indexed array
-     * @return array
-     */
-    public static function getBeslistCategories()
-    {
-        $sql = 'SELECT id_beslist_category, name FROM `' . _DB_PREFIX_ . 'beslist_categories` ORDER BY name ASC';
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-    }
-
-    /**
-     * Returns the category to beslist category mappings
-     * @return array
-     */
-    public static function getMappedCategoryTree()
-    {
-        $sql = 'SELECT category.id_category, mappedparent.parentbeslistcategory FROM '._DB_PREFIX_.'category category
-                INNER JOIN (
-                   SELECT 
-                        MIN(parent.nright - parent.nleft) as parentdist, 
-                        parent.id_category as parentid, 
-                        parent.nleft as parentnleft, 
-                        parent.nright as parentnright, 
-                        bc.id_beslist_category as parentbeslistcategory
-                   FROM '._DB_PREFIX_.'category parent 
-                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
-                   GROUP BY parent.id_category, bc.id_beslist_category
-                ) as mappedparent 
-                ON mappedparent.parentnleft <= category.nleft 
-                AND mappedparent.parentnright >= category.nright
-                AND mappedparent.parentdist = (
-                   SELECT MIN(parent.nright - parent.nleft) 
-                   FROM '._DB_PREFIX_.'category parent 
-                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
-                   WHERE parent.nleft <= category.nleft AND parent.nright >= category.nright
-                )';
-        $result = array();
-        $rows = Db::getInstance()->executeS($sql);
-        foreach ($rows as $row) {
-            $result[$row['id_category']] = $row['parentbeslistcategory'];
-        }
-        return $result;
-    }
 
     /**
      * Return the full list of categories, indexed by id
@@ -186,25 +135,28 @@ class BeslistProduct extends ObjectModel
             LEFT JOIN `" . _DB_PREFIX_ . "product_attribute` prattr ON (
               b.`id_product_attribute` = prattr.`id_product_attribute`
             )
-            LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_combination` com ON (
-              b.`id_product_attribute` = com.`id_product_attribute`
-            )
+            LEFT JOIN (
+                SELECT pac.`id_product_attribute`, pa.`id_attribute`, pal.`name`
+                FROM `" . _DB_PREFIX_ . "product_attribute_combination` pac 
+                INNER JOIN `" . _DB_PREFIX_ . "attribute` pa 
+                    ON pac.`id_attribute` = pa.`id_attribute`
+                INNER JOIN `" . _DB_PREFIX_ . "attribute_lang` pal
+                    ON pal.`id_attribute` = pa.`id_attribute`
+                WHERE pa.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . "
+            ) as size
+              ON ( b.`id_product_attribute` = size.`id_product_attribute` ) 
+            LEFT JOIN (
+                SELECT pac.`id_product_attribute`, pa.`id_attribute`, pal.`name`
+                FROM `" . _DB_PREFIX_ . "product_attribute_combination` pac 
+                INNER JOIN `" . _DB_PREFIX_ . "attribute` pa 
+                    ON pac.`id_attribute` = pa.`id_attribute`
+                INNER JOIN `" . _DB_PREFIX_ . "attribute_lang` pal
+                    ON pal.`id_attribute` = pa.`id_attribute`
+                WHERE pa.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . "
+            ) as color
+              ON ( b.`id_product_attribute` = color.`id_product_attribute` )
             LEFT JOIN `" . _DB_PREFIX_ . "product_attribute_image` attrimg ON (
               b.`id_product_attribute` = attrimg.`id_product_attribute`
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrsize ON (
-              com.`id_attribute` = attrsize.`id_attribute` AND
-              attrsize.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE') . "
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` size ON (
-              attrsize.`id_attribute` = size.`id_attribute`
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute` attrcolor ON (
-              com.`id_attribute` = attrcolor.`id_attribute` AND
-              attrcolor.`id_attribute_group` = " . (int)Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR') . "
-            )
-            LEFT JOIN `" . _DB_PREFIX_ . "attribute_lang` color ON (
-              attrcolor.`id_attribute` = color.`id_attribute`
             )
             WHERE pl.`id_lang` = " . (int)$id_lang . "
               AND product_shop.`active` = 1
@@ -332,6 +284,40 @@ class BeslistProduct extends ObjectModel
                 FROM `' . _DB_PREFIX_ . 'beslist_product`
                 WHERE `status` > 0 
                 LIMIT 1000')
+        );
+    }
+
+    public static function getPriceStatic($id_product, $id_product_attribute, Context $context = null,
+        $usereduc = true, &$specific_price_output = null)
+    {
+        if (!$context) {
+            $context = Context::getContext();
+        }
+
+        $id_currency = Validate::isLoadedObject($context->currency) ? (int)$context->currency->id : (int)Configuration::get('PS_CURRENCY_DEFAULT');
+        $id_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
+
+        return Product::priceCalculation(
+            $context->shop->id,
+            $id_product,
+            $id_product_attribute,
+            $context->country->id,
+            0,
+            0,
+            $id_currency,
+            $id_group,
+            1,
+            true,
+            2,
+            false,
+            $usereduc,
+            true,
+            $specific_price_output,
+            true,
+            null,
+            false,
+            null,
+            0
         );
     }
 }

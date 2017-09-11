@@ -25,13 +25,7 @@ $link = $context->link;
 $cookie = $context->cookie;
 
 $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
-$categories = array();
-foreach (BeslistProduct::getBeslistCategories() as $category) {
-    $categories[$category['id_beslist_category']] = $category['name'];
-}
 $shop_categories = BeslistProduct::getShopCategoriesComplete((int)$context->language->id);
-$mapped_categories = BeslistProduct::getMappedCategoryTree();
-$default_category = $categories[Configuration::get('BESLIST_CART_CATEGORY')];
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
 $deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
@@ -97,10 +91,26 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
 <productfeed type="beslist" date="<?php echo date('Y-m-d H:i:s'); ?>">
     <?php
     foreach ($products as $product) {
-        $price = (float)Product::getPriceStatic($product['id_product'], true, $product['id_product_attribute']);
         echo "\t<product>\n";
         echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
+        $price = (float)BeslistProduct::getPriceStatic(
+            $product['id_product'],
+            $product['id_product_attribute'],
+            $context
+        );
         echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
+        $price = (float)BeslistProduct::getPriceStatic(
+            $product['id_product'],
+            $product['id_product_attribute'],
+            $context,
+            false
+        );
+
+        if ($price_old != $price) {
+            echo "\t\t<price_old>" .
+                number_format($price_old, 2, ',', '') .
+                "</price_old>\n";
+        }
 
         if ($product['id_product_attribute']) {
             echo "\t\t<code>" . $product['id_product_attribute'] . "-" . $product['id_product'] . "</code>\n";
@@ -170,22 +180,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             }
         }
 
-        echo "\t\t<category>";
-        if (array_key_exists('id_beslist_category', $product) && $product['id_beslist_category']) {
-            echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
-        } elseif ($product['id_category_default']
-            && array_key_exists($product['id_category_default'], $mapped_categories)
-        ) {
-            echo htmlspecialchars(
-                $categories[$mapped_categories[$product['id_category_default']]],
-                ENT_XML1,
-                'UTF-8'
-            );
-        } else {
-            echo htmlspecialchars($default_category, ENT_XML1, 'UTF-8');
-        }
-        echo "</category>\n";
-
         if ($product['id_category_default'] && array_key_exists($product['id_category_default'], $shop_categories)) {
             echo "\t\t<shop_category>";
             echo htmlspecialchars($shop_categories[$product['id_category_default']], ENT_XML1, 'UTF-8');
@@ -198,8 +192,13 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
 
         if ($enabled_nl) {
-            $prod_deliveryperiod_nl =
-                $product['delivery_code_nl'] == '' ? $deliveryperiod_nl : $product['delivery_code_nl'];
+            if(isset($product['delivery_code_nl']) && $product['delivery_code_nl'] != '') {
+                $prod_deliveryperiod_nl = $product['delivery_code_nl'];
+            } elseif (isset($product['available_now']) && $product['available_now'] != '') {
+                $prod_deliveryperiod_nl = $product['available_now'];
+            } else {
+                $prod_deliveryperiod_nl = $deliveryperiod_nl;
+            }
             echo "\t\t<deliveryperiod_nl>" .
                 ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
                 "</deliveryperiod_nl>\n";
@@ -212,7 +211,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                     );
                 } else {
                     $shippingTotal = $carrier_nl->getDeliveryPriceByWeight(
-                        $product['weight_attribute'],
+                        $product['weight'] + $product['attribute_weight'],
                         $country_nl->id_zone
                     );
                 }
@@ -228,8 +227,14 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 "</shippingcost_nl>\n";
         }
         if ($enabled_be) {
-            $prod_deliveryperiod_be =
-                $product['delivery_code_be'] == '' ? $deliveryperiod_be : $product['delivery_code_be'];
+            if(isset($product['delivery_code_be']) && $product['delivery_code_be'] != '') {
+                $prod_deliveryperiod_be = $product['delivery_code_be'];
+            } elseif (isset($product['available_now']) && $product['available_now'] != '') {
+                $prod_deliveryperiod_be = $product['available_now'];
+            } else {
+                $prod_deliveryperiod_be = $deliveryperiod_be;
+            }
+
             echo "\t\t<deliveryperiod_be>" .
                 ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
                 "</deliveryperiod_be>\n";
@@ -242,7 +247,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                     );
                 } else {
                     $shippingTotal = $carrier_be->getDeliveryPriceByWeight(
-                        $product['weight_attribute'],
+                        $product['weight'] + $product['attribute_weight'],
                         $country_be->id_zone
                     );
                 }
@@ -261,7 +266,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             echo "\t\t<eancode>" . $product['ean13'] . "</eancode>\n";
         }
         $description = $use_long_description ? $product['description'] : $product['description_short'];
-        $description = str_replace(array('<br>', '<br />'), '\\\\n', $description);
+        $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
         echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
 
         $display = 1;
