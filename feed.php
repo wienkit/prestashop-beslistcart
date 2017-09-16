@@ -35,6 +35,9 @@ $deliveryperiod_nostock_be = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOS
 $enabled_nl = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
 $enabled_be = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
 $use_long_description = (bool) Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+$use_attributes_in_title = (bool) Configuration::get('BESLIST_CART_ATTRIBUTES_IN_TITLE');
+$attribute_size = (int) Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
+$attribute_color = (int) Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
 $country_nl = new Country(Country::getByIso('NL'));
 $country_be = new Country(Country::getByIso('BE'));
 $address_nl = new Address();
@@ -92,7 +95,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
     <?php
     foreach ($products as $product) {
         echo "\t<product>\n";
-        echo "\t\t<title><![CDATA[" . $product['name'] . "]]></title>\n";
         $price = (float)BeslistProduct::getPriceStatic(
             $product['id_product'],
             $product['id_product_attribute'],
@@ -296,16 +298,13 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 array_key_exists($prFeature['id_feature_value'], $featureValuesIndexed[$prFeature['id_feature']]) &&
                 $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] != ""
             ) {
-                echo "\t\t<" . $name . ">";
-                echo "<![CDATA[" .
-                    $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] .
-                    "]]>";
-                echo "</" . $name . ">\n";
-                $featureField .= $name . ": " .
-                    $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] . "\\\\n";
+                $value = $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'];
+                echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
+                $featureField .= $name . ": " .$value . "\\\\n";
             }
         }
 
+        $nameSuffix = "";
         $attributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
         foreach ($attributes as $attribute) {
             $name = Tools::strtolower($attributeGroupsIndexed[$attribute['id_attribute_group']]['name']);
@@ -315,18 +314,26 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 array_key_exists($attribute['id_attribute'], $attributesIndexed[$attribute['id_attribute_group']]) &&
                 $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] != ""
             ) {
-                echo "\t\t<" . $name . ">";
-                echo "<![CDATA[" .
-                    $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] .
-                    "]]>";
-                echo "</" . $name . ">\n";
-                $featureField .= $name . ": " .
-                    $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] . "\\\\n";
+                $value = $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'];
+                echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
+                $featureField .= $name . ": " .$value . "\\\\n";
+                if (
+                        (isset($product['color']) && $attribute['id_attribute'] = $attribute_color) ||
+                        (isset($product['size']) && $attribute['id_attribute'] = $attribute_size)
+                ) {
+                    continue;
+                }
+                $nameSuffix .= $use_attributes_in_title ? ", " . $value : "";
             }
         }
-
         $featureField .= "]]></features_combined>";
         echo $featureField;
+
+        if(isset($nameSuffix)) {
+            $nameSuffix = ", " . $nameSuffix;
+        }
+
+        echo "\t\t<title><![CDATA[" . $product['name'] . $nameSuffix . "]]></title>\n";
 
         echo "\t\t<condition>";
         switch ($product['condition']) {
