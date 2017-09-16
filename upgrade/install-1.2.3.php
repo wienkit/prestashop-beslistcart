@@ -17,7 +17,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_2_3($object)
+function upgrade_module_1_2_3()
 {
     $result = Db::getInstance()->executeS('SHOW COLUMNS FROM `'._DB_PREFIX_.'beslist_product`');
 

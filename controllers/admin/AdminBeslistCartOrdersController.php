@@ -193,8 +193,7 @@ class AdminBeslistCartOrdersController extends AdminController
     private static function saveAndRetrieve(Address $address, Address $otherAddress = null)
     {
         if ($otherAddress != null) {
-            if (
-                $otherAddress->firstname == $address->firstname &&
+            if ($otherAddress->firstname == $address->firstname &&
                 $otherAddress->lastname == $address->lastname &&
                 $otherAddress->address1 == $address->address1 &&
                 $otherAddress->address2 == $address->address2 &&
@@ -357,8 +356,7 @@ class AdminBeslistCartOrdersController extends AdminController
             $priceExtra = 0;
             $quantity = 2;
 
-            if (
-                $price < Configuration::get('PS_SHIPPING_FREE_PRICE') ||
+            if ($price < Configuration::get('PS_SHIPPING_FREE_PRICE') ||
                 Configuration::get('PS_SHIPPING_FREE_PRICE') == 0
             ) {
                 $priceExtra = Configuration::get('PS_SHIPPING_HANDLING');
@@ -605,7 +603,7 @@ class AdminBeslistCartOrdersController extends AdminController
                 $hasProducts = true;
                 $oldMinimalQuantity = self::updateMinimalQuantity($product->id, $productIds['id_product_attribute']);
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
-                if($oldMinimalQuantity > 1) {
+                if ($oldMinimalQuantity > 1) {
                     self::updateMinimalQuantity($product->id, $productIds['id_product_attribute'], $oldMinimalQuantity);
                 }
                 if (!$cartResult) {

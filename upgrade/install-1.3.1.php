@@ -17,7 +17,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_3_1($object)
+function upgrade_module_1_3_1()
 {
     return
         Configuration::deleteByName('BESLIST_CART_PRICE_MULTIPLICATION') &&

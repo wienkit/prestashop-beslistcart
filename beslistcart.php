@@ -111,7 +111,7 @@ class BeslistCart extends Module
     {
         $sql = array();
         include(dirname(__FILE__) . '/sql_install.php');
-        foreach ($sql as $name => $v) {
+        foreach (array_keys($sql) as $name) {
             Db::getInstance()->execute('DROP TABLE IF EXISTS ' . pSQL($name));
         }
         return true;
@@ -910,8 +910,6 @@ class BeslistCart extends Module
         foreach ($beslistProducts as $beslistProduct) {
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
         }
-
-        $beslistCategories = BeslistProduct::getBeslistCategories();
 
         $this->context->smarty->assign(array(
             'attributes' => $attributes,

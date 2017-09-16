@@ -17,7 +17,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_1_2_0($object)
+function upgrade_module_1_2_0()
 {
     return (
         Db::getInstance()->execute(
