@@ -312,7 +312,9 @@ class BeslistProduct extends ObjectModel
             $context = Context::getContext();
         }
 
-        $id_currency = Validate::isLoadedObject($context->currency) ? (int)$context->currency->id : (int)Configuration::get('PS_CURRENCY_DEFAULT');
+        $id_currency = Validate::isLoadedObject($context->currency)
+            ? (int)$context->currency->id
+            : (int)Configuration::get('PS_CURRENCY_DEFAULT');
         $id_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
 
         return Product::priceCalculation(
