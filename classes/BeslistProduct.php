@@ -108,9 +108,10 @@ class BeslistProduct extends ObjectModel
     /**
      * Returns all Beslist products
      * @param int $id_lang
+     * @param null $limit
      * @return array
      */
-    public static function getLoadedBeslistProducts($id_lang = null)
+    public static function getLoadedBeslistProducts($id_lang = null, $limit = null)
     {
         $filter_stock = (bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
 
@@ -163,6 +164,9 @@ class BeslistProduct extends ObjectModel
             GROUP BY b.`id_beslist_product`, b.`id_product`, b.`id_product_attribute`
                 " . ($filter_stock? "HAVING SUM(st.`quantity`) > 0" : "") . "
             ORDER BY p.id_product";
+        if (isset($limit)) {
+            $sql .= " LIMIT " . (int)$limit;
+        }
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
 
@@ -287,9 +291,23 @@ class BeslistProduct extends ObjectModel
         );
     }
 
-    public static function getPriceStatic($id_product, $id_product_attribute, Context $context = null,
-        $usereduc = true, &$specific_price_output = null)
-    {
+    /**
+     * Helper function to get the price
+     *
+     * @param $id_product
+     * @param $id_product_attribute
+     * @param Context|null $context
+     * @param bool $usereduc
+     * @param null $specific_price_output
+     * @return float
+     */
+    public static function getPriceStatic(
+        $id_product,
+        $id_product_attribute,
+        Context $context = null,
+        $usereduc = true,
+        &$specific_price_output = null
+    ) {
         if (!$context) {
             $context = Context::getContext();
         }

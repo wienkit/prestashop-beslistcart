@@ -28,7 +28,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.5';
+        $this->version = '1.3.6';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -111,7 +111,7 @@ class BeslistCart extends Module
     {
         $sql = array();
         include(dirname(__FILE__) . '/sql_install.php');
-        foreach ($sql as $name => $v) {
+        foreach (array_keys($sql) as $name) {
             Db::getInstance()->execute('DROP TABLE IF EXISTS ' . pSQL($name));
         }
         return true;
@@ -882,8 +882,10 @@ class BeslistCart extends Module
             return $this->display(__FILE__, 'views/templates/admin/disabled.tpl');
         }
         $product = null;
-        if ($id_product = (int)Tools::getValue('id_product', $params['id_product'])) {
+        if ($id_product = (int)Tools::getValue('id_product')) {
             $product = new Product($id_product, true, $this->context->language->id, $this->context->shop->id);
+        } elseif (isset($params['id_product'])) {
+            $product = new Product($params['id_product'], true, $this->context->language->id, $this->context->shop->id);
         }
         if ($product == null || !Validate::isLoadedObject($product)) {
             return;
@@ -910,8 +912,6 @@ class BeslistCart extends Module
         foreach ($beslistProducts as $beslistProduct) {
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
         }
-
-        $beslistCategories = BeslistProduct::getBeslistCategories();
 
         $this->context->smarty->assign(array(
             'attributes' => $attributes,

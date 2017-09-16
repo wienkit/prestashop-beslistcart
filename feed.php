@@ -24,7 +24,12 @@ $context = Context::getContext();
 $link = $context->link;
 $cookie = $context->cookie;
 
-$products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$limit = Tools::getValue('limit');
+if ($limit) {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id, $limit);
+} else {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+}
 $shop_categories = BeslistProduct::getShopCategoriesComplete((int)$context->language->id);
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
@@ -101,7 +106,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             $context
         );
         echo "\t\t<price>" . number_format($price, 2, ',', '') . "</price>\n";
-        $price = (float)BeslistProduct::getPriceStatic(
+        $price_old = (float)BeslistProduct::getPriceStatic(
             $product['id_product'],
             $product['id_product_attribute'],
             $context,
@@ -194,7 +199,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
 
         if ($enabled_nl) {
-            if(isset($product['delivery_code_nl']) && $product['delivery_code_nl'] != '') {
+            if (isset($product['delivery_code_nl']) && $product['delivery_code_nl'] != '') {
                 $prod_deliveryperiod_nl = $product['delivery_code_nl'];
             } elseif (isset($product['available_now']) && $product['available_now'] != '') {
                 $prod_deliveryperiod_nl = $product['available_now'];
@@ -229,7 +234,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 "</shippingcost_nl>\n";
         }
         if ($enabled_be) {
-            if(isset($product['delivery_code_be']) && $product['delivery_code_be'] != '') {
+            if (isset($product['delivery_code_be']) && $product['delivery_code_be'] != '') {
                 $prod_deliveryperiod_be = $product['delivery_code_be'];
             } elseif (isset($product['available_now']) && $product['available_now'] != '') {
                 $prod_deliveryperiod_be = $product['available_now'];
@@ -269,7 +274,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
         $description = $use_long_description ? $product['description'] : $product['description_short'];
         $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
-        echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
+        echo "\t\t<description><![CDATA[" . trim($description , "\\\\n"). "]]></description>\n";
 
         $display = 1;
         if ($product['published'] == 0) {
@@ -291,7 +296,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $featureField = "<features_combined><![CDATA[";
         $prFeatures = Product::getFeaturesStatic($product['id_product']);
         foreach ($prFeatures as $prFeature) {
-            $name = Tools::strtolower($featuresIndexed[$prFeature['id_feature']]['name']);
+            $rawName = $featuresIndexed[$prFeature['id_feature']]['name'];
+            $name = Tools::strtolower($rawName);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
                 array_key_exists($prFeature['id_feature'], $featuresIndexed) &&
@@ -300,14 +306,15 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             ) {
                 $value = $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'];
                 echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
-                $featureField .= $name . ": " .$value . "\\\\n";
+                $featureField .= $rawName . ": " .$value . "\\\\n";
             }
         }
 
         $nameSuffix = "";
         $attributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
         foreach ($attributes as $attribute) {
-            $name = Tools::strtolower($attributeGroupsIndexed[$attribute['id_attribute_group']]['name']);
+            $rawName = $attributeGroupsIndexed[$attribute['id_attribute_group']]['name'];
+            $name = Tools::strtolower($rawName);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
                 array_key_exists($attribute['id_attribute_group'], $attributesIndexed) &&
@@ -316,10 +323,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             ) {
                 $value = $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'];
                 echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
-                $featureField .= $name . ": " .$value . "\\\\n";
-                if (
-                        (isset($product['color']) && $attribute['id_attribute'] = $attribute_color) ||
-                        (isset($product['size']) && $attribute['id_attribute'] = $attribute_size)
+                $featureField .= $rawName . ": " .$value . "\\\\n";
+                if ((isset($product['color']) && $attribute['id_attribute_group'] == $attribute_color) ||
+                    (isset($product['size']) && $attribute['id_attribute_group'] == $attribute_size)
                 ) {
                     continue;
                 }
@@ -328,10 +334,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
         $featureField .= "]]></features_combined>";
         echo $featureField;
-
-        if(isset($nameSuffix)) {
-            $nameSuffix = ", " . $nameSuffix;
-        }
 
         echo "\t\t<title><![CDATA[" . $product['name'] . $nameSuffix . "]]></title>\n";
 
