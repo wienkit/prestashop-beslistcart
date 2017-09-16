@@ -24,7 +24,12 @@ $context = Context::getContext();
 $link = $context->link;
 $cookie = $context->cookie;
 
-$products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$limit = Tools::getValue('limit');
+if ($limit) {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id, $limit);
+} else {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+}
 $shop_categories = BeslistProduct::getShopCategoriesComplete((int)$context->language->id);
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
