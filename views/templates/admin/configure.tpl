@@ -30,31 +30,31 @@
                 <div class="well">
                     <div class="form-horizontal">
                         <div class="form-group">
-                            <label for="cron_url" class="col-md-2 control-label"><strong>Cron URL</strong></label>
+                            <label for="cron_url" class="col-md-2 control-label"><strong>{l s='Cron URL' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="cron_url" readonly class="form-control" type="text" value="{$cron_url|escape:'htmlall':'UTF-8'}" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="cron_cmd" class="col-md-2 control-label"><strong>Cron command</strong></label>
+                            <label for="cron_cmd" class="col-md-2 control-label"><strong>{l s='Cron command' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="cron_cmd" readonly class="form-control" type="text" value="*/10 * * * * curl --silent {$cron_url|escape:'htmlall':'UTF-8'} &>/dev/null" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="feed_url" class="col-md-2 control-label"><strong>Live feed</strong></label>
+                            <label for="feed_url" class="col-md-2 control-label"><strong>{l s='Live feed' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="feed_url" readonly class="form-control" type="text" value="{$feed_url|escape:'htmlall':'UTF-8'}" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="feed_cmd" class="col-md-2 control-label"><strong>Feed generator</strong></label>
+                            <label for="feed_cmd" class="col-md-2 control-label"><strong>{l s='Feed generator' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="feed_cmd" readonly class="form-control" type="text" value="0 1 * * * curl {$feed_url|escape:'htmlall':'UTF-8'} > {$feed_loc}" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="feed_web" class="col-md-2 control-label"><strong>Generated feed</strong></label>
+                            <label for="feed_web" class="col-md-2 control-label"><strong>{l s='Generated feed' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="feed_web" readonly class="form-control" type="text" value="{$feed_web|escape:'htmlall':'UTF-8'}" />
                             </div>

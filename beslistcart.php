@@ -288,6 +288,7 @@ class BeslistCart extends Module
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
             $use_long_descriptions = (bool)Tools::getValue('beslist_cart_use_long_description');
+            $attributes_in_title = (bool)Tools::getValue('beslist_cart_attributes_in_title');
             $useAddress2 = (bool) Tools::getValue('beslist_cart_use_address2');
 
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
@@ -335,6 +336,7 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', $use_long_descriptions);
+                Configuration::updateValue('BESLIST_CART_ATTRIBUTES_IN_TITLE', $attributes_in_title);
                 Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', $useAddress2);
 
                 Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
@@ -430,9 +432,28 @@ class BeslistCart extends Module
                         )
                     ),
                     'hint' => $this->l(
-                        'Uses long descriptions in the feed. Note that 
-                        you should not be using HTML markup in the content.'
+                        'Uses long descriptions in the feed. Note that you should not '.
+                        'be using HTML markup in the content.'
                     )
+                ),
+                array(
+                    'type' => 'switch',
+                    'label' => $this->l('Use attributes in title.'),
+                    'name' => 'beslist_cart_attributes_in_title',
+                    'is_bool' => true,
+                    'values' => array(
+                        array(
+                            'id' => 'beslist_cart_attributes_in_title_1',
+                            'value' => 1,
+                            'label' => $this->l('Yes'),
+                        ),
+                        array(
+                            'id' => 'beslist_cart_attributes_in_title_0',
+                            'value' => 0,
+                            'label' => $this->l('No')
+                        )
+                    ),
+                    'hint' => $this->l('Shows attributes in title unless they are mapped as size or color.')
                 ),
                 array(
                     'type' => 'select',
@@ -814,6 +835,8 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
         $helper->fields_value['beslist_cart_use_long_description'] =
             Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
+        $helper->fields_value['beslist_cart_attributes_in_title'] =
+            Configuration::get('BESLIST_CART_ATTRIBUTES_IN_TITLE');
         $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
 
         $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
