@@ -55,7 +55,6 @@ class BeslistCart extends Module
                 && $this->installOrderState()
                 && $this->installOrdersTab()
                 && $this->installProductsTab()
-                && $this->importCategories()
                 && $this->registerHook('actionAdminControllerSetMedia')
                 && $this->registerHook('actionProductUpdate')
                 && $this->registerHook('actionUpdateQuantity')
@@ -251,45 +250,6 @@ class BeslistCart extends Module
     }
 
     /**
-     * Import Beslist Categories
-     */
-    public function importCategories()
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://www.beslist.nl/atools/category_overview.php');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Wienk IT Beslist.nl PHP Client');
-        $result = curl_exec($ch);
-        $result = simplexml_load_string($result);
-
-        $items = array();
-
-        foreach ($result->categories->maincat as $maincat) {
-            $this->parseCategory('', $maincat, $items);
-        }
-        Db::getInstance()->delete('beslist_categories');
-        Db::getInstance()->insert('beslist_categories', $items);
-        return true;
-    }
-
-    /**
-     * Parses the categories recursively
-     * @param $parent
-     * @param $category
-     * @param $items
-     */
-    protected function parseCategory($parent, $category, &$items)
-    {
-        $items[] = array(
-            'id_beslist_category' => "" . $category[0]['id'],
-            'name' => pSQL($parent . $category[0]['name'])
-        );
-        foreach ($category->children() as $child) {
-            $this->parseCategory($parent . $category[0]['name'] . ' > ', $child, $items);
-        }
-    }
-
-    /**
      * Render the module configuration page
      * @return string the rendered page
      */
@@ -346,11 +306,7 @@ class BeslistCart extends Module
             $deliveryperiod_nostock_be = (string)Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
 
             $update_bulk_status = (bool)Tools::getValue('beslist_cart_update_bulk_status');
-            $update_categories = (bool)Tools::getValue('beslist_cart_update_categories');
-            $add_default_categories = (bool)Tools::getValue('beslist_cart_add_default_categories');
-            $overwrite_categories = (bool)Tools::getValue('beslist_cart_overwrite_categories');
             $add_products = (bool)Tools::getValue('beslist_cart_add_all_products');
-            $category = (int)Tools::getValue('beslist_cart_category');
 
             if ($cartEnabled && (!$personalkey
                 || $shopid == 0
@@ -365,8 +321,7 @@ class BeslistCart extends Module
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
                 || ($enabled_be && empty($carrier_be))
                 || ($enabled_be && empty($deliveryperiod_be))
-                || ($enabled_be && empty($deliveryperiod_nostock_be))
-                || empty($category))
+                || ($enabled_be && empty($deliveryperiod_nostock_be)))
             ) {
                 $output .= $this->displayError($this->l('Invalid Configuration value'));
             } else {
@@ -397,21 +352,14 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD_BE', $deliveryperiod_be);
                 Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE', $deliveryperiod_nostock_be);
 
-                Configuration::updateValue('BESLIST_CART_CATEGORY', $category);
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
             }
 
-            if ($update_categories) {
-                $this->importCategories();
-            }
             if ($update_bulk_status) {
                 AdminBeslistCartProductsController::setBulkProductsToUpdatedStatus();
             }
             if ($add_products) {
                 AdminBeslistCartProductsController::addAllProducts();
-            }
-            if ($add_default_categories) {
-                AdminBeslistCartProductsController::setDefaultCategories($overwrite_categories);
             }
         }
         return $output . $this->displayForm();
@@ -427,7 +375,6 @@ class BeslistCart extends Module
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $carriers = Carrier::getCarriers(Context::getContext()->language->id);
-        $categories = BeslistProduct::getBeslistCategories();
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
         $customer_groups = Group::getGroups(Context::getContext()->language->id);
 
@@ -800,53 +747,6 @@ class BeslistCart extends Module
                 ),
                 array(
                     'type' => 'switch',
-                    'label' => $this->l('Add default categories'),
-                    'name' => 'beslist_cart_add_default_categories',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'beslist_cart_add_default_categories_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'beslist_cart_add_default_categories_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'hint' => $this->l('Add all default Beslist categories to Beslist products.'),
-                    'desc' => $this->l(
-                        'Set the Beslist.nl category on all product, retrieves the categories from ' .
-                        'the closest category settings. Useful if you do not use you default category for the ' .
-                        'Beslist mapping.'
-                    )
-                ),
-                array(
-                    'type' => 'switch',
-                    'label' => $this->l('Overwrite categories'),
-                    'name' => 'beslist_cart_overwrite_categories',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'beslist_cart_overwrite_categories_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'beslist_cart_overwrite_categories_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'hint' => $this->l('Overwrites the already known categories.'),
-                    'desc' => $this->l(
-                        'Use with caution, as this will remove all existing customly selected ' .
-                        'categories. Enable only if you are certain you want to overwrite categories.'
-                    )
-                ),
-                array(
-                    'type' => 'switch',
                     'label' => $this->l('Set 1000 products as updated'),
                     'name' => 'beslist_cart_update_bulk_status',
                     'is_bool' => true,
@@ -864,44 +764,6 @@ class BeslistCart extends Module
                     ),
                     'hint' => $this->l('Send products on next run.'),
                     'desc' => $this->l('Set 1000 products as updated, so they are sent to Beslist on the next run.')
-                ),
-            )
-        );
-
-        $fields_form[]['form'] = array(
-            'legend' => array(
-                'title' => $this->l('Categories')
-            ),
-            'input' => array(
-                array(
-                    'type' => 'switch',
-                    'label' => $this->l('Update Beslist categories'),
-                    'name' => 'beslist_cart_update_categories',
-                    'is_bool' => true,
-                    'values' => array(
-                        array(
-                            'id' => 'update_categories_enabled_1',
-                            'value' => 1,
-                            'label' => $this->l('Yes'),
-                        ),
-                        array(
-                            'id' => 'update_categories_enabled_0',
-                            'value' => 0,
-                            'label' => $this->l('No')
-                        )
-                    ),
-                    'hint' => $this->l('Updates the Beslist.nl categories list.')
-                ),
-                array(
-                    'type' => 'select',
-                    'label' => $this->l('Default category'),
-                    'desc' => $this->l('Select a default category for your Beslist.nl products'),
-                    'name' => 'beslist_cart_category',
-                    'options' => array(
-                        'query' => $categories,
-                        'id' => 'id_beslist_category',
-                        'name' => 'name'
-                    )
                 ),
             ),
             'submit' => array(
@@ -976,40 +838,13 @@ class BeslistCart extends Module
             Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 
         $helper->fields_value['beslist_cart_add_all_products'] = 0;
-        $helper->fields_value['beslist_cart_add_default_categories'] = 0;
-        $helper->fields_value['beslist_cart_overwrite_categories'] = 0;
         $helper->fields_value['beslist_cart_update_bulk_status'] = 0;
-
-        $helper->fields_value['beslist_cart_category'] = Configuration::get('BESLIST_CART_CATEGORY');
 
         if (empty($helper->fields_value['beslist_cart_startdate'])) {
             $helper->fields_value['beslist_cart_startdate'] = date('Y-m-d');
         }
-        $helper->fields_value['beslist_cart_update_categories'] = 0;
 
         return $helper->generateForm($fields_form);
-    }
-
-    /**
-     * Shows the Beslist Category field on the Category edit page
-     * @return null|string
-     */
-    public function hookDisplayBackOfficeCategory()
-    {
-        $id_category = Tools::getValue('id_category');
-        if ($id_category && is_numeric($id_category)) {
-            $beslistCategories = BeslistProduct::getBeslistCategories();
-            $id_beslist_category = Db::getInstance()->getValue(
-                'SELECT id_beslist_category FROM `' . _DB_PREFIX_ . 'beslist_category` 
-                WHERE id_category = ' . (int) $id_category
-            );
-            $this->context->smarty->assign(array(
-                'beslist_category' => $id_beslist_category,
-                'beslist_categories' => $beslistCategories
-            ));
-            return $this->display(__FILE__, 'views/templates/admin/category.tpl');
-        }
-        return null;
     }
 
     /**
@@ -1048,18 +883,8 @@ class BeslistCart extends Module
         }
 
         $beslistProducts = BeslistProduct::getByProductId($id_product);
-        $currentCategory = null;
         $indexedBeslistProducts = array();
         foreach ($beslistProducts as $beslistProduct) {
-            $currentCategory = $beslistProduct['id_beslist_category'];
-            if (!$currentCategory) {
-                $tree = BeslistProduct::getMappedCategoryTree();
-                if (array_key_exists($product->id_category_default, $tree)) {
-                    $currentCategory = $tree[$product->id_category_default];
-                } else {
-                    $currentCategory = Configuration::get('BESLIST_CART_CATEGORY');
-                }
-            }
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
         }
 
@@ -1069,9 +894,7 @@ class BeslistCart extends Module
             'attributes' => $attributes,
             'product_designation' => $product_designation,
             'product' => $product,
-            'beslist_category' => $currentCategory,
-            'beslist_products' => $indexedBeslistProducts,
-            'beslist_categories' => $beslistCategories
+            'beslist_products' => $indexedBeslistProducts
         ));
 
         if (version_compare(_PS_VERSION_, '1.7', '>=')) {
@@ -1110,8 +933,6 @@ class BeslistCart extends Module
             );
         }
 
-        $category_id = Tools::getValue('beslistcart_category');
-
         $beslistProducts = BeslistProduct::getByProductId($product->id);
 
         $indexedBeslistProducts = array();
@@ -1133,7 +954,6 @@ class BeslistCart extends Module
                     $indexedBeslistProducts[$attribute['id_product_attribute']]['id_beslist_product']
                 );
                 if ($beslistProduct->published == $published
-                    && $beslistProduct->id_beslist_category == $category_id
                     && $beslistProduct->delivery_code_nl == $delivery_code_nl
                     && $beslistProduct->delivery_code_be == $delivery_code_be
                 ) {
@@ -1150,9 +970,6 @@ class BeslistCart extends Module
 
             $beslistProduct->id_product = $product->id;
             $beslistProduct->id_product_attribute = $attribute['id_product_attribute'];
-            if ($category_id && is_numeric($category_id)) {
-                $beslistProduct->id_beslist_category = $category_id;
-            }
             $beslistProduct->published = $published;
             $beslistProduct->delivery_code_nl = $delivery_code_nl;
             $beslistProduct->delivery_code_be = $delivery_code_be;
@@ -1197,39 +1014,6 @@ class BeslistCart extends Module
     }
 
     /**
-     * Reads the Beslist Category ID and adds it to the database
-     */
-    public function hookActionAdminCategoriesControllerSaveBefore()
-    {
-        $id_beslistcart_category = (int) Tools::getValue('beslistcart_category');
-        $id_category = (int) Tools::getValue('id_category');
-        if ($id_beslistcart_category && $id_category) {
-            Db::getInstance()->execute(
-                'INSERT INTO `' . _DB_PREFIX_ . 'beslist_category` (id_category, id_beslist_category) 
-                VALUES (' . (int) $id_category . ', ' . (int) $id_beslistcart_category .')
-                ON DUPLICATE KEY UPDATE id_beslist_category = ' . (int) $id_beslistcart_category
-            );
-        }
-    }
-
-    /**
-     * Delete the linked Beslist category
-     * @param $param
-     */
-    public function hookActionObjectCategoryDeleteAfter($param)
-    {
-        if (!empty($param['object'])) {
-            $category = $param['object'];
-            if ($category->id_category) {
-                Db::getInstance()->execute(
-                    'DELETE FROM `' . _DB_PREFIX_ . 'beslist_category`
-                     WHERE id_category = ' . (int) $category->id_category
-                );
-            }
-        }
-    }
-
-    /**
      * Send an update request to Beslist
      * Executes hook: actionObjectBeslistProductUpdateAfter
      * @param array $param
@@ -1254,37 +1038,6 @@ class BeslistCart extends Module
     {
         if (!empty($param['object']) && Configuration::get('BESLIST_CART_ENABLED')) {
             AdminBeslistCartProductsController::processBeslistProductDelete($param['object'], $this->context);
-        }
-    }
-
-    /**
-     * Add javascript and css to view
-     * @param $params
-     */
-    public function hookActionAdminControllerSetMedia($params)
-    {
-        if ($this->context->controller->controller_name == 'AdminProducts' ||
-            $this->context->controller->controller_name == 'AdminCategories'
-        ) {
-            if (version_compare(_PS_VERSION_, '1.7', '>=')) {
-                return;
-            }
-
-            $admin_webpath = str_ireplace(_PS_CORE_DIR_, '', _PS_ADMIN_DIR_);
-            $admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
-            $bo_theme = ((Validate::isLoadedObject(Context::getContext()->employee)
-                && Context::getContext()->employee->bo_theme) ? Context::getContext()->employee->bo_theme : 'default');
-
-            if (!file_exists(_PS_BO_ALL_THEMES_DIR_.$bo_theme.DIRECTORY_SEPARATOR.'template')) {
-                $bo_theme = 'default';
-            }
-
-            $this->context->controller->addJS(
-                __PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/vendor/typeahead.min.js'
-            );
-            $this->context->controller->addJS(
-                $this->_path . 'views/js/hogan-3.0.1.js'
-            );
         }
     }
 

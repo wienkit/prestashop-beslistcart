@@ -30,14 +30,7 @@ if ($limit) {
 } else {
     $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
 }
-
-$categories = array();
-foreach (BeslistProduct::getBeslistCategories() as $category) {
-    $categories[$category['id_beslist_category']] = $category['name'];
-}
 $shop_categories = BeslistProduct::getShopCategoriesComplete((int)$context->language->id);
-$mapped_categories = BeslistProduct::getMappedCategoryTree();
-$default_category = $categories[Configuration::get('BESLIST_CART_CATEGORY')];
 $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
 $stock_behaviour = Configuration::get('PS_ORDER_OUT_OF_STOCK');
 $deliveryperiod_nl = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
@@ -191,22 +184,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 ) . "]]></imagelink" . $suffix . ">\n";
             }
         }
-
-        echo "\t\t<category>";
-        if (array_key_exists('id_beslist_category', $product) && $product['id_beslist_category']) {
-            echo htmlspecialchars($categories[$product['id_beslist_category']], ENT_XML1, 'UTF-8');
-        } elseif ($product['id_category_default']
-            && array_key_exists($product['id_category_default'], $mapped_categories)
-        ) {
-            echo htmlspecialchars(
-                $categories[$mapped_categories[$product['id_category_default']]],
-                ENT_XML1,
-                'UTF-8'
-            );
-        } else {
-            echo htmlspecialchars($default_category, ENT_XML1, 'UTF-8');
-        }
-        echo "</category>\n";
 
         if ($product['id_category_default'] && array_key_exists($product['id_category_default'], $shop_categories)) {
             echo "\t\t<shop_category>";

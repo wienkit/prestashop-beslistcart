@@ -8,7 +8,7 @@ abstract class AbstractAdmin17TestBase extends ATestBase
         try {
             $nav = $this->driver->findElement(\WebDriverBy::id('nav-sidebar'));
         } catch (\NoSuchElementException $e) {
-            $nav = $this->driver->findElement(\WebDriverBy::className('.nav-bar'));
+            $nav = $this->driver->findElement(\WebDriverBy::className('nav-bar'));
         }
 
         $trail = $nav;
