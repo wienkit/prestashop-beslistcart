@@ -308,6 +308,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             echo "\t\t<brand><![CDATA[" . $product['manufacturer_name'] . "]]></brand>\n";
         }
 
+        $featureField = "<features_combined><![CDATA[";
         $prFeatures = Product::getFeaturesStatic($product['id_product']);
         foreach ($prFeatures as $prFeature) {
             $name = Tools::strtolower($featuresIndexed[$prFeature['id_feature']]['name']);
@@ -322,6 +323,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                     $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] .
                     "]]>";
                 echo "</" . $name . ">\n";
+                $featureField .= $name . ": " .
+                    $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'] . "\\\\n";
             }
         }
 
@@ -339,8 +342,13 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                     $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] .
                     "]]>";
                 echo "</" . $name . ">\n";
+                $featureField .= $name . ": " .
+                    $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'] . "\\\\n";
             }
         }
+
+        $featureField .= "]]></features_combined>";
+        echo $featureField;
 
         echo "\t\t<condition>";
         switch ($product['condition']) {
