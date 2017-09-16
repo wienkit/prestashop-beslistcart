@@ -29,9 +29,6 @@ class BeslistProduct extends ObjectModel
     /** @var int */
     public $id_product_attribute;
 
-    /** @var int */
-    public $id_beslist_category;
-
     /** @var bool */
     public $published = false;
 
@@ -61,10 +58,6 @@ class BeslistProduct extends ObjectModel
                 'validate' => 'isUnsignedId',
                 'required' => true
             ),
-            'id_beslist_category' => array(
-                'type' => self::TYPE_INT,
-                'validate' => 'isUnsignedId'
-            ),
             'published' => array(
                 'type' => self::TYPE_BOOL,
                 'shop' => true,
@@ -87,50 +80,6 @@ class BeslistProduct extends ObjectModel
             )
         )
     );
-
-    /**
-     * Return the categories in an indexed array
-     * @return array
-     */
-    public static function getBeslistCategories()
-    {
-        $sql = 'SELECT id_beslist_category, name FROM `' . _DB_PREFIX_ . 'beslist_categories` ORDER BY name ASC';
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-    }
-
-    /**
-     * Returns the category to beslist category mappings
-     * @return array
-     */
-    public static function getMappedCategoryTree()
-    {
-        $sql = 'SELECT category.id_category, mappedparent.parentbeslistcategory FROM '._DB_PREFIX_.'category category
-                INNER JOIN (
-                   SELECT 
-                        MIN(parent.nright - parent.nleft) as parentdist, 
-                        parent.id_category as parentid, 
-                        parent.nleft as parentnleft, 
-                        parent.nright as parentnright, 
-                        bc.id_beslist_category as parentbeslistcategory
-                   FROM '._DB_PREFIX_.'category parent 
-                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
-                   GROUP BY parent.id_category, bc.id_beslist_category
-                ) as mappedparent 
-                ON mappedparent.parentnleft <= category.nleft 
-                AND mappedparent.parentnright >= category.nright
-                AND mappedparent.parentdist = (
-                   SELECT MIN(parent.nright - parent.nleft) 
-                   FROM '._DB_PREFIX_.'category parent 
-                   INNER JOIN '._DB_PREFIX_.'beslist_category bc ON bc.id_category = parent.id_category
-                   WHERE parent.nleft <= category.nleft AND parent.nright >= category.nright
-                )';
-        $result = array();
-        $rows = Db::getInstance()->executeS($sql);
-        foreach ($rows as $row) {
-            $result[$row['id_category']] = $row['parentbeslistcategory'];
-        }
-        return $result;
-    }
 
     /**
      * Return the full list of categories, indexed by id

@@ -25,26 +25,6 @@
     </div>
 
     <div class="panel panel-default">
-        <div class="panel-heading"><strong>{l s='Beslist.nl settings' mod='beslistcart'}</strong></div>
-        <div class="panel-body" id="beslistcart_combinations">
-            <div class="row form-group">
-                <div class="col-lg-1"></div>
-                <div class="control-label col-lg-3">
-                    {l s='Beslist category ID' mod='beslistcart'}
-                </div>
-                <div class="col-lg-6">
-                    <select name="beslistcart_category" id="beslistcart_category" data-toggle="select2">
-                        {foreach $beslist_categories as $category}
-                            <option value="{$category.id_beslist_category}" {if $category.id_beslist_category == $beslist_category}selected="selected"{/if}>{$category.name}</option>
-                        {/foreach}
-                    </select>
-                    <div class="help-block">{l s='For a complete overview, look at: ' mod='beslistcart'} <a href="https://www.beslist.nl/categories/">https://www.beslist.nl/categories/</a></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel panel-default">
         <div class="panel-heading"><strong>{l s='Beslist.nl products' mod='beslistcart'}</strong></div>
         <div class="panel-body" id="beslistcart_combinations">
             <div>
