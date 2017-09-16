@@ -24,7 +24,13 @@ $context = Context::getContext();
 $link = $context->link;
 $cookie = $context->cookie;
 
-$products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+$limit = Tools::getValue('limit');
+if ($limit) {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id, $limit);
+} else {
+    $products = BeslistProduct::getLoadedBeslistProducts((int)$context->language->id);
+}
+
 $categories = array();
 foreach (BeslistProduct::getBeslistCategories() as $category) {
     $categories[$category['id_beslist_category']] = $category['name'];
