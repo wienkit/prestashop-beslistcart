@@ -274,7 +274,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
         $description = $use_long_description ? $product['description'] : $product['description_short'];
         $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
-        echo "\t\t<description><![CDATA[" . trim($description , "\\\\n"). "]]></description>\n";
+        echo "\t\t<description><![CDATA[" . trim($description, "\\\\n"). "]]></description>\n";
 
         $display = 1;
         if ($product['published'] == 0) {
