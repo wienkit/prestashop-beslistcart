@@ -274,7 +274,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
         $description = $use_long_description ? $product['description'] : $product['description_short'];
         $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
-        echo "\t\t<description><![CDATA[" . $description . "]]></description>\n";
+        echo "\t\t<description><![CDATA[" . trim($description , "\\\\n"). "]]></description>\n";
 
         $display = 1;
         if ($product['published'] == 0) {
@@ -296,7 +296,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $featureField = "<features_combined><![CDATA[";
         $prFeatures = Product::getFeaturesStatic($product['id_product']);
         foreach ($prFeatures as $prFeature) {
-            $name = Tools::strtolower($featuresIndexed[$prFeature['id_feature']]['name']);
+            $rawName = $featuresIndexed[$prFeature['id_feature']]['name'];
+            $name = Tools::strtolower($rawName);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
                 array_key_exists($prFeature['id_feature'], $featuresIndexed) &&
@@ -305,14 +306,15 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             ) {
                 $value = $featureValuesIndexed[$prFeature['id_feature']][$prFeature['id_feature_value']]['value'];
                 echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
-                $featureField .= $name . ": " .$value . "\\\\n";
+                $featureField .= $rawName . ": " .$value . "\\\\n";
             }
         }
 
         $nameSuffix = "";
         $attributes = Product::getAttributesParams($product['id_product'], $product['id_product_attribute']);
         foreach ($attributes as $attribute) {
-            $name = Tools::strtolower($attributeGroupsIndexed[$attribute['id_attribute_group']]['name']);
+            $rawName = $attributeGroupsIndexed[$attribute['id_attribute_group']]['name'];
+            $name = Tools::strtolower($rawName);
             $name = preg_replace("/[^a-z0-9]/", '', $name);
             if ($name != "" &&
                 array_key_exists($attribute['id_attribute_group'], $attributesIndexed) &&
@@ -321,9 +323,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
             ) {
                 $value = $attributesIndexed[$attribute['id_attribute_group']][$attribute['id_attribute']]['name'];
                 echo "\t\t<" . $name . "><![CDATA[" . $value . "]]></" . $name . ">\n";
-                $featureField .= $name . ": " .$value . "\\\\n";
-                if ((isset($product['color']) && $attribute['id_attribute'] = $attribute_color) ||
-                    (isset($product['size']) && $attribute['id_attribute'] = $attribute_size)
+                $featureField .= $rawName . ": " .$value . "\\\\n";
+                if ((isset($product['color']) && $attribute['id_attribute_group'] == $attribute_color) ||
+                    (isset($product['size']) && $attribute['id_attribute_group'] == $attribute_size)
                 ) {
                     continue;
                 }
@@ -332,10 +334,6 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         }
         $featureField .= "]]></features_combined>";
         echo $featureField;
-
-        if (isset($nameSuffix)) {
-            $nameSuffix = ", " . $nameSuffix;
-        }
 
         echo "\t\t<title><![CDATA[" . $product['name'] . $nameSuffix . "]]></title>\n";
 

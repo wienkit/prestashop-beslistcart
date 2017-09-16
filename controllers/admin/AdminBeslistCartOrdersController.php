@@ -165,7 +165,7 @@ class AdminBeslistCartOrdersController extends AdminController
      */
     private static function updateMinimalQuantity($id, $id_product_attribute = null, $minimalQuantity = 1)
     {
-        if (isset($id_product_attribute)) {
+        if (isset($id_product_attribute) && $id_product_attribute > 0) {
             $attribute = new Combination($id_product_attribute);
             $oldMinimalQuantity = $attribute->minimal_quantity;
             if ($oldMinimalQuantity != $minimalQuantity) {
