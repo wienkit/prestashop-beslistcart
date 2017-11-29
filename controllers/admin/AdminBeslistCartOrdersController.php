@@ -366,7 +366,21 @@ class AdminBeslistCartOrdersController extends AdminController
                 $priceExtra += $quantity * $product->additional_shipping_cost;
             }
 
-            $shippingTaxExcl = $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone) + $priceExtra;
+            $shippingTaxExcl = $priceExtra;
+            if($carrier->getShippingMethod() == Carrier::SHIPPING_METHOD_WEIGHT) {
+                $weight = $product->weight;
+                if ($productId['id_product_attribute']) {
+                    $combination = new Combination($productId['id_product_attribute']);
+                    $weight += $combination->weight;
+                }
+                $shippingTaxExcl = $carrier->getDeliveryPriceByWeight(
+                    $weight * $quantity,
+                    $country_nl->id_zone
+                );
+            } else {
+                $shippingTaxExcl += $carrier->getDeliveryPriceByPrice($price, $country_nl->id_zone);
+            }
+
             $shippingTaxIncl = $shippingTaxExcl * (1 + ($tax_rate / 100));
 
             $data = array(array(
