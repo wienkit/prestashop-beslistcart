@@ -373,7 +373,7 @@ class AdminBeslistCartOrdersController extends AdminController
                     $combination = new Combination($productId['id_product_attribute']);
                     $weight += $combination->weight;
                 }
-                $shippingTaxExcl = $carrier->getDeliveryPriceByWeight(
+                $shippingTaxExcl += $carrier->getDeliveryPriceByWeight(
                     $weight * $quantity,
                     $country_nl->id_zone
                 );
