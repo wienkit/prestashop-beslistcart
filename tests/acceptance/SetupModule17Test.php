@@ -59,7 +59,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         $text = $this->driver->findElement(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-configure"]'))->getText();
         $this->assertContains("CONFIGUREER", $text);
 
-        $this->goToMenu(['International', 'Locations']);
+        $this->goToMenu(['Internationaal', 'Locaties']);
         $this->driver->findElement(\WebDriverBy::name('countryFilter_b!name'))->sendKeys("Belgi");
         $this->driver->findElement(\WebDriverBy::id('submitFilterButtoncountry'))->click();
         $this->driver->findElement(\WebDriverBy::cssSelector('#form-country a.list-action-enable'))->click();
@@ -107,7 +107,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     public function testSyncOrders()
     {
         $this->doAdminLogin();
-        $this->goToMenu(['Orders', 'Beslist.nl orders']);
+        $this->goToMenu(['Bestellingen', 'Beslist.nl orders']);
 
         $this->driver->findElement(\WebDriverBy::id('page-header-desc-order-sync_orders'))->click();
         $this->assertContains('Beslist.nl Shopping cart sync completed', $this->getStatusMessageText());
@@ -122,7 +122,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     public function testOrderContents()
     {
         $this->doAdminLogin();
-        $this->goToMenu(['Orders', 'Beslist.nl orders']);
+        $this->goToMenu(['Bestellingen', 'Beslist.nl orders']);
         $this->driver->findElement(\WebDriverBy::cssSelector(".table.order td.pointer"))->click();
         $mail = $this->driver->findElement(\WebDriverBy::partialLinkText("tester0@testmail.com"));
         $this->assertContains("tester0@testmail.com", $mail->getText());
