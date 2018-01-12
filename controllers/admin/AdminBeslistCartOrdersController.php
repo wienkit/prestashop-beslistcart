@@ -367,7 +367,7 @@ class AdminBeslistCartOrdersController extends AdminController
             }
 
             $shippingTaxExcl = $priceExtra;
-            if($carrier->getShippingMethod() == Carrier::SHIPPING_METHOD_WEIGHT) {
+            if ($carrier->getShippingMethod() == Carrier::SHIPPING_METHOD_WEIGHT) {
                 $weight = $product->weight;
                 if ($productId['id_product_attribute']) {
                     $combination = new Combination($productId['id_product_attribute']);
