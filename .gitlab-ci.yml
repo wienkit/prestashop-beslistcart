@@ -25,6 +25,7 @@ test:web16:
   image: prestashop/prestashop:1.6
   before_script:
   - sed -i "s/exec apache2-foreground/service apache2 start/g" /tmp/docker_run.sh
+  - sed -i 's/^error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/g' /usr/local/etc/php/php.ini
   - apt-get update && apt-get install -y git
   - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
   - export SITE_HOST=$(getent hosts $HOSTNAME | awk '{ print $1 }')
@@ -44,6 +45,7 @@ test:web17:
   image: prestashop/prestashop:1.7-7.0
   before_script:
   - sed -i "s/exec apache2-foreground/service apache2 start/g" /tmp/docker_run.sh
+  - sed -i 's/^error_reporting = .*/error_reporting = E_ALL \& ~E_NOTICE \& ~E_STRICT \& ~E_DEPRECATED/g' /usr/local/etc/php/php.ini
   - apt-get update && apt-get install -y git
   - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
   - export SITE_HOST=$(getent hosts $HOSTNAME | awk '{ print $1 }')

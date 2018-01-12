@@ -305,7 +305,7 @@ class AdminBeslistCartProductsController extends AdminController
                 $options['delivery_time_nl'] = $delivery_time_nl;
             }
 
-            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
+            if (Configuration::get('BESLIST_CART_ENABLED_BE')) {
                 $delivery_time_be = $beslistProduct->delivery_code_be;
                 if ($delivery_time_be == '' || $quantity == 0) {
                     $delivery_time_be = Configuration::get(
