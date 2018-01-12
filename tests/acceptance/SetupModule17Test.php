@@ -23,7 +23,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     public function testSetProductPrice()
     {
         $this->doAdminLogin();
-        $this->goToMenu(['Catalog', 'Products']);
+        $this->goToMenu(['Catalogus', 'Producten']);
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::cssSelector('[title="Close Toolbar"]'))
         );

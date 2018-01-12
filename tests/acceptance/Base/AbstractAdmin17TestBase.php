@@ -5,10 +5,18 @@ abstract class AbstractAdmin17TestBase extends ATestBase
 {
     public function goToMenu(array $items)
     {
-        try {
-            $nav = $this->driver->findElement(\WebDriverBy::id('nav-sidebar'));
-        } catch (\NoSuchElementException $e) {
-            $nav = $this->driver->findElement(\WebDriverBy::className('nav-bar'));
+        $nav = $this->getNav();
+
+        $body = $this->driver->findElement(\WebDriverBy::tagName('body'));
+        $isFrontPage = strpos($body->getAttribute('class'), 'admindashboard') !== false;
+
+        if ($isFrontPage) {
+            foreach ($items as $item) {
+                $link = $nav->findElement(\WebDriverBy::linkText($item));
+                $link->click();
+                $nav = $this->getNav();
+                break;
+            }
         }
 
         $trail = $nav;
@@ -20,5 +28,14 @@ abstract class AbstractAdmin17TestBase extends ATestBase
             );
         }
         $trail->click();
+    }
+
+    public function getNav()
+    {
+        try {
+            return $this->driver->findElement(\WebDriverBy::id('nav-sidebar'));
+        } catch (\NoSuchElementException $e) {
+            return $this->driver->findElement(\WebDriverBy::className('nav-bar'));
+        }
     }
 }
