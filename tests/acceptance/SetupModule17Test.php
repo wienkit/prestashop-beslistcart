@@ -46,7 +46,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     public function testEnableModule()
     {
         $this->doAdminLogin();
-        $this->goToMenu(['Modules', 'Modules & Services']);
+        $this->goToMenu(['Modules', 'Modules en services']);
         $this->driver->findElement(\WebDriverBy::className('module-tags-input'))->sendKeys('beslist');
         $this->driver->findElement(\WebDriverBy::className('search-button'))->click();
         $this->driver->wait()->until(
