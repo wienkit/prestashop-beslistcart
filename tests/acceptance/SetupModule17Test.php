@@ -72,7 +72,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     public function testConfigureModule()
     {
         $this->doAdminLogin();
-        $this->goToMenu(['Modules', 'Modules & Services']);
+        $this->goToMenu(['Modules', 'Modules en services']);
         $this->driver->findElement(\WebDriverBy::linkText("Geïnstalleerde modules"))->click();
         $this->driver->findElement(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-configure"]'))->click();
 
