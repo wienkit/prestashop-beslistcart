@@ -109,9 +109,11 @@ class BeslistProduct extends ObjectModel
      * Returns all Beslist products
      * @param int $id_lang
      * @param null $limit
+     * @param int $start
      * @return array
+     * @throws PrestaShopDatabaseException
      */
-    public static function getLoadedBeslistProducts($id_lang = null, $limit = null)
+    public static function getLoadedBeslistProducts($id_lang = null, $limit = null, $start = 0)
     {
         $filter_stock = (bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
 
@@ -165,7 +167,7 @@ class BeslistProduct extends ObjectModel
                 " . ($filter_stock? "HAVING SUM(st.`quantity`) > 0" : "") . "
             ORDER BY p.id_product";
         if (isset($limit)) {
-            $sql .= " LIMIT " . (int)$limit;
+            $sql .= " LIMIT " . (int)$start . ", " . (int)$limit;
         }
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     }
