@@ -90,7 +90,7 @@ class BeslistFeed
      */
     private function renameFile()
     {
-        rename($this->getTemporaryFilename(), dirname(__FILE__). '/../feed.xml');
+        rename($this->getTemporaryFilename(), dirname(__FILE__). '/../../../beslist.xml');
     }
 
     /**
