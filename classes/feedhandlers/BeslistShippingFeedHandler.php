@@ -150,7 +150,10 @@ class BeslistShippingFeedHandler
             }
         } else {
             /** @var int $shippingTotal */
-            $shippingTotal = $this->carrier[$country]->getDeliveryPriceByPrice($price, $this->country[$country]->id_zone);
+            $shippingTotal = $this->carrier[$country]->getDeliveryPriceByPrice(
+                $price,
+                $this->country[$country]->id_zone
+            );
             if ($price < $this->shippingFreePrice) {
                 $shippingTotal += $this->shippingHandling;
             }
