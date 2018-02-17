@@ -42,7 +42,8 @@ class BeslistShippingFeedHandler
     /** @var int */
     private $shippingFreePrice;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->shippingFreePrice = (int) Configuration::get('PS_SHIPPING_FREE_PRICE');
         $this->shippingHandling = (int) Configuration::get('PS_SHIPPING_HANDLING');
 
@@ -63,14 +64,27 @@ class BeslistShippingFeedHandler
         $this->shipping_method['nl'] = $this->carrier['nl']->getShippingMethod();
         $this->shipping_method['be'] = $this->carrier['be']->getShippingMethod();
 
-        $this->carrier_tax['nl'] = $this->carrier['nl']->getTaxesRate($this->getDefaultAddress($this->country['nl']->id));
-        $this->carrier_tax['be'] = $this->carrier['be']->getTaxesRate($this->getDefaultAddress($this->country['be']->id));
+        $this->carrier_tax['nl'] = $this->carrier['nl']->getTaxesRate(
+            $this->getDefaultAddress($this->country['nl']->id)
+        );
+        $this->carrier_tax['be'] = $this->carrier['be']->getTaxesRate(
+            $this->getDefaultAddress($this->country['be']->id)
+        );
     }
 
+    /**
+     * Handle the product.
+     *
+     * Adds shippingcost and delivery periods.
+     *
+     * @param $product
+     * @param $price
+     * @return string
+     */
     public function handle($product, $price)
     {
         $result = "";
-        $countries = ['nl', 'be'];
+        $countries = array('nl', 'be');
         foreach ($countries as $country) {
             if ($this->enabled[$country]) {
                 $result .= $this->getProductDeliveryPeriodForCountry($product, $country);
@@ -84,7 +98,8 @@ class BeslistShippingFeedHandler
      * @param $country_id
      * @return Address
      */
-    private function getDefaultAddress($country_id) {
+    private function getDefaultAddress($country_id)
+    {
         $address = new Address();
         $address->id_country = $country_id;
         $address->id_state = 0;
@@ -97,7 +112,8 @@ class BeslistShippingFeedHandler
      * @param $country
      * @return string
      */
-    private function getProductDeliveryPeriodForCountry($product, $country) {
+    private function getProductDeliveryPeriodForCountry($product, $country)
+    {
         if ($product['stock'] < 1) {
             $deliveryperiod = $this->deliveryperiod_nostock[$country];
         } elseif (!empty($product["delivery_code_{$country}"])) {
@@ -116,7 +132,8 @@ class BeslistShippingFeedHandler
      * @param $country
      * @return string
      */
-    private function getProductShippingCostPerCountry($product, $price, $country) {
+    private function getProductShippingCostPerCountry($product, $price, $country)
+    {
         if ($price >= $this->shippingFreePrice) {
             $shippingTotal = 0;
         } elseif ($this->shipping_method[$country] == Carrier::SHIPPING_METHOD_WEIGHT) {
@@ -142,6 +159,4 @@ class BeslistShippingFeedHandler
 
         return "<shippingcost_{$country}>{$shipping_cost}</shippingcost_{$country}>" . PHP_EOL;
     }
-
-
 }

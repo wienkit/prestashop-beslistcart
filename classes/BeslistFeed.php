@@ -55,7 +55,8 @@ class BeslistFeed
      * Get a temporary name (the file with .part)
      * @return string
      */
-    private function getTemporaryFilename() {
+    private function getTemporaryFilename()
+    {
         return dirname(__FILE__).'/../feed.xml.part';
     }
 
@@ -72,7 +73,6 @@ class BeslistFeed
         $this->use_long_description = (bool) Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
         $this->ps_stock_management = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
         $this->stock_behaviour = (int) Configuration::get('PS_ORDER_OUT_OF_STOCK');
-
     }
 
     /**
@@ -138,7 +138,8 @@ class BeslistFeed
     /**
      * Process the products for this iteration
      */
-    private function handleProducts() {
+    private function handleProducts()
+    {
         $products = BeslistProduct::getLoadedBeslistProducts(
             (int)$this->context->language->id,
             $this->limit,
@@ -154,7 +155,8 @@ class BeslistFeed
      * @param array $product
      * @throws PrestaShopException
      */
-    private function handleProduct($product) {
+    private function handleProduct($product)
+    {
         $this->write('<product>');
 
         $this->handleProductPrices($product);
@@ -190,7 +192,7 @@ class BeslistFeed
             $base_url = Tools::getShopDomainSsl(true, true);
             $module_url = $base_url . __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
             $cron_url = $module_url . '/beslistcart/cron-generate.php';
-            header('Location: ' . $cron_url . '?start=' . ($this->start + $this->limit) . '&limit=' . $this->limit);
+            Tools::redirect($cron_url . '?start=' . ($this->start + $this->limit) . '&limit=' . $this->limit);
         }
     }
 
@@ -206,7 +208,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductPrices($product) {
+    private function handleProductPrices($product)
+    {
         $price = $this->getProductPrice($product);
         $this->write("<price>" . number_format($price, 2, ',', '') . "</price>");
         $price_old = (float)BeslistProduct::getPriceStatic(
@@ -225,7 +228,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductIdentifiers($product) {
+    private function handleProductIdentifiers($product)
+    {
         if ($product['id_product_attribute']) {
             $this->write("<code>{$product['id_product_attribute']}-{$product['id_product']}</code>");
         } else {
@@ -263,7 +267,8 @@ class BeslistFeed
      * @param $product
      * @throws PrestaShopException
      */
-    private function handleProductLink($product) {
+    private function handleProductLink($product)
+    {
         $link = $this->context->link->getProductLink(
             $product['id_product'],
             $product['link_rewrite'],
@@ -284,8 +289,9 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductImages($product) {
-        $hasAttributeImage = array_key_exists('attribute_image', $product) && $product['attribute_image'];
+    private function handleProductImages($product)
+    {
+        $hasAttributeImage = !empty($product['attribute_image']);
         $images = Image::getImages((int)$this->context->language->id, $product['id_product']);
         if (is_array($images) and sizeof($images)) {
             $extraImageCounter = 1;
@@ -306,8 +312,9 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductCategory($product) {
-        if ($product['id_category_default'] && array_key_exists($product['id_category_default'], $this->shop_categories)) {
+    private function handleProductCategory($product)
+    {
+        if ($product['id_category_default'] && !empty($this->shop_categories[$product['id_category_default']])) {
             $category = htmlspecialchars(
                 $this->shop_categories[$product['id_category_default']],
                 ENT_XML1,
@@ -321,7 +328,8 @@ class BeslistFeed
      * @param $product
      * @return float
      */
-    private function getProductPrice($product) {
+    private function getProductPrice($product)
+    {
         $key = $product['id_beslist_product'];
         if (empty($this->prices[$key])) {
             $this->prices[$key] = (float)BeslistProduct::getPriceStatic(
@@ -336,7 +344,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductShipping($product) {
+    private function handleProductShipping($product)
+    {
         $price = $this->getProductPrice($product);
         $shipping = $this->shipping_handler->handle($product, $price);
         $this->write($shipping);
@@ -345,7 +354,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductDescription($product) {
+    private function handleProductDescription($product)
+    {
         $description = $this->use_long_description ? $product['description'] : $product['description_short'];
         $description = str_replace(array('<br>', '<br />', '<p>', '</p>'), '\\\\n', $description);
         $description = trim($description, "\\\\n");
@@ -355,7 +365,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductStock($product) {
+    private function handleProductStock($product)
+    {
         if ($product['published'] == 0) {
             $display = 0;
         } elseif ($product['stock'] > 0 || !$this->ps_stock_management) {
@@ -373,7 +384,8 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductBrand($product) {
+    private function handleProductBrand($product)
+    {
         if (isset($product['manufacturer_name'])) {
             $this->write("<brand><![CDATA[{$product['manufacturer_name']}]]></brand>");
         }
@@ -382,14 +394,16 @@ class BeslistFeed
     /**
      * @param $product
      */
-    private function handleProductFeatures($product) {
+    private function handleProductFeatures($product)
+    {
         $this->features_handler->handle($product);
     }
 
     /**
      * @param $product
      */
-    private function handleProductCondition($product) {
+    private function handleProductCondition($product)
+    {
         $condition = 'Nieuw';
         if ($product['condition'] == 'refurbished') {
             $condition = 'Refurbished';
