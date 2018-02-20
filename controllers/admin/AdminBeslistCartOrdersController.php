@@ -501,12 +501,12 @@ class AdminBeslistCartOrdersController extends AdminController
         }
         $customer = new Customer();
         $customer->firstname = preg_replace(
-            "/[0-9!<>,;?=+()@'#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $shopOrder->addresses->invoice->firstName
         );
         $customer->lastname = preg_replace(
-            "/[0-9!<>,;?=+()@'#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             trim(
                 $shopOrder->addresses->invoice->lastNameInsertion .
@@ -537,13 +537,13 @@ class AdminBeslistCartOrdersController extends AdminController
         $address = new Address();
         $address->id_customer = $customer->id;
         $address->firstname = preg_replace(
-            "/[0-9!<>,;?=+()@#'\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $details->firstName
         );
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
         $address->lastname = preg_replace(
-            "/[0-9!<>,;?=+()@#'\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $lastname
         );
