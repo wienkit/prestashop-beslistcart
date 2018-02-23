@@ -396,7 +396,8 @@ class BeslistFeed
      */
     private function handleProductFeatures($product)
     {
-        $this->features_handler->handle($product);
+        $features = $this->features_handler->handle($product);
+        $this->write($features);
     }
 
     /**
