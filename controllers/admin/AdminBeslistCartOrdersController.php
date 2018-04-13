@@ -162,6 +162,9 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param null $id_product_attribute
      * @param int $minimalQuantity
      * @return int
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     private static function updateMinimalQuantity($id, $id_product_attribute = null, $minimalQuantity = 1)
     {
@@ -184,11 +187,39 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
+     * Set the minimal quantity, return the old value
+     *
+     * @param int $id_product
+     *   The product id.
+     * @param int $id_product_attribute
+     *   The product attribute id.
+     * @param int $stockBehaviour
+     *   The new stock behaviour.
+     *
+     * @return int
+     *   The former value.
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    private static function updateOutOfStockBehaviour($id_product, $id_product_attribute = null, $stockBehaviour = 1)
+    {
+        $stock_available_id = StockAvailable::getStockAvailableIdByProductId($id_product, $id_product_attribute);
+        $stock_available = new StockAvailable($stock_available_id);
+        $oldValue = $stock_available->out_of_stock;
+        $stock_available->out_of_stock = $stockBehaviour;
+        $stock_available->save();
+        return $oldValue;
+    }
+
+    /**
      * Saves the address if it is new, returns the existing address if it is known already
      *
      * @param Address $address
      * @param Address|null $otherAddress
      * @return Address
+     *
+     * @throws PrestaShopException
      */
     private static function saveAndRetrieve(Address $address, Address $otherAddress = null)
     {
@@ -580,11 +611,16 @@ class AdminBeslistCartOrdersController extends AdminController
 
     /**
      * Parse the cart for the order
+     *
      * @param \Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
      * @param Customer $customer
      * @param Address $billing
      * @param Address $shipping
+     *
      * @return bool|Cart
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public static function parseCart(
         Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order,
@@ -628,10 +664,12 @@ class AdminBeslistCartOrdersController extends AdminController
                 }
                 $hasProducts = true;
                 $oldMinimalQuantity = self::updateMinimalQuantity($product->id, $productIds['id_product_attribute']);
+                $oldOutOfStockBehaviour = self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute']);
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
                 if ($oldMinimalQuantity > 1) {
                     self::updateMinimalQuantity($product->id, $productIds['id_product_attribute'], $oldMinimalQuantity);
                 }
+                self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute'], $oldOutOfStockBehaviour);
                 if (!$cartResult) {
                     $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot
