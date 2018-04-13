@@ -547,17 +547,29 @@ class AdminBeslistCartOrdersController extends AdminController
             '',
             $lastname
         );
-        $address->address1 = $details->address;
-
+        $address1 = $details->address;
+        $address2 = '';
         $houseNumber = $details->addressNumber;
         if ($details->addressNumberAdditional != '') {
             $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
         if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
-            $address->address2 = trim($houseNumber);
+            $address2 = trim($houseNumber);
         } else {
-            $address->address1 .= ' ' . trim($houseNumber);
+            $address1 .= ' ' . trim($houseNumber);
         }
+
+        $address->address1 = preg_replace(
+            '/[!<>?=+@{}_$%]*/',
+            '',
+            $address1
+        );
+
+        $address->address2 = preg_replace(
+            '/[!<>?=+@{}_$%]*/',
+            '',
+            $address2
+        );
 
         $address->postcode = $details->zip;
         $address->city = $details->city;
