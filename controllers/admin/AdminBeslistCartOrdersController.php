@@ -55,6 +55,7 @@ class AdminBeslistCartOrdersController extends AdminController
 		LEFT JOIN `' . _DB_PREFIX_ . 'country` country ON address.id_country = country.id_country
 		LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country`
 		    AND country_lang.`id_lang` = ' . (int)$this->context->language->id . ')
+		LEFT JOIN `' . _DB_PREFIX_ . 'order_payment` op ON (op.`order_reference` = a.`reference`)
 		LEFT JOIN `' . _DB_PREFIX_ . 'order_state` os ON (os.`id_order_state` = a.`current_state`)
 		LEFT JOIN `' . _DB_PREFIX_ . 'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` 
 		    AND osl.`id_lang` = ' . (int)$this->context->language->id . ')';
@@ -78,6 +79,9 @@ class AdminBeslistCartOrdersController extends AdminController
             ),
             'reference' => array(
                 'title' => $this->l('Reference')
+            ),
+            'transaction_id' => array(
+                'title' => $this->l('Beslist ID')
             ),
             'new' => array(
                 'title' => $this->l('New client'),
