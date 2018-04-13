@@ -29,9 +29,9 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         );
         $this->driver->findElement(\WebDriverBy::cssSelector('[title="Close Toolbar"]'))->click();
         $this->driver->wait()->until(
-            \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::linkText('Gebleekte T-shirts met Korte Mouwen'))
+            \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::linkText('Hummingbird printed t-shirt'))
         );
-        $this->driver->findElement(\WebDriverBy::linkText('Gebleekte T-shirts met Korte Mouwen'))->click();
+        $this->driver->findElement(\WebDriverBy::linkText('Hummingbird printed t-shirt'))->click();
         $this->driver->findElement(\WebDriverBy::linkText('Tarieven'))->click();
         $this->driver->findElement(\WebDriverBy::id('form_step2_price'))->clear()->sendKeys('20');
         sleep(5);
@@ -47,7 +47,7 @@ class SetupModule17Test extends AbstractAdmin17TestBase
     {
         $this->doAdminLogin();
         $this->goToMenu(['Modules', 'Modules en services']);
-        $this->driver->findElement(\WebDriverBy::className('module-tags-input'))->sendKeys('beslist');
+        $this->driver->findElement(\WebDriverBy::className('pstaggerAddTagInput'))->sendKeys('beslist');
         $this->driver->findElement(\WebDriverBy::className('search-button'))->click();
         $this->driver->wait()->until(
             \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-install"]'))
@@ -57,9 +57,10 @@ class SetupModule17Test extends AbstractAdmin17TestBase
             \WebDriverExpectedCondition::elementToBeClickable(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-configure"]'))
         );
         $text = $this->driver->findElement(\WebDriverBy::cssSelector('button[data-confirm_modal="module-modal-confirm-beslistcart-configure"]'))->getText();
-        $this->assertContains("CONFIGUREER", $text);
+        $this->assertContains("Configureer", $text);
 
         $this->goToMenu(['Internationaal', 'Locaties']);
+        $this->driver->findElement(\WebDriverBy::linkText('Landen'))->click();
         $this->driver->findElement(\WebDriverBy::name('countryFilter_b!name'))->sendKeys("Belgi");
         $this->driver->findElement(\WebDriverBy::id('submitFilterButtoncountry'))->click();
         $this->driver->findElement(\WebDriverBy::cssSelector('#form-country a.list-action-enable'))->click();
@@ -127,11 +128,11 @@ class SetupModule17Test extends AbstractAdmin17TestBase
         $mail = $this->driver->findElement(\WebDriverBy::partialLinkText("tester0@testmail.com"));
         $this->assertContains("tester0@testmail.com", $mail->getText());
         $product = $this->driver->findElement(\WebDriverBy::className("product-line-row"));
-        $this->assertContains("Gebleekte T-shirts", $product->getText());
+        $this->assertContains("Hummingbird printed t-shirt", $product->getText());
         $qty = $this->driver->findElement(\WebDriverBy::className('product_quantity_show'));
         $this->assertEquals("2", $qty->getText());
         $total = $this->driver->findElement(\WebDriverBy::className('total_product'));
-        $this->assertEquals("€ 48,40", trim($total->getText()));
+        $this->assertEquals("€ 38,72", trim($total->getText()));
         $shipping = $this->driver->findElement(\WebDriverBy::cssSelector("#total_shipping td.amount"));
         $this->assertEquals("€ 8,47", trim($shipping->getText()));
 
