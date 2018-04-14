@@ -42,7 +42,8 @@ class BeslistCart extends Module
         $this->displayName = $this->l('Beslist.nl Shopping Cart integration');
         $this->description = $this->l(
             'Connect to Beslist.nl to synchronize your Beslist.nl Shopping Cart 
-            orders and products with your Prestashop website.');
+            orders and products with your Prestashop website.'
+        );
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
@@ -1172,7 +1173,8 @@ class BeslistCart extends Module
      *
      * @return string
      */
-    public function getDefaultFeedFilename($shop_id = null) {
+    public function getDefaultFeedFilename($shop_id = null)
+    {
         if ($shop_id === null) {
             $shop_id =  Context::getContext()->shop->id;
         }
@@ -1188,14 +1190,16 @@ class BeslistCart extends Module
      *
      * @return string
      */
-    public function getDefaultFeedLocation($filename) {
+    public function getDefaultFeedLocation($filename)
+    {
         return dirname(dirname(dirname(__FILE__))) . '/' . $filename;
     }
 
     /**
      * @return string
      */
-    private function getCronUrl() {
+    private function getCronUrl()
+    {
         $base_url = Tools::getShopDomainSsl(true, true);
         $module_url = $base_url . __PS_BASE_URI__ . basename(_PS_MODULE_DIR_);
         $cron_url = $module_url . '/beslistcart/cron.php?secure_key=' .
@@ -1206,7 +1210,8 @@ class BeslistCart extends Module
     /**
      * @return string
      */
-    private function getContentIntro() {
+    private function getContentIntro()
+    {
         $this->context->smarty->assign(array(
             'cron_url' => $this->getCronUrl(),
             'feed_url' => BeslistFeed::getScriptLocation(),
