@@ -8,7 +8,7 @@
 * You must not modify, adapt or create derivative works of this source code
 *
 *  @author    Mark Wienk
-*  @copyright 2013-2017 Wienk IT
+*  @copyright 2013-2018 Wienk IT
 *  @license   LICENSE.txt
 *
 *}
@@ -30,27 +30,15 @@
                 <div class="well">
                     <div class="form-horizontal">
                         <div class="form-group">
-                            <label for="cron_url" class="col-md-2 control-label"><strong>{l s='Cron URL' mod='beslistcart'}</strong></label>
-                            <div class="col-md-10">
-                                <input id="cron_url" readonly class="form-control" type="text" value="{$cron_url|escape:'htmlall':'UTF-8'}" />
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label for="cron_cmd" class="col-md-2 control-label"><strong>{l s='Cron command' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
                                 <input id="cron_cmd" readonly class="form-control" type="text" value="*/10 * * * * curl --silent {$cron_url|escape:'htmlall':'UTF-8'} &>/dev/null" />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="feed_url" class="col-md-2 control-label"><strong>{l s='Live feed' mod='beslistcart'}</strong></label>
-                            <div class="col-md-10">
-                                <input id="feed_url" readonly class="form-control" type="text" value="{$feed_url|escape:'htmlall':'UTF-8'}" />
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label for="feed_cmd" class="col-md-2 control-label"><strong>{l s='Feed generator' mod='beslistcart'}</strong></label>
                             <div class="col-md-10">
-                                <input id="feed_cmd" readonly class="form-control" type="text" value="0 1 * * * curl {$feed_url|escape:'htmlall':'UTF-8'} > {$feed_loc}" />
+                                <input id="feed_cmd" readonly class="form-control" type="text" value="0 1 * * * curl -L --max-redirs -1 {$feed_url|escape:'htmlall':'UTF-8'}  &>/dev/null" />
                             </div>
                         </div>
                         <div class="form-group">

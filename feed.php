@@ -9,7 +9,7 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  *  @author    Mark Wienk
- *  @copyright 2013-2017 Wienk IT
+ *  @copyright 2013-2018 Wienk IT
  *  @license   LICENSE.txt
  */
 
@@ -210,7 +210,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 ($product['stock'] > 0 ? $prod_deliveryperiod_nl : $deliveryperiod_nostock_nl) .
                 "</deliveryperiod_nl>\n";
 
-            if ($shipping_method_nl == Carrier::SHIPPING_METHOD_WEIGHT) {
+            if ($price >= $shippingFreePrice) {
+                $shippingTotal = 0;
+            } elseif ($shipping_method_nl == Carrier::SHIPPING_METHOD_WEIGHT) {
                 if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
                     $shippingTotal = $carrier_nl->getDeliveryPriceByWeight(
                         $product['weight'],
@@ -246,7 +248,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'."\n";
                 ($product['stock'] > 0 ? $prod_deliveryperiod_be : $deliveryperiod_nostock_be) .
                 "</deliveryperiod_be>\n";
 
-            if ($shipping_method_be == Carrier::SHIPPING_METHOD_WEIGHT) {
+            if ($price >= $shippingFreePrice) {
+                  $shippingTotal = 0;
+            } elseif ($shipping_method_be == Carrier::SHIPPING_METHOD_WEIGHT) {
                 if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
                     $shippingTotal = $carrier_be->getDeliveryPriceByWeight(
                         $product['weight'],

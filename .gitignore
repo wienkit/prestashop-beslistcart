@@ -27,3 +27,5 @@ config*.xml
 .idea
 phpunit.xml
 results
+
+feed.xml

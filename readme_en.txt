@@ -30,7 +30,7 @@ You can also synchronize your products to Beslist.
 You can use the productfeed on http://www.uwdomeinnaam.nl/modules/beslistcart/feed.php
 
 You can manage your product data on the product page, a new tab will be visible for the Beslist settings.
-In there you can publish the product (and optionally set a specific price for the Beslist publication).
+In there you can publish the product.
 
 When you edit a product, a message will be sent to Beslist.
 However, it is very well possible that he product isn't yet available on Beslist, as they only process the productfeed once a day.
@@ -51,29 +51,7 @@ You can click the 'Synchronize' button in the page's header to synchronize all p
 - Yes, however, you need to setup a cron task for this.
 
 3. Can I also import orders with products that aren't in stock?
-- Yes, but the products have to be orderable (on your own website). You can also override this functionality by adding the following code to an override class for Product:
-
-public static function isAvailableWhenOutOfStock($out_of_stock)
-{
-    // @TODO 1.5.0 Update of STOCK_MANAGEMENT & ORDER_OUT_OF_STOCK
-    static $ps_stock_management = null;
-    if ($ps_stock_management === null) {
-        $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
-    }
-
-    if (!$ps_stock_management || isset(Context::getContext()->employee)) {
-        return true;
-    } else {
-        static $ps_order_out_of_stock = null;
-        if ($ps_order_out_of_stock === null) {
-            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
-        }
-
-        return (int)$out_of_stock == 2 ? (int)$ps_order_out_of_stock : (int)$out_of_stock;
-    }
-}
-
-The code checks if an employee is logged creating the order, and if so, it skips the stock checks.
+- Yes, the product out of stock behaviour is temporarily changed during the import.
 
 4. I get an error when I import multiple orders
 - The error is caused by a bug in Prestashop core, it's not a problem (just a warning), but a bug report has been created http://forge.prestashop.com/browse/PSCSX-7858.

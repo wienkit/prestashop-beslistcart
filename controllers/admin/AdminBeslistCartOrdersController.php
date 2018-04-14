@@ -9,7 +9,7 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  * @author    Mark Wienk
- * @copyright 2013-2017 Wienk IT
+ * @copyright 2013-2018 Wienk IT
  * @license   LICENSE.txt
  */
 
@@ -55,6 +55,7 @@ class AdminBeslistCartOrdersController extends AdminController
 		LEFT JOIN `' . _DB_PREFIX_ . 'country` country ON address.id_country = country.id_country
 		LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` country_lang ON (country.`id_country` = country_lang.`id_country`
 		    AND country_lang.`id_lang` = ' . (int)$this->context->language->id . ')
+		LEFT JOIN `' . _DB_PREFIX_ . 'order_payment` op ON (op.`order_reference` = a.`reference`)
 		LEFT JOIN `' . _DB_PREFIX_ . 'order_state` os ON (os.`id_order_state` = a.`current_state`)
 		LEFT JOIN `' . _DB_PREFIX_ . 'order_state_lang` osl ON (os.`id_order_state` = osl.`id_order_state` 
 		    AND osl.`id_lang` = ' . (int)$this->context->language->id . ')';
@@ -78,6 +79,9 @@ class AdminBeslistCartOrdersController extends AdminController
             ),
             'reference' => array(
                 'title' => $this->l('Reference')
+            ),
+            'transaction_id' => array(
+                'title' => $this->l('Beslist ID')
             ),
             'new' => array(
                 'title' => $this->l('New client'),
@@ -162,6 +166,9 @@ class AdminBeslistCartOrdersController extends AdminController
      * @param null $id_product_attribute
      * @param int $minimalQuantity
      * @return int
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     private static function updateMinimalQuantity($id, $id_product_attribute = null, $minimalQuantity = 1)
     {
@@ -184,11 +191,39 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
+     * Set the minimal quantity, return the old value
+     *
+     * @param int $id_product
+     *   The product id.
+     * @param int $id_product_attribute
+     *   The product attribute id.
+     * @param int $stockBehaviour
+     *   The new stock behaviour.
+     *
+     * @return int
+     *   The former value.
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    private static function updateOutOfStockBehaviour($id_product, $id_product_attribute = null, $stockBehaviour = 1)
+    {
+        $stock_available_id = StockAvailable::getStockAvailableIdByProductId($id_product, $id_product_attribute);
+        $stock_available = new StockAvailable($stock_available_id);
+        $oldValue = $stock_available->out_of_stock;
+        $stock_available->out_of_stock = $stockBehaviour;
+        $stock_available->save();
+        return $oldValue;
+    }
+
+    /**
      * Saves the address if it is new, returns the existing address if it is known already
      *
      * @param Address $address
      * @param Address|null $otherAddress
      * @return Address
+     *
+     * @throws PrestaShopException
      */
     private static function saveAndRetrieve(Address $address, Address $otherAddress = null)
     {
@@ -501,12 +536,12 @@ class AdminBeslistCartOrdersController extends AdminController
         }
         $customer = new Customer();
         $customer->firstname = preg_replace(
-            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $shopOrder->addresses->invoice->firstName
         );
         $customer->lastname = preg_replace(
-            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             trim(
                 $shopOrder->addresses->invoice->lastNameInsertion .
@@ -537,27 +572,39 @@ class AdminBeslistCartOrdersController extends AdminController
         $address = new Address();
         $address->id_customer = $customer->id;
         $address->firstname = preg_replace(
-            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $details->firstName
         );
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
         $address->lastname = preg_replace(
-            "/[0-9!<>,;?=+()@#\"°{}_$%:]*/",
+            "/[^A-Za-z ]/",
             '',
             $lastname
         );
-        $address->address1 = $details->address;
-
+        $address1 = $details->address;
+        $address2 = '';
         $houseNumber = $details->addressNumber;
         if ($details->addressNumberAdditional != '') {
             $houseNumber .= ' ' . $details->addressNumberAdditional;
         }
         if (Configuration::get('BESLIST_CART_USE_ADDRESS2')) {
-            $address->address2 = trim($houseNumber);
+            $address2 = trim($houseNumber);
         } else {
-            $address->address1 .= ' ' . trim($houseNumber);
+            $address1 .= ' ' . trim($houseNumber);
         }
+
+        $address->address1 = preg_replace(
+            '/[!<>?=+@{}_$%]*/',
+            '',
+            $address1
+        );
+
+        $address->address2 = preg_replace(
+            '/[!<>?=+@{}_$%]*/',
+            '',
+            $address2
+        );
 
         $address->postcode = $details->zip;
         $address->city = $details->city;
@@ -568,11 +615,16 @@ class AdminBeslistCartOrdersController extends AdminController
 
     /**
      * Parse the cart for the order
+     *
      * @param \Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order
      * @param Customer $customer
      * @param Address $billing
      * @param Address $shipping
+     *
      * @return bool|Cart
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public static function parseCart(
         Wienkit\BeslistOrdersClient\Entities\BeslistOrder $order,
@@ -616,10 +668,12 @@ class AdminBeslistCartOrdersController extends AdminController
                 }
                 $hasProducts = true;
                 $oldMinimalQuantity = self::updateMinimalQuantity($product->id, $productIds['id_product_attribute']);
+                $oldOutOfStockBehaviour = self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute']);
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
                 if ($oldMinimalQuantity > 1) {
                     self::updateMinimalQuantity($product->id, $productIds['id_product_attribute'], $oldMinimalQuantity);
                 }
+                self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute'], $oldOutOfStockBehaviour);
                 if (!$cartResult) {
                     $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot

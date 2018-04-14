@@ -9,7 +9,7 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  *  @author    Mark Wienk
- *  @copyright 2013-2017 Wienk IT
+ *  @copyright 2013-2018 Wienk IT
  *  @license   LICENSE.txt
  */
 

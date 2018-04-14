@@ -9,12 +9,13 @@
  * You must not modify, adapt or create derivative works of this source code
  *
  * @author    Mark Wienk
- * @copyright 2013-2017 Wienk IT
+ * @copyright 2013-2018 Wienk IT
  * @license   LICENSE.txt
  */
 
 require_once _PS_MODULE_DIR_ . 'beslistcart/libraries/autoload.php';
 require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistProduct.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistFeed.php';
 require_once _PS_MODULE_DIR_ . 'beslistcart/controllers/admin/AdminBeslistCartProductsController.php';
 
 class BeslistCart extends Module
@@ -28,7 +29,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.3.7';
+        $this->version = '1.4.0';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -39,14 +40,19 @@ class BeslistCart extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Beslist.nl Shopping Cart integration');
-        $this->description = $this->l('Connect to Beslist.nl to synchronize your Beslist.nl Shopping Cart
-                                       orders and products with your Prestashop website.');
+        $this->description = $this->l(
+            'Connect to Beslist.nl to synchronize your Beslist.nl Shopping Cart 
+            orders and products with your Prestashop website.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
     /**
      * Overrides parent::install()
+     *
+     * {@inheritdoc}
+     *
+     * @throws PrestaShopException
      */
     public function install()
     {
@@ -70,6 +76,8 @@ class BeslistCart extends Module
 
     /**
      * Overrides parent::uninstall()
+     *
+     * {@inheritdoc}
      */
     public function uninstall()
     {
@@ -120,6 +128,9 @@ class BeslistCart extends Module
     /**
      * Install orders menu item
      * @return bool success
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function installOrdersTab()
     {
@@ -140,6 +151,8 @@ class BeslistCart extends Module
 
     /**
      * Install the products menu item
+     *
+     * @throws PrestaShopException
      */
     public function installProductsTab()
     {
@@ -161,6 +174,8 @@ class BeslistCart extends Module
     /**
      * Remove menu items
      * @return bool success
+     *
+     * @throws PrestaShopException
      */
     public function uninstallTabs()
     {
@@ -184,6 +199,8 @@ class BeslistCart extends Module
     /**
      * Install a new order state for beslist orders
      * @return bool success
+     *
+     * @throws PrestaShopException
      */
     public function installOrderState()
     {
@@ -240,6 +257,8 @@ class BeslistCart extends Module
     /**
      * Uninstall the order state for beslist orders
      * @return bool success
+     *
+     * @throws PrestaShopException
      */
     public function uninstallOrderState()
     {
@@ -255,46 +274,16 @@ class BeslistCart extends Module
      */
     public function getContent()
     {
-        $base_url = Tools::getShopDomainSsl(true, true);
-        $module_url = $base_url . __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
-        $cron_url = $module_url . '/beslistcart/cron.php?secure_key=' .
-            md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME').'BESLISTCART');
-        $feed_url = $module_url . '/beslistcart/feed.php';
-
-        $shop = new Shop(Context::getContext()->shop->id);
-        $feedfile = 'beslist-' . Tools::strtolower(rawurlencode($shop->name)) . '.xml';
-        $feed_loc = dirname(dirname(dirname(__FILE__))) . '/' . $feedfile;
-        $feed_web = $base_url . '/' . $feedfile;
-
-        $this->context->smarty->assign(array(
-            'cron_url' => $cron_url,
-            'feed_url' => $feed_url,
-            'feed_loc' => $feed_loc,
-            'feed_web' => $feed_web,
-            'module_dir' => $this->_path,
-            'module_local_dir' => $this->local_path,
-        ));
-        $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
+        $status = '';
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            $cartEnabled = (bool)Tools::getValue('beslist_cart_enabled');
-            $testmode = (bool)Tools::getValue('beslist_cart_testmode');
-            $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
-            $shopid = (int)Tools::getValue('beslist_cart_shopid');
-            $clientid = (int)Tools::getValue('beslist_cart_clientid');
-            $shopitemKey = (string)Tools::getValue('beslist_cart_shopitem_apikey');
-            $filterNoStock = (bool)Tools::getValue('beslist_cart_filter_no_stock');
-
             $attribute_size = (int)Tools::getValue('beslist_cart_attribute_size');
             $attribute_color = (int)Tools::getValue('beslist_cart_attribute_color');
             $use_long_descriptions = (bool)Tools::getValue('beslist_cart_use_long_description');
             $attributes_in_title = (bool)Tools::getValue('beslist_cart_attributes_in_title');
-            $useAddress2 = (bool) Tools::getValue('beslist_cart_use_address2');
-
             $matcher = (int)Tools::getvalue('beslist_cart_matcher');
-            $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
-            $startDate = (string)Tools::getValue('beslist_cart_startdate');
-            $customerGroup = (int) Tools::getValue('beslist_cart_customer_group');
+            $filterNoStock = (bool)Tools::getValue('beslist_cart_filter_no_stock');
+            $feedLocation = (string) Tools::getValue('beslist_cart_feed_location');
 
             $enabled_nl = (bool)Tools::getValue('beslist_cart_enabled_nl');
             $carrier_nl = (int)Tools::getValue('beslist_cart_carrier_nl');
@@ -306,8 +295,19 @@ class BeslistCart extends Module
             $deliveryperiod_be = (string)Tools::getValue('beslist_cart_deliveryperiod_be');
             $deliveryperiod_nostock_be = (string)Tools::getValue('beslist_cart_deliveryperiod_nostock_be');
 
-            $update_bulk_status = (bool)Tools::getValue('beslist_cart_update_bulk_status');
+            $cartEnabled = (bool)Tools::getValue('beslist_cart_enabled');
+            $shopid = (int)Tools::getValue('beslist_cart_shopid');
+            $clientid = (int)Tools::getValue('beslist_cart_clientid');
+            $personalkey = (string)Tools::getValue('beslist_cart_personalkey');
+            $shopitemKey = (string)Tools::getValue('beslist_cart_shopitem_apikey');
+            $customerGroup = (int) Tools::getValue('beslist_cart_customer_group');
+            $testmode = (bool)Tools::getValue('beslist_cart_testmode');
+            $test_reference = (string)Tools::getValue('beslist_cart_test_reference');
+            $startDate = (string)Tools::getValue('beslist_cart_startdate');
+            $useAddress2 = (bool) Tools::getValue('beslist_cart_use_address2');
+
             $add_products = (bool)Tools::getValue('beslist_cart_add_all_products');
+            $update_bulk_status = (bool)Tools::getValue('beslist_cart_update_bulk_status');
 
             if ($cartEnabled && (!$personalkey
                 || $shopid == 0
@@ -317,6 +317,7 @@ class BeslistCart extends Module
                 || empty($startDate)
                 || empty($shopitemKey)
                 || empty($customerGroup)
+                || empty($feedLocation)
                 || ($enabled_nl && empty($carrier_nl))
                 || ($enabled_nl && empty($deliveryperiod_nl))
                 || ($enabled_nl && empty($deliveryperiod_nostock_nl))
@@ -324,25 +325,15 @@ class BeslistCart extends Module
                 || ($enabled_be && empty($deliveryperiod_be))
                 || ($enabled_be && empty($deliveryperiod_nostock_be)))
             ) {
-                $output .= $this->displayError($this->l('Invalid Configuration value'));
+                $status .= $this->displayError($this->l('Invalid Configuration value'));
             } else {
-                Configuration::updateValue('BESLIST_CART_ENABLED', $cartEnabled);
-                Configuration::updateValue('BESLIST_CART_TESTMODE', $testmode);
-                Configuration::updateValue('BESLIST_CART_PERSONALKEY', $personalkey);
-                Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
-                Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
-                Configuration::updateValue('BESLIST_CART_SHOPITEM_APIKEY', $shopitemKey);
-                Configuration::updateValue('BESLIST_CART_FILTER_NO_STOCK', $filterNoStock);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_SIZE', $attribute_size);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTE_COLOR', $attribute_color);
                 Configuration::updateValue('BESLIST_CART_USE_LONG_DESCRIPTION', $use_long_descriptions);
                 Configuration::updateValue('BESLIST_CART_ATTRIBUTES_IN_TITLE', $attributes_in_title);
-                Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', $useAddress2);
-
-                Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
                 Configuration::updateValue('BESLIST_CART_MATCHER', $matcher);
-                Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
-                Configuration::updateValue('BESLIST_CART_CUSTOMER_GROUP', $customerGroup);
+                Configuration::updateValue('BESLIST_CART_FILTER_NO_STOCK', $filterNoStock);
+                Configuration::updateValue('BESLIST_CART_FEED_LOCATION', $feedLocation);
 
                 Configuration::updateValue('BESLIST_CART_ENABLED_NL', $enabled_nl);
                 Configuration::updateValue('BESLIST_CART_CARRIER_NL', $carrier_nl);
@@ -354,7 +345,18 @@ class BeslistCart extends Module
                 Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD_BE', $deliveryperiod_be);
                 Configuration::updateValue('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE', $deliveryperiod_nostock_be);
 
-                $output .= $this->displayConfirmation($this->l('Settings updated'));
+                Configuration::updateValue('BESLIST_CART_ENABLED', $cartEnabled);
+                Configuration::updateValue('BESLIST_CART_SHOPID', $shopid);
+                Configuration::updateValue('BESLIST_CART_CLIENTID', $clientid);
+                Configuration::updateValue('BESLIST_CART_PERSONALKEY', $personalkey);
+                Configuration::updateValue('BESLIST_CART_SHOPITEM_APIKEY', $shopitemKey);
+                Configuration::updateValue('BESLIST_CART_CUSTOMER_GROUP', $customerGroup);
+                Configuration::updateValue('BESLIST_CART_TESTMODE', $testmode);
+                Configuration::updateValue('BESLIST_CART_TEST_REFERENCE', $test_reference);
+                Configuration::updateValue('BESLIST_CART_STARTDATE', $startDate);
+                Configuration::updateValue('BESLIST_CART_USE_ADDRESS2', $useAddress2);
+
+                $status .= $this->displayConfirmation($this->l('Settings updated'));
             }
 
             if ($update_bulk_status) {
@@ -364,7 +366,9 @@ class BeslistCart extends Module
                 AdminBeslistCartProductsController::addAllProducts();
             }
         }
-        return $output . $this->displayForm();
+
+        $intro = $this->getContentIntro();
+        return $intro . $status . $this->displayForm();
     }
 
     /**
@@ -384,6 +388,9 @@ class BeslistCart extends Module
             'id_attribute_group' => 0,
             'name' => $this->l('--- None ---')
         ));
+
+        $feedfile = $this->getDefaultFeedFilename();
+        $feed_loc = $this->getDefaultFeedLocation($feedfile);
 
         // Init Fields form array
         $fields_form = array();
@@ -501,6 +508,13 @@ class BeslistCart extends Module
                         )
                     ),
                     'hint' => $this->l('Removes the items without stock from your productfeed.')
+                ),
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Productfeed location'),
+                    'desc' => sprintf($this->l('Use a local server path (e.g. %s)'), $feed_loc),
+                    'name' => 'beslist_cart_feed_location',
+                    'size' => 20
                 ),
                 array(
                     'type' => 'switch',
@@ -824,29 +838,19 @@ class BeslistCart extends Module
         );
 
         // Load current value
-        $helper->fields_value['beslist_cart_enabled'] = Configuration::get('BESLIST_CART_ENABLED');
-        $helper->fields_value['beslist_cart_testmode'] = Configuration::get('BESLIST_CART_TESTMODE');
-        $helper->fields_value['beslist_cart_shopid'] = Configuration::get('BESLIST_CART_SHOPID');
-        $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
-        $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
-        $helper->fields_value['beslist_cart_shopitem_apikey'] = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
-        $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
         $helper->fields_value['beslist_cart_attribute_size'] = Configuration::get('BESLIST_CART_ATTRIBUTE_SIZE');
         $helper->fields_value['beslist_cart_attribute_color'] = Configuration::get('BESLIST_CART_ATTRIBUTE_COLOR');
         $helper->fields_value['beslist_cart_use_long_description'] =
             Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
         $helper->fields_value['beslist_cart_attributes_in_title'] =
             Configuration::get('BESLIST_CART_ATTRIBUTES_IN_TITLE');
-        $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
-
-        $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
         $helper->fields_value['beslist_cart_matcher'] = Configuration::get('BESLIST_CART_MATCHER');
-        $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
-        $customerGroup = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
-        if (empty($customerGroup)) {
-            $customerGroup = Configuration::get('PS_CUSTOMER_GROUP');
+        $helper->fields_value['beslist_cart_filter_no_stock'] = Configuration::get('BESLIST_CART_FILTER_NO_STOCK');
+        $feed_location = Configuration::get('BESLIST_CART_FEED_LOCATION');
+        if (empty($feed_location)) {
+            $feed_location = $this->getDefaultFeedLocation($this->getDefaultFeedFilename());
         }
-        $helper->fields_value['beslist_cart_customer_group'] = $customerGroup;
+        $helper->fields_value['beslist_cart_feed_location'] = $feed_location;
 
         $helper->fields_value['beslist_cart_enabled_nl'] = Configuration::get('BESLIST_CART_ENABLED_NL');
         $helper->fields_value['beslist_cart_carrier_nl'] = Configuration::get('BESLIST_CART_CARRIER_NL');
@@ -860,12 +864,26 @@ class BeslistCart extends Module
         $helper->fields_value['beslist_cart_deliveryperiod_nostock_be'] =
             Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_BE');
 
-        $helper->fields_value['beslist_cart_add_all_products'] = 0;
-        $helper->fields_value['beslist_cart_update_bulk_status'] = 0;
-
+        $helper->fields_value['beslist_cart_enabled'] = Configuration::get('BESLIST_CART_ENABLED');
+        $helper->fields_value['beslist_cart_shopid'] = Configuration::get('BESLIST_CART_SHOPID');
+        $helper->fields_value['beslist_cart_clientid'] = Configuration::get('BESLIST_CART_CLIENTID');
+        $helper->fields_value['beslist_cart_personalkey'] = Configuration::get('BESLIST_CART_PERSONALKEY');
+        $helper->fields_value['beslist_cart_shopitem_apikey'] = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY');
+        $customerGroup = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
+        if (empty($customerGroup)) {
+            $customerGroup = Configuration::get('PS_CUSTOMER_GROUP');
+        }
+        $helper->fields_value['beslist_cart_customer_group'] = $customerGroup;
+        $helper->fields_value['beslist_cart_testmode'] = Configuration::get('BESLIST_CART_TESTMODE');
+        $helper->fields_value['beslist_cart_test_reference'] = Configuration::get('BESLIST_CART_TEST_REFERENCE');
+        $helper->fields_value['beslist_cart_startdate'] = Configuration::get('BESLIST_CART_STARTDATE');
+        $helper->fields_value['beslist_cart_use_address2'] = Configuration::get('BESLIST_CART_USE_ADDRESS2');
         if (empty($helper->fields_value['beslist_cart_startdate'])) {
             $helper->fields_value['beslist_cart_startdate'] = date('Y-m-d');
         }
+
+        $helper->fields_value['beslist_cart_add_all_products'] = 0;
+        $helper->fields_value['beslist_cart_update_bulk_status'] = 0;
 
         return $helper->generateForm($fields_form);
     }
@@ -873,8 +891,13 @@ class BeslistCart extends Module
     /**
      * Add a new tab to the product page
      * Executes hook: displayAdminProductsExtra
+     *
      * @param array $params
+     *
      * @return string the form
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookDisplayAdminProductsExtra($params)
     {
@@ -929,7 +952,11 @@ class BeslistCart extends Module
     /**
      * Process BeslistProduct entities added on the product page
      * Executes hook: actionProductUpdate
+     *
      * @param array $params
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookActionProductUpdate($params)
     {
@@ -943,7 +970,11 @@ class BeslistCart extends Module
 
     /**
      * Process the Beslist.nl products for a product
+     *
      * @param Product $product
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     private function processBeslistProductEntities($product)
     {
@@ -1008,7 +1039,11 @@ class BeslistCart extends Module
     /**
      * Send stock updates to Beslist
      * Executes hook: actionUpdateQuantity
+     *
      * @param array $param
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function hookActionUpdateQuantity($param)
     {
@@ -1039,6 +1074,7 @@ class BeslistCart extends Module
     /**
      * Send an update request to Beslist
      * Executes hook: actionObjectBeslistProductUpdateAfter
+     *
      * @param array $param
      */
     public function hookActionObjectBeslistProductUpdateAfter($param)
@@ -1055,6 +1091,7 @@ class BeslistCart extends Module
     /**
      * Send a product deletion request to Beslist
      * Executes hook: actionObjectBeslistProductDeleteAfter
+     *
      * @param array $param
      */
     public function hookActionObjectBeslistProductDeleteAfter($param)
@@ -1066,9 +1103,11 @@ class BeslistCart extends Module
 
     /**
      * Retrieve the BeslistOrdersClient
+     *
      * @param null $id_lang
      * @param null $id_shop
      * @param null $id_shop_group
+     *
      * @return \Wienkit\BeslistOrdersClient\BeslistOrdersClient
      */
     public static function getClient($id_shop = null, $id_shop_group = null, $id_lang = null)
@@ -1086,9 +1125,11 @@ class BeslistCart extends Module
 
     /**
      * Check if the Beslist cart is enabled
+     *
      * @param null $id_shop
      * @param null $id_shop_group
      * @param null $id_lang
+     *
      * @return bool
      */
     public static function isEnabledForShop($id_shop = null, $id_shop_group = null, $id_lang = null)
@@ -1102,6 +1143,7 @@ class BeslistCart extends Module
      * @param null $id_shop
      * @param null $id_shop_group
      * @param null $id_lang
+     *
      * @return \Wienkit\BeslistShopitemClient\BeslistShopitemClient
      */
     public static function getShopitemClient($id_shop = null, $id_shop_group = null, $id_lang = null)
@@ -1116,9 +1158,62 @@ class BeslistCart extends Module
         return $client;
     }
 
+    /**
+     * Run the cron functionality
+     */
     public static function synchronize()
     {
         AdminBeslistCartOrdersController::synchronize();
         AdminBeslistCartProductsController::synchronize(Context::getContext());
+    }
+
+    /**
+     * Return the default feed filename
+     *
+     * @return string
+     */
+    public function getDefaultFeedFilename($shop_id = null) {
+        if ($shop_id === null) {
+            $shop_id =  Context::getContext()->shop->id;
+        }
+        $shop = new Shop($shop_id);
+        $feedfile = 'beslist-' . Tools::strtolower(rawurlencode($shop->name)) . '.xml';
+        return $feedfile;
+    }
+
+    /**
+     * Get the default feed location.
+     *
+     * @param $filename
+     *
+     * @return string
+     */
+    public function getDefaultFeedLocation($filename) {
+        return dirname(dirname(dirname(__FILE__))) . '/' . $filename;
+    }
+
+    /**
+     * @return string
+     */
+    private function getCronUrl() {
+        $base_url = Tools::getShopDomainSsl(true, true);
+        $module_url = $base_url . __PS_BASE_URI__ . basename(_PS_MODULE_DIR_);
+        $cron_url = $module_url . '/beslistcart/cron.php?secure_key=' .
+            md5(_COOKIE_KEY_ . Configuration::get('PS_SHOP_NAME') . 'BESLISTCART');
+        return $cron_url;
+    }
+
+    /**
+     * @return string
+     */
+    private function getContentIntro() {
+        $this->context->smarty->assign(array(
+            'cron_url' => $this->getCronUrl(),
+            'feed_url' => BeslistFeed::getScriptLocation(),
+            'feed_web' => BeslistFeed::getPublicFeedLocation(),
+            'module_dir' => $this->_path,
+        ));
+        $intro = $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+        return $intro;
     }
 }
