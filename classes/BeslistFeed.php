@@ -52,19 +52,52 @@ class BeslistFeed
     private $stock_behaviour;
 
     /**
-     * Get a temporary name (the file with .part)
-     * @return string
+     * Run the Beslist feed genator.
      */
-    private function getTemporaryFilename()
+    public static function run()
     {
-        return dirname(__FILE__).'/../feed.xml.part';
+        $generator = new static();
+        $generator->generateFeed();
     }
 
+    /**
+     * Returns the script url (with secret)
+     * @return string
+     */
+    public static function getScriptLocation()
+    {
+        $base_url = Tools::getShopDomainSsl(true, true);
+        $module_url = $base_url . __PS_BASE_URI__ . basename(_PS_MODULE_DIR_);
+        $generator = $module_url . '/beslistcart/cron-generate.php';
+        $secret = md5(_COOKIE_KEY_ . Configuration::get('PS_SHOP_NAME') . 'BESLISTCART');
+        return $generator . '?secure_key=' . $secret;
+    }
+
+    /**
+     * Return the public feed URL
+     * @return mixed
+     */
+    public static function getPublicFeedLocation()
+    {
+        $base_url = Tools::getShopDomainSsl(true, true);
+        $feed_path = self::getFeedLocation();
+        $docroot = $_SERVER['DOCUMENT_ROOT'];
+        return $base_url . str_replace($docroot, '', $feed_path);
+    }
+
+    /**
+     * BeslistFeed constructor.
+     */
     private function __construct()
     {
-        $this->file = fopen($this->getTemporaryFilename(), 'a');
+        $tempFileName = self::getTemporaryFilename();
+        $dirname = dirname($tempFileName);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0755, true);
+        }
+        $this->file = fopen($tempFileName, 'a');
         $this->start = Tools::getValue('start', 0);
-        $this->limit = Tools::getValue('limit', 1);
+        $this->limit = Tools::getValue('limit', 500);
         $this->context = Context::getContext();
         $this->shop_categories = BeslistProduct::getShopCategoriesComplete((int)$this->context->language->id);
         $this->shipping_handler = new BeslistShippingFeedHandler();
@@ -76,21 +109,44 @@ class BeslistFeed
     }
 
     /**
-     * Write a piece of text to the file.
-     *
-     * @param $text
+     * Get a temporary name (the file with .part)
+     * @return string
      */
-    private function write($text)
+    private static function getTemporaryFilename()
     {
-        fwrite($this->file, $text . PHP_EOL);
+        return self::getFeedLocation() . '.part';
     }
 
     /**
-     * Rename the file to a production ready xml file.
+     * Get the feed location.
+     *
+     * @return string
      */
-    private function renameFile()
+    private static function getFeedLocation()
     {
-        rename($this->getTemporaryFilename(), dirname(__FILE__). '/../../../beslist.xml');
+        return (string) Configuration::get('BESLIST_CART_FEED_LOCATION');
+    }
+
+    /**
+     * Continue generating the feed.
+     *
+     * @throws PrestaShopException
+     */
+    public function generateFeed()
+    {
+        if ($this->isBegin()) {
+            $this->writeFileHeader();
+        }
+
+        $this->handleProducts();
+
+        if ($this->isLast()) {
+            $this->writeFileFooter();
+            self::renameFile();
+        } else {
+            $cron_url = self::getScriptLocation();
+            Tools::redirect($cron_url . '&start=' . ($this->start + $this->limit) . '&limit=' . $this->limit);
+        }
     }
 
     /**
@@ -101,16 +157,6 @@ class BeslistFeed
     private function isBegin()
     {
         return $this->start === 0;
-    }
-
-    /**
-     *
-     */
-    private function writeFileHeader()
-    {
-        $this->write('<?xml version="1.0" encoding="UTF-8"?>');
-        $date = date('Y-m-d H:i:s');
-        $this->write("<productfeed type=\"beslist\" date=\"{$date}\">");
     }
 
     /**
@@ -128,6 +174,16 @@ class BeslistFeed
     }
 
     /**
+     * Writes the xml prefix for the file
+     */
+    private function writeFileHeader()
+    {
+        $this->write('<?xml version="1.0" encoding="UTF-8"?>');
+        $date = date('Y-m-d H:i:s');
+        $this->write("<productfeed type=\"beslist\" date=\"{$date}\">");
+    }
+
+    /**
      * End processing, end the xml file.
      */
     private function writeFileFooter()
@@ -136,7 +192,27 @@ class BeslistFeed
     }
 
     /**
+     * Write a piece of text to the file.
+     *
+     * @param $text
+     */
+    private function write($text)
+    {
+        fwrite($this->file, $text . PHP_EOL);
+    }
+
+    /**
+     * Rename the file to a production ready xml file.
+     */
+    private static function renameFile()
+    {
+        rename(self::getTemporaryFilename(), self::getFeedLocation());
+    }
+
+    /**
      * Process the products for this iteration
+     *
+     * @throws PrestaShopException
      */
     private function handleProducts()
     {
@@ -172,37 +248,6 @@ class BeslistFeed
         $this->handleProductCondition($product);
 
         $this->write('</product>');
-    }
-
-    /**
-     * Continue generating the feed.
-     */
-    public function generateFeed()
-    {
-        if ($this->isBegin()) {
-            $this->writeFileHeader();
-        }
-
-        $this->handleProducts();
-
-        if ($this->isLast()) {
-            $this->writeFileFooter();
-            $this->renameFile();
-        } else {
-            $base_url = Tools::getShopDomainSsl(true, true);
-            $module_url = $base_url . __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
-            $cron_url = $module_url . '/beslistcart/cron-generate.php';
-            Tools::redirect($cron_url . '?start=' . ($this->start + $this->limit) . '&limit=' . $this->limit);
-        }
-    }
-
-    /**
-     * Run the Beslist feed genator.
-     */
-    public static function run()
-    {
-        $generator = new static();
-        $generator->generateFeed();
     }
 
     /**

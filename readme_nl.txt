@@ -26,11 +26,11 @@ Als je in de test modus zit, kun je de 'Delete test data' knop gebruiken om de t
 3.2 Producten
 -------------
 Het is mogelijk om de producten vanuit jouw prestashop omgeving naar Beslist te publiceren.
-Je kunt gebruik maken van de productfeed op http://www.uwdomeinnaam.nl/modules/beslistcart/feed.php
+Je kunt ook gebruik maken van de productfeed generator (de URL staat op de configuratiepagina van de module).
 
 Je kunt de data zoals deze op Beslist wordt getoond beheren op de productpagina (via de Beslist Winkelwagen integratie tab).
 Daar kun je per product of combinatie aangeven hoe deze op Beslist getoond moet worden.
-Je kunt instellen of het artikel gepubliceerd moet worden, en je kunt optioneel een specifieke prijs voor Beslist aangeven.
+Je kunt instellen of het artikel gepubliceerd moet worden.
 
 Wanneer je je product aanpast, wordt er een bericht naar Beslist.nl gestuurd met de nieuwe informatie.
 Er zit echter een vertraging tussen de verwerking van de productfeed en de productupdates.
@@ -51,33 +51,10 @@ Je kunt dan handmatig de melding opnieuw doen door op de knop 'Synchroniseer pro
 - Dit kun je doen vanaf de productpagina in de backoffice
 
 3. Kunnen de orders ook automatisch worden geïmporteerd?
-- Ja, maar daar moet je een crontaak voor opzetten.
+- Ja, maar daar moet je een crontaak voor opzetten (zie de moduleconfiguratiepagina voor een voorbeeld).
 
 4. Kan ik orders importeren voor producten die niet op voorraad zijn?
-- Ja, maar dan moeten de producten wel bestelbaar zijn (dus ook op je website).
-Je kunt deze functionaliteit veranderen door een override class aan te maken voor Product, en daarin de volgende code te zetten:
-
-public static function isAvailableWhenOutOfStock($out_of_stock)
-{
-    // @TODO 1.5.0 Update of STOCK_MANAGEMENT & ORDER_OUT_OF_STOCK
-    static $ps_stock_management = null;
-    if ($ps_stock_management === null) {
-        $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
-    }
-
-    if (!$ps_stock_management || isset(Context::getContext()->employee)) {
-        return true;
-    } else {
-        static $ps_order_out_of_stock = null;
-        if ($ps_order_out_of_stock === null) {
-            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
-        }
-
-        return (int)$out_of_stock == 2 ? (int)$ps_order_out_of_stock : (int)$out_of_stock;
-    }
-}
-
-De code voegt een check toe om te kijken of een medewerker de order heeft geïmporteerd.
+- Ja, de bestelbaar status wordt tijdelijk aangepast tijdens de import.
 
 5. Ik krijg een waarschuwing wanneer ik meerdere orders tegelijk importeer
 - De waarschuwing komt door een bug in Prestashop core, het probleem kan geen kwaad, maar er is een bug report gemaakt: http://forge.prestashop.com/browse/PSCSX-7858.

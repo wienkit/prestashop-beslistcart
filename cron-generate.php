@@ -19,4 +19,9 @@ require_once(dirname(__FILE__).'/beslistcart.php');
 require_once(dirname(__FILE__).'/classes/BeslistFeed.php');
 require_once(dirname(__FILE__).'/controllers/admin/AdminBeslistCartOrdersController.php');
 
-BeslistFeed::run();
+if (Tools::getIsset('secure_key')) {
+    $secureKey = md5(_COOKIE_KEY_ . Configuration::get('PS_SHOP_NAME') . 'BESLISTCART');
+    if (!empty($secureKey) && $secureKey === Tools::getValue('secure_key')) {
+        BeslistFeed::run();
+    }
+}
