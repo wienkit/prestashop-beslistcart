@@ -668,12 +668,19 @@ class AdminBeslistCartOrdersController extends AdminController
                 }
                 $hasProducts = true;
                 $oldMinimalQuantity = self::updateMinimalQuantity($product->id, $productIds['id_product_attribute']);
-                $oldOutOfStockBehaviour = self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute']);
+                $oldOutOfStockBehaviour = self::updateOutOfStockBehaviour(
+                    $product->id,
+                    $productIds['id_product_attribute']
+                );
                 $cartResult = $cart->updateQty($item->numberOrdered, $product->id, $productIds['id_product_attribute']);
                 if ($oldMinimalQuantity > 1) {
                     self::updateMinimalQuantity($product->id, $productIds['id_product_attribute'], $oldMinimalQuantity);
                 }
-                self::updateOutOfStockBehaviour($product->id, $productIds['id_product_attribute'], $oldOutOfStockBehaviour);
+                self::updateOutOfStockBehaviour(
+                    $product->id,
+                    $productIds['id_product_attribute'],
+                    $oldOutOfStockBehaviour
+                );
                 if (!$cartResult) {
                     $context->controller->errors[] = Tools::displayError(
                         'Couldn\'t add product to cart. The product cannot
