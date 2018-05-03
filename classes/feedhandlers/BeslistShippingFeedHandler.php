@@ -134,7 +134,7 @@ class BeslistShippingFeedHandler
      */
     private function getProductShippingCostPerCountry($product, $price, $country)
     {
-        if ($price >= $this->shippingFreePrice) {
+        if ($this->shippingFreePrice > 0 && $price >= $this->shippingFreePrice) {
             $shippingTotal = 0;
         } elseif ($this->shipping_method[$country] == Carrier::SHIPPING_METHOD_WEIGHT) {
             if (!isset($product['attribute_weight']) || is_null($product['attribute_weight'])) {
