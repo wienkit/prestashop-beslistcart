@@ -537,7 +537,7 @@ class AdminBeslistCartOrdersController extends AdminController
             '',
             $name
         );
-        return substr($name, 0, 32);
+        return Tools::substr($name, 0, 32);
     }
 
     /**

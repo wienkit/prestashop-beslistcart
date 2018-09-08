@@ -48,7 +48,7 @@ class ShopItemFactory
         $price = $this->getPrice($beslistProduct);
         $productData = $this->getProductInformation($beslistProduct, $context, $quantityOverride);
 
-        $shipping = [];
+        $shipping = array();
         foreach (array('nl', 'be') as $country) {
             $shipping[] = $this->getShippingField($productData, $country, $price);
         }
