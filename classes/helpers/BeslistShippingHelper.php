@@ -13,7 +13,7 @@
  * @license   LICENSE.txt
  */
 
-class BeslistShippingFeedHandler
+class BeslistShippingHelper
 {
     /** @var array */
     private $shipping_method = array();
@@ -81,14 +81,16 @@ class BeslistShippingFeedHandler
      * @param $price
      * @return string
      */
-    public function handle($product, $price)
+    public function handleFeedEntry($product, $price)
     {
         $result = "";
         $countries = array('nl', 'be');
         foreach ($countries as $country) {
             if ($this->enabled[$country]) {
-                $result .= $this->getProductDeliveryPeriodForCountry($product, $country);
-                $result .= $this->getProductShippingCostPerCountry($product, $price, $country);
+                $deliveryPeriod = $this->getProductDeliveryPeriodForCountry($product, $country);
+                $result .= "<deliveryperiod_{$country}>{$deliveryPeriod}</deliveryperiod_{$country}>" . PHP_EOL;
+                $shippingCost = $this->getProductShippingCostPerCountry($product, $price, $country);
+                $result .= "<shippingcost_{$country}>{$shippingCost}</shippingcost_{$country}>" . PHP_EOL;
             }
         }
         return trim($result, PHP_EOL);
@@ -112,18 +114,18 @@ class BeslistShippingFeedHandler
      * @param $country
      * @return string
      */
-    private function getProductDeliveryPeriodForCountry($product, $country)
+    public function getProductDeliveryPeriodForCountry($product, $country)
     {
         if ($product['stock'] < 1) {
-            $deliveryperiod = $this->deliveryperiod_nostock[$country];
+            $deliveryPeriod = $this->deliveryperiod_nostock[$country];
         } elseif (!empty($product["delivery_code_{$country}"])) {
-            $deliveryperiod = $product["delivery_code_{$country}"];
+            $deliveryPeriod = $product["delivery_code_{$country}"];
         } elseif (!empty($product['available_now'])) {
-            $deliveryperiod = $product['available_now'];
+            $deliveryPeriod = $product['available_now'];
         } else {
-            $deliveryperiod = $this->deliveryperiod[$country];
+            $deliveryPeriod = $this->deliveryperiod[$country];
         }
-        return "<deliveryperiod_{$country}>{$deliveryperiod}</deliveryperiod_{$country}>" . PHP_EOL;
+        return $deliveryPeriod;
     }
 
     /**
@@ -132,7 +134,7 @@ class BeslistShippingFeedHandler
      * @param $country
      * @return string
      */
-    private function getProductShippingCostPerCountry($product, $price, $country)
+    public function getProductShippingCostPerCountry($product, $price, $country)
     {
         if ($this->shippingFreePrice > 0 && $price >= $this->shippingFreePrice) {
             $shippingTotal = 0;
@@ -158,8 +160,6 @@ class BeslistShippingFeedHandler
                 $shippingTotal += $this->shippingHandling;
             }
         }
-        $shipping_cost = Tools::ps_round($shippingTotal * (1 + ($this->carrier_tax[$country] / 100)), 2);
-
-        return "<shippingcost_{$country}>{$shipping_cost}</shippingcost_{$country}>" . PHP_EOL;
+        return Tools::ps_round($shippingTotal * (1 + ($this->carrier_tax[$country] / 100)), 2);
     }
 }

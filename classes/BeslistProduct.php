@@ -342,4 +342,23 @@ class BeslistProduct extends ObjectModel
             0
         );
     }
+
+    public function getProductWeights($id_lang = null)
+    {
+        $sql = "SELECT p.weight, pl.available_now, pa.weight as attribute_weight";
+        $sql .= " FROM `" . _DB_PREFIX_ . "product` p ";
+        $sql .= Shop::addSqlAssociation('product', 'p');
+        $sql .= " LEFT JOIN `" . _DB_PREFIX_ . "product_lang` pl ON (p.`id_product` = pl.`id_product` ";
+        $sql .= Shop::addSqlRestrictionOnLang('pl') . ")";
+        if ($this->id_product_attribute > 0) {
+            $sql .= " LEFT JOIN `" . _DB_PREFIX_ . "product_attribute` pa ON (
+              p.`id_product` = pa.`id_product`
+            ) ";
+        }
+        $sql .= " WHERE p.`id_product` = " . (int) $this->id_product . " AND pl.`id_lang` = " . (int) $id_lang;
+        if ($this->id_product_attribute > 0) {
+            $sql .= " AND pa.`id_product_attribute` = " . (int) $this->id_product_attribute;
+        }
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    }
 }

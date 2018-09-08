@@ -931,7 +931,7 @@ class BeslistCart extends Module
             $product_designation[$attribute['id_product_attribute']] = $attribute['attribute_designation'];
         }
 
-        $beslistProducts = BeslistProduct::getByProductId($id_product);
+        $beslistProducts = BeslistProduct::getByProductId($product->id);
         $indexedBeslistProducts = array();
         foreach ($beslistProducts as $beslistProduct) {
             $indexedBeslistProducts[$beslistProduct['id_product_attribute']] = $beslistProduct;
@@ -1063,10 +1063,10 @@ class BeslistCart extends Module
                     $beslistProduct,
                     (int)BeslistProduct::STATUS_STOCK_UPDATE
                 );
-                AdminBeslistCartProductsController::processBeslistQuantityUpdate(
+                AdminBeslistCartProductsController::processBeslistUpdate(
                     $beslistProduct,
-                    $param['quantity'],
-                    $this->context
+                    $this->context,
+                    $param['quantity']
                 );
             }
         }
@@ -1085,7 +1085,7 @@ class BeslistCart extends Module
                 $param['object'],
                 (int)BeslistProduct::STATUS_INFO_UPDATE
             );
-            AdminBeslistCartProductsController::processBeslistProductUpdate($param['object'], $this->context);
+            AdminBeslistCartProductsController::processBeslistUpdate($param['object'], $this->context);
         }
     }
 
@@ -1152,9 +1152,6 @@ class BeslistCart extends Module
         $apiKey = Configuration::get('BESLIST_CART_SHOPITEM_APIKEY', $id_lang, $id_shop_group, $id_shop);
 
         $client = new Wienkit\BeslistShopitemClient\BeslistShopitemClient($apiKey);
-        if ((bool)Configuration::get('BESLIST_CART_TESTMODE', $id_lang, $id_shop_group, $id_shop)) {
-            $client->setTestMode(true);
-        }
 
         return $client;
     }
