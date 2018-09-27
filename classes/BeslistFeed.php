@@ -13,16 +13,16 @@
  * @license   LICENSE.txt
  */
 
-require_once(dirname(__FILE__).'/feedhandlers/BeslistFeaturesFeedHandler.php');
-require_once(dirname(__FILE__).'/feedhandlers/BeslistShippingFeedHandler.php');
+require_once(dirname(__FILE__).'/helpers/BeslistFeaturesHelper.php');
+require_once(dirname(__FILE__).'/helpers/BeslistShippingHelper.php');
 
 class BeslistFeed
 {
-    /** @var BeslistShippingFeedHandler */
-    private $shipping_handler;
+    /** @var BeslistShippingHelper */
+    private $shippingHelper;
 
-    /** @var BeslistFeaturesFeedHandler  */
-    private $features_handler;
+    /** @var BeslistFeaturesHelper  */
+    private $featuresHelper;
 
     /** @var bool|resource */
     private $file;
@@ -100,8 +100,8 @@ class BeslistFeed
         $this->limit = Tools::getValue('limit', 500);
         $this->context = Context::getContext();
         $this->shop_categories = BeslistProduct::getShopCategoriesComplete((int)$this->context->language->id);
-        $this->shipping_handler = new BeslistShippingFeedHandler();
-        $this->features_handler = new BeslistFeaturesFeedHandler();
+        $this->shippingHelper = new BeslistShippingHelper();
+        $this->featuresHelper = new BeslistFeaturesHelper();
 
         $this->use_long_description = (bool) Configuration::get('BESLIST_CART_USE_LONG_DESCRIPTION');
         $this->ps_stock_management = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
@@ -392,7 +392,7 @@ class BeslistFeed
     private function handleProductShipping($product)
     {
         $price = $this->getProductPrice($product);
-        $shipping = $this->shipping_handler->handle($product, $price);
+        $shipping = $this->shippingHelper->handleFeedEntry($product, $price);
         $this->write($shipping);
     }
 
@@ -441,7 +441,7 @@ class BeslistFeed
      */
     private function handleProductFeatures($product)
     {
-        $features = $this->features_handler->handle($product);
+        $features = $this->featuresHelper->handleFeedEntry($product);
         $this->write($features);
     }
 

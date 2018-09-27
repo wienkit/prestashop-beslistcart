@@ -523,6 +523,24 @@ class AdminBeslistCartOrdersController extends AdminController
     }
 
     /**
+     * Parse a name (truncate & replace).
+     *
+     * @param $name
+     *   The name to parse.
+     *
+     * @return bool|string
+     */
+    private static function parseName($name)
+    {
+        $name = preg_replace(
+            "/[^A-Za-z ]/",
+            '',
+            $name
+        );
+        return Tools::substr($name, 0, 32);
+    }
+
+    /**
      * Parse a customer for the order
      * @param Wienkit\BeslistOrdersClient\Entities\BeslistOrder $shopOrder
      * @return Customer
@@ -535,20 +553,13 @@ class AdminBeslistCartOrdersController extends AdminController
             return new Customer($customer['id_customer']);
         }
         $customer = new Customer();
-        $customer->firstname = preg_replace(
-            "/[^A-Za-z ]/",
-            '',
-            $shopOrder->addresses->invoice->firstName
+        $customer->firstname = self::parseName($shopOrder->addresses->invoice->firstName);
+        $lastname = trim(
+            $shopOrder->addresses->invoice->lastNameInsertion .
+            ' ' .
+            $shopOrder->addresses->invoice->lastName
         );
-        $customer->lastname = preg_replace(
-            "/[^A-Za-z ]/",
-            '',
-            trim(
-                $shopOrder->addresses->invoice->lastNameInsertion .
-                ' ' .
-                $shopOrder->addresses->invoice->lastName
-            )
-        );
+        $customer->lastname = self::parseName($lastname);
         $customer->email = $shopOrder->customer->email;
         $customer->passwd = Tools::passwdGen(8, 'RANDOM');
         $customer->id_default_group = Configuration::get('BESLIST_CART_CUSTOMER_GROUP');
@@ -571,17 +582,9 @@ class AdminBeslistCartOrdersController extends AdminController
     ) {
         $address = new Address();
         $address->id_customer = $customer->id;
-        $address->firstname = preg_replace(
-            "/[^A-Za-z ]/",
-            '',
-            $details->firstName
-        );
+        $address->firstname = self::parseName($details->firstName);
         $lastname = trim($details->lastNameInsertion . ' ' . $details->lastName);
-        $address->lastname = preg_replace(
-            "/[^A-Za-z ]/",
-            '',
-            $lastname
-        );
+        $address->lastname = self::parseName($lastname);
         $address1 = $details->address;
         $address2 = '';
         $houseNumber = $details->addressNumber;

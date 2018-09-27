@@ -13,7 +13,7 @@
  * @license   LICENSE.txt
  */
 
-class BeslistFeaturesFeedHandler
+class BeslistFeaturesHelper
 {
 
     /** @var array */
@@ -64,7 +64,7 @@ class BeslistFeaturesFeedHandler
         }
     }
 
-    public function handle($product)
+    public function handleFeedEntry($product)
     {
         $result = '';
         $featureField = '<features_combined><![CDATA[';

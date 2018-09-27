@@ -16,6 +16,7 @@
 require_once _PS_MODULE_DIR_ . 'beslistcart/libraries/autoload.php';
 require_once _PS_MODULE_DIR_ . 'beslistcart/beslistcart.php';
 require_once _PS_MODULE_DIR_ . 'beslistcart/classes/BeslistProduct.php';
+require_once _PS_MODULE_DIR_ . 'beslistcart/classes/helpers/ShopItemFactory.php';
 
 class AdminBeslistCartProductsController extends AdminController
 {
@@ -194,14 +195,7 @@ class AdminBeslistCartProductsController extends AdminController
     {
         $beslistProducts = BeslistProduct::getUpdatedProducts();
         foreach ($beslistProducts as $beslistProduct) {
-            switch ($beslistProduct->status) {
-                case BeslistProduct::STATUS_STOCK_UPDATE:
-                    self::processBeslistStockUpdate($beslistProduct, $context);
-                    break;
-                default:
-                    self::processBeslistProductUpdate($beslistProduct, $context);
-                    break;
-            }
+            self::processBeslistUpdate($beslistProduct, $context);
         }
     }
 
@@ -249,33 +243,19 @@ class AdminBeslistCartProductsController extends AdminController
      */
     public static function processBeslistProductDelete($beslistProduct, $context)
     {
-        self::processBeslistQuantityUpdate($beslistProduct, 0, $context);
+        self::processBeslistUpdate($beslistProduct, $context, 0);
     }
 
     /**
-     * Update the stock on Beslist
+     * Update the item on Beslist
      * @param BeslistProduct $beslistProduct
      * @param Context $context
+     * @param bool|int $quantity
      */
-    public static function processBeslistStockUpdate($beslistProduct, $context)
+    public static function processBeslistUpdate($beslistProduct, $context, $quantity = false)
     {
-        $quantity = StockAvailable::getQuantityAvailableByProduct(
-            $beslistProduct->id_product,
-            $beslistProduct->id_product_attribute
-        );
-        self::processBeslistQuantityUpdate($beslistProduct, $quantity, $context);
-    }
-
-    /**
-     * Update the stock on Beslist
-     * @param BeslistProduct $beslistProduct
-     * @param int $quantity
-     * @param Context $context
-     */
-    public static function processBeslistQuantityUpdate($beslistProduct, $quantity, $context)
-    {
-        $shopIds = array();
         $shopIds = BeslistProduct::getShops($beslistProduct);
+        $shopItemFactory = new ShopItemFactory();
 
         $errors = array();
 
@@ -288,32 +268,7 @@ class AdminBeslistCartProductsController extends AdminController
             $client = BeslistCart::getShopitemClient($shopId);
             $beslistShopId = (int)Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
             $matcher = (int)Configuration::get('BESLIST_CART_MATCHER', null, null, $shopId);
-
             $productRef = $beslistProduct->getReference($matcher);
-
-            $options = array(
-                'stock' => $quantity
-            );
-
-            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-                $delivery_time_nl = $beslistProduct->delivery_code_nl;
-                if ($delivery_time_nl == '' || $quantity == 0) {
-                    $delivery_time_nl = Configuration::get(
-                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
-                    );
-                }
-                $options['delivery_time_nl'] = $delivery_time_nl;
-            }
-
-            if (Configuration::get('BESLIST_CART_ENABLED_BE')) {
-                $delivery_time_be = $beslistProduct->delivery_code_be;
-                if ($delivery_time_be == '' || $quantity == 0) {
-                    $delivery_time_be = Configuration::get(
-                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
-                    );
-                }
-                $options['delivery_time_be'] = $delivery_time_be;
-            }
 
             try {
                 $client->getShopItem($beslistShopId, $productRef);
@@ -322,95 +277,8 @@ class AdminBeslistCartProductsController extends AdminController
             }
 
             try {
-                $client->updateShopItem($beslistShopId, $productRef, $options);
-            } catch (Exception $e) {
-                $message = $e->getMessage();
-                if (strpos($message, '404') !== false) {
-                    $errors[] = Tools::displayError(
-                        '[beslistcart] Couldn\'t send update to Beslist, your feed probably isn\'t processed yet.'
-                    );
-                } else {
-                    $errors[] = Tools::displayError(
-                        '[beslistcart] Couldn\'t send update to Beslist, error: ' . $message
-                    );
-                }
-            }
-        }
-        if (count($errors) == 0) {
-            self::setProductStatus($beslistProduct, (int)BeslistProduct::STATUS_OK);
-        } else {
-            $context->controller->errors = array_merge($context->controller->errors, $errors);
-        }
-    }
-
-    /**
-     * Update a product on Beslist
-     * @param BeslistProduct $beslistProduct
-     * @param Context $context
-     */
-    public static function processBeslistProductUpdate($beslistProduct, $context)
-    {
-        $price = BeslistProduct::getPriceStatic(
-            $beslistProduct->id_product,
-            $beslistProduct->id_product_attribute
-        );
-        $quantity = StockAvailable::getQuantityAvailableByProduct(
-            $beslistProduct->id_product,
-            $beslistProduct->id_product_attribute
-        );
-
-        $shopIds = array();
-        if ($quantity > 0 || !(bool)Configuration::get('BESLIST_CART_FILTER_NO_STOCK')) {
-            $shopIds = BeslistProduct::getShops($beslistProduct);
-        }
-
-        $errors = array();
-
-        foreach ($shopIds as $shopIdRow) {
-            $shopId = $shopIdRow['id_shop'];
-            if (!BeslistCart::isEnabledForShop($shopId)) {
-                continue;
-            }
-
-            $client = BeslistCart::getShopitemClient($shopId);
-
-            $beslistShopId = (int) Configuration::get('BESLIST_CART_SHOPID', null, null, $shopId);
-            $matcher = (int) Configuration::get('BESLIST_CART_MATCHER', null, null, $shopId);
-
-            $productRef = $beslistProduct->getReference($matcher);
-            $options = array(
-                'price' => $price,
-                'stock' => $beslistProduct->published ? $quantity : 0
-            );
-
-            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-                $delivery_time_nl = $beslistProduct->delivery_code_nl;
-                if ($delivery_time_nl == '' || $quantity == 0) {
-                    $delivery_time_nl = Configuration::get(
-                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_NL'
-                    );
-                }
-                $options['delivery_time_nl'] = $delivery_time_nl;
-            }
-
-            if (Configuration::get('BESLIST_CART_ENABLED_NL')) {
-                $delivery_time_be = $beslistProduct->delivery_code_be;
-                if ($delivery_time_be == '' || $quantity == 0) {
-                    $delivery_time_be = Configuration::get(
-                        'BESLIST_CART_DELIVERYPERIOD' . ($quantity == 0 ? '_NOSTOCK' : '') . '_BE'
-                    );
-                }
-                $options['delivery_time_be'] = $delivery_time_be;
-            }
-
-            try {
-                $client->getShopItem($beslistShopId, $productRef);
-            } catch (Exception $e) {
-                continue;
-            }
-
-            try {
-                $client->updateShopItem($beslistShopId, $productRef, $options);
+                $shopItem = $shopItemFactory->getShopItem($beslistProduct, $quantity);
+                $client->updateShopItem($beslistShopId, $productRef, $shopItem);
             } catch (Exception $e) {
                 $message = $e->getMessage();
                 if (strpos($message, '404') !== false) {
