@@ -381,7 +381,14 @@ class BeslistCart extends Module
         // Get default language
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
-        $carriers = Carrier::getCarriers(Context::getContext()->language->id);
+        $carriers = Carrier::getCarriers(
+            Context::getContext()->language->id,
+            false,
+            false,
+            false,
+            null,
+            Carrier::ALL_CARRIERS
+        );
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
         $customer_groups = Group::getGroups(Context::getContext()->language->id);
 
