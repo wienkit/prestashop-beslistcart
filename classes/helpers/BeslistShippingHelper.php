@@ -44,8 +44,8 @@ class BeslistShippingHelper
 
     public function __construct()
     {
-        $this->shippingFreePrice = (int) Configuration::get('PS_SHIPPING_FREE_PRICE');
-        $this->shippingHandling = (int) Configuration::get('PS_SHIPPING_HANDLING');
+        $this->shippingFreePrice = (float) Configuration::get('PS_SHIPPING_FREE_PRICE');
+        $this->shippingHandling = (float) Configuration::get('PS_SHIPPING_HANDLING');
 
         $this->deliveryperiod['nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
         $this->deliveryperiod_nostock['nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
