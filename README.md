@@ -9,7 +9,7 @@ Download the module in a zipfile or clone it and run
 ```
 $ composer install
 ```
-In the root of the directory to download the module's dependencies. Add the module to the `modules` folder of your PrestaShop installation and enable it in the backoffice.
+In the root of the directory to download the module's dependencies. Add the complete module directory to the `modules` folder of your PrestaShop installation (name it `beslistcart`) and enable it in the backoffice.
 
 Further documentation can be found at https://werkaandewebshop-beslistcart.readthedocs.io/nl/latest/
 
