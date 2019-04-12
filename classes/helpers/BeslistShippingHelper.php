@@ -44,8 +44,8 @@ class BeslistShippingHelper
 
     public function __construct()
     {
-        $this->shippingFreePrice = (int) Configuration::get('PS_SHIPPING_FREE_PRICE');
-        $this->shippingHandling = (int) Configuration::get('PS_SHIPPING_HANDLING');
+        $this->shippingFreePrice = (float) Configuration::get('PS_SHIPPING_FREE_PRICE');
+        $this->shippingHandling = (float) Configuration::get('PS_SHIPPING_HANDLING');
 
         $this->deliveryperiod['nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NL');
         $this->deliveryperiod_nostock['nl'] = Configuration::get('BESLIST_CART_DELIVERYPERIOD_NOSTOCK_NL');
@@ -55,21 +55,29 @@ class BeslistShippingHelper
         $this->enabled['nl'] = (bool) Configuration::get('BESLIST_CART_ENABLED_NL');
         $this->enabled['be'] = (bool) Configuration::get('BESLIST_CART_ENABLED_BE');
 
-        $this->country['nl'] = new Country(Country::getByIso('NL'));
-        $this->country['be'] = new Country(Country::getByIso('BE'));
+        if ($this->enabled['nl']) {
+            $this->country['nl'] = new Country(Country::getByIso('NL'));
+            $carrier_nl = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
+            if ($carrier_nl) {
+                $this->carrier['nl'] = $carrier_nl;
+                $this->shipping_method['nl'] = $this->carrier['nl']->getShippingMethod();
+                $this->carrier_tax['nl'] = $this->carrier['nl']->getTaxesRate(
+                    $this->getDefaultAddress($this->country['nl']->id)
+                );
+            }
+        }
 
-        $this->carrier['nl'] = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_NL'));
-        $this->carrier['be'] = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
-
-        $this->shipping_method['nl'] = $this->carrier['nl']->getShippingMethod();
-        $this->shipping_method['be'] = $this->carrier['be']->getShippingMethod();
-
-        $this->carrier_tax['nl'] = $this->carrier['nl']->getTaxesRate(
-            $this->getDefaultAddress($this->country['nl']->id)
-        );
-        $this->carrier_tax['be'] = $this->carrier['be']->getTaxesRate(
-            $this->getDefaultAddress($this->country['be']->id)
-        );
+        if ($this->enabled['be']) {
+            $this->country['be'] = new Country(Country::getByIso('BE'));
+            $carrier_be = Carrier::getCarrierByReference(Configuration::get('BESLIST_CART_CARRIER_BE'));
+            if ($carrier_be) {
+                $this->carrier['be'] = $carrier_be;
+                $this->shipping_method['be'] = $carrier_be->getShippingMethod();
+                $this->carrier_tax['be'] = $carrier_be->getTaxesRate(
+                    $this->getDefaultAddress($this->country['be']->id)
+                );
+            }
+        }
     }
 
     /**

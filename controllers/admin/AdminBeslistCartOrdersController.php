@@ -610,7 +610,11 @@ class AdminBeslistCartOrdersController extends AdminController
         );
 
         $address->postcode = $details->zip;
-        $address->city = $details->city;
+        $address->city = preg_replace(
+            '/[!<>?=+@{}_$%]*/',
+            '',
+            $details->city
+        );
         $address->id_country = Country::getByIso($details->country);
         $address->alias = $alias;
         return $address;

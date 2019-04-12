@@ -345,7 +345,12 @@ class BeslistProduct extends ObjectModel
 
     public function getProductWeights($id_lang = null)
     {
-        $sql = "SELECT p.weight, pl.available_now, pa.weight as attribute_weight";
+        $sql = "SELECT p.weight, pl.available_now, ";
+        if ($this->id_product_attribute > 0) {
+            $sql .= "pa.weight as attribute_weight";
+        } else {
+            $sql .= "0 as attribute_weight";
+        }
         $sql .= " FROM `" . _DB_PREFIX_ . "product` p ";
         $sql .= Shop::addSqlAssociation('product', 'p');
         $sql .= " LEFT JOIN `" . _DB_PREFIX_ . "product_lang` pl ON (p.`id_product` = pl.`id_product` ";

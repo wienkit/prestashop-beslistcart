@@ -29,7 +29,7 @@ class BeslistCart extends Module
     {
         $this->name = 'beslistcart';
         $this->tab = 'market_place';
-        $this->version = '1.5.0';
+        $this->version = '1.5.1';
         $this->author = 'Wienk IT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -381,7 +381,14 @@ class BeslistCart extends Module
         // Get default language
         $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
-        $carriers = Carrier::getCarriers(Context::getContext()->language->id);
+        $carriers = Carrier::getCarriers(
+            Context::getContext()->language->id,
+            false,
+            false,
+            false,
+            null,
+            Carrier::ALL_CARRIERS
+        );
         $attributes = AttributeGroup::getAttributesGroups(Context::getContext()->language->id);
         $customer_groups = Group::getGroups(Context::getContext()->language->id);
 

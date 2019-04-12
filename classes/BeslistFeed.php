@@ -423,6 +423,7 @@ class BeslistFeed
         } else {
             $display = 0;
         }
+        $this->write("<stock>{$product['stock']}</stock>");
         $this->write("<display>{$display}</display>");
     }
 
